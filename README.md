@@ -1,5 +1,7 @@
 # Social Forever
 
+**Author:** Babuni.dev
+
 **Social Forever remembers the people you meet while playing World of Warcraft: Forever.**
 
 While you quest, the same players often cross your path again and again. Social Forever keeps a small list of those people above your chat so they are easier to recognize, target, invite, and remember the next time you meet.
