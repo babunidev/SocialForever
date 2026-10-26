@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Social Forever
 ## Notes: Nearby players while questing, with invites and a memory of who was good to group with.
-## Author: Babunigaming
+## Author: Babuni.dev
 ## Version: 0.4.6-beta
 ## SavedVariables: SocialForeverDB
 ## IconTexture: Interface\Icons\INV_Misc_Note_01
