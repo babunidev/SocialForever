@@ -103,3 +103,8 @@
 - First CurseForge beta.
 - The close **x** sits in the top-left corner, away from the gear button.
 - Hovering the **x** shows that `/sf` or `/socialforever` brings the window back.
+
+## Documentation-only audit — 2026-10-27 (#32)
+
+- Added missing visual-design, content/provenance and AI-collaboration guides; expanded overview, architecture, roadmap, development-history and decision navigation.
+- Preserved the original 0.4.6-beta history and Lua implementation. No addon behavior or version metadata was changed, and no client/network tests were run during the audit.
