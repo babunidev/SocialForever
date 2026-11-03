@@ -6,7 +6,7 @@ Preserve source-supported mechanics and user intention. Document historical user
 
 ## Documentation and privacy standard (audit #32)
 
-Preserve `DEVELOPMENT.md` and `CHANGELOG.md` as chronological implementation evidence. Maintain explicit separation between *Zone candidate*, *Nearby observation*, *persisted personal memory*, *private flags* and *shared marks*. Do not portray subjective player labels or received votes as verified reputation facts. Never publish actual identifiable player records in the portfolio. Attribute the original social-recognition purpose to Babuni.dev; label AI assistance, code-only findings, historic claims and newly executed tests separately.
+Preserve `DEVELOPMENT.md` and `CHANGELOG.md` as chronological implementation evidence. Maintain explicit separation between *Zone candidate*, *Nearby observation*, *persisted personal memory*, *private flags* and *shared marks*. Do not portray subjective player labels or received votes as verified reputation facts. Never publish actual identifiable player records in the portfolio. Attribute the original social-recognition purpose to Babuni; label AI assistance, code-only findings, historic claims and newly executed tests separately.
 
 ## Repository-local documentation standard
 
