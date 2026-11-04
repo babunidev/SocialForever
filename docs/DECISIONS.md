@@ -31,3 +31,5 @@ These decisions are evidenced by recorded development changes. Where an original
 - **Future social highlighting:** better friend highlighting and highlighting players who fought the same mob are future ideas, not implemented features.
 - **Forever-only race/class data:** icon overrides follow Blizzard's official Forever combinations; later-client-only combinations are not supported.
 - **Raid membership is not proximity:** being in the same raid cannot by itself keep a character in Nearby.
+
+- **0.4.7-beta release timing:** On 2026-11-04 Babuni approved preparing and publishing the beta before final live-client testing because the Forever servers were not yet playable. Automated/local verification must remain described as such; any launch-day client defects are follow-up fixes, not evidence that the beta was pre-release in-game verified.

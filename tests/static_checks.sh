@@ -29,8 +29,13 @@ fi
 echo "Checking periodic sorting ticker..."
 grep -Fq 'C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)' Events.lua
 
-echo "Checking CI/test files are excluded from CurseForge packaging..."
-grep -Eq '^[[:space:]]*-[[:space:]]+\.github[[:space:]]*$' .pkgmeta
-grep -Eq '^[[:space:]]*-[[:space:]]+tests[[:space:]]*$' .pkgmeta
+echo "Checking CurseForge packaging metadata..."
+grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*
+
+echo "PASS: static source and manifest checks"
+ .pkgmeta
+for ignored in .github tests AGENTS.md CONCEPT.md DEVELOPMENT.md ROADMAP.md docs; do
+  grep -Eq "^[[:space:]]*-[[:space:]]+${ignored//./\\.}[[:space:]]*$" .pkgmeta
+done
 
 echo "PASS: static source and manifest checks"

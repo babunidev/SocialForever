@@ -9,7 +9,7 @@ While you quest, the same players often cross your path again and again. Social 
 Over time, strangers can become familiar names.
 
 Built by **Babunigaming** for **World of Warcraft: Forever** (Interface 16001).  
-Current version: **0.4.6-beta**
+Current version: **0.4.7-beta**
 
 ## What it does
 
@@ -45,7 +45,7 @@ A nearby player can stay up to **3 minutes** after the last sighting, but Social
 
 Out in the world, moving into another subzone removes players from the previous subzone immediately. Capital cities are treated as one larger place, so walking between areas of Ironforge or Stormwind does not clear everyone from the list.
 
-Party and raid members remain while they are still in your group.
+Party members remain while they are still in your group. Raid membership by itself does not prove proximity; raid members still need positive nearby evidence to stay on Nearby.
 
 ### In this zone
 
@@ -282,4 +282,4 @@ The journal distinguishes source-based reconstruction, author direction, AI assi
 
 The original [development log](DEVELOPMENT.md) and [changelog](CHANGELOG.md) remain the primary account of releases and corrections. The supporting [design](docs/DESIGN.md), [content/provenance](docs/CONTENT.md), [architecture](docs/ARCHITECTURE.md), [decisions](docs/DECISIONS.md), [development journal](docs/DEVLOG.md), and [AI collaboration](docs/AI_COLLABORATION.md) documents interpret them for the portfolio without inventing missing history.
 
-**Current documented state:** 0.4.6-beta, Interface 16001. The Nearby/Zone split matters: names in General do not prove physical proximity or count as personal familiarity. The familiar-thought mechanic uses a 20-minute per-player cooldown surviving reload/logout. Flags, KOS and declined invite counts are personal; compatible nearby users may exchange color marks, not flags. The documentation audit did not execute WoW, send invitations, inspect real player data or test migrations. Functional and security/privacy acceptance remains separate from the historical source review.
+**Current documented state:** 0.4.7-beta, Interface 16001. The Nearby/Zone split matters: names in General do not prove physical proximity or count as personal familiarity. The familiar-thought mechanic uses a 20-minute per-player cooldown surviving reload/logout. Flags, KOS and declined invite counts are personal; compatible nearby users may exchange color marks, not flags. The documentation audit did not execute WoW, send invitations, inspect real player data or test migrations. Functional and security/privacy acceptance remains separate from the historical source review.

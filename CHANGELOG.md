@@ -1,10 +1,9 @@
 # Social Forever — Changelog
 
-## Unreleased — Forever release preparation
+## 0.4.7-beta — 2026-11-04
 
 - Added a GitHub Actions pre-release verification suite covering Lua syntax, SavedVariables migration, the Forever race/class icon matrix, familiarity and recognition, memory reset, raid presence and API-call counts, sorting, Nearby/Zone separation, same-mob prompt safety, sharing privacy, name normalization, static cleanup, TOC integrity, and package re-extraction checks.
-- Automated checks are explicitly local/mock verification; they do not count as live Forever client testing.
-
+- Automated checks are explicitly local/mock verification; they do not count as live Forever client testing. This beta is being released before final launch-day in-game verification; any client-specific issues found after servers open will be fixed in a follow-up version.
 - Removed **Auto-invite friends** and all dead friend auto-invite code. Friend detection remains available for future visual highlighting.
 - Removed **same-mob Auto-invite** and programmatic invite paths. Same-mob grouping can only offer the user a secure, clickable Invite action.
 - Corrected race/class icons to the official Forever matrix and removed later-client-only race/class combinations and Death Knight mappings.

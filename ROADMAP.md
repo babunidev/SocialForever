@@ -37,4 +37,5 @@ These are verification tasks, not approval for new gameplay features. No in-game
 
 - [x] Run deterministic pre-release syntax, mock, privacy, static and package-integrity checks through GitHub Actions; keep them explicitly separate from live Forever testing.
 - [ ] Update the CurseForge description before the next public release: marks are shared, flags stay private, and no friend or same-mob auto-invite is offered.
-- [ ] Complete live Forever verification after the client is available; local/mock checks do not replace in-game testing.
+- [x] Prepare 0.4.7-beta from the green automated verification suite for launch-day publication.
+- [ ] Complete live Forever verification after the client is available; for 0.4.7-beta this is explicitly deferred until after publication and does not retroactively become pre-release verification.

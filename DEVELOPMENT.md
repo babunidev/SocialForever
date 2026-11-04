@@ -5,7 +5,7 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
-## Unreleased — Forever release preparation
+## 0.4.7-beta — Forever release preparation
 
 - Added `.github/workflows/verify.yml` and a repository-local `tests/` suite so deterministic pre-release checks run automatically on pushes, pull requests, and manual workflow dispatches.
 - CI validates all seven Lua modules, SavedVariables cleanup, identity icons, familiarity/recognition, reset behavior, raid proximity and call counts, sorting, detection separation, same-mob prompt-only behavior, sharing privacy, player-name normalization, static cleanup, TOC references, and a clean re-extracted package. These are automated/mock checks only, not in-game verification.
@@ -17,7 +17,7 @@ When a change ships, add it at the top. Keep the note about what the player can 
 - Group roster caches retain unit tokens; validation reuses them instead of a second full raid sweep, and raid members without positive nearby evidence can stale out.
 - Added a `C.SORT_EVERY` UI refresh ticker so distance/recency can be reconsidered without membership changes.
 - Added `LICENSE` (MIT) to align GitHub with the existing CurseForge license declaration.
-- Source change only; live Forever behavior remains unverified.
+- Automated/local verification is green. Babuni approved preparing 0.4.7-beta for public release before final launch-day in-game verification; live Forever behavior remains unverified and any client-specific defects found after servers open will be handled in a follow-up version.
 
 
 ## 0.4.6-beta — Cleaner hover tooltip
