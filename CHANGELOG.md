@@ -1,5 +1,16 @@
 # Social Forever — Changelog
 
+## Unreleased — Forever release preparation
+
+- Removed **Auto-invite friends** and all dead friend auto-invite code. Friend detection remains available for future visual highlighting.
+- Removed **same-mob Auto-invite** and programmatic invite paths. Same-mob grouping can only offer the user a secure, clickable Invite action.
+- Corrected race/class icons to the official Forever matrix and removed later-client-only race/class combinations and Death Knight mappings.
+- Unknown combinations now fall back to the known class icon before the generic race portrait.
+- Raid membership alone no longer keeps a player Nearby indefinitely, and presence validation reuses cached group tokens instead of rescanning the full raid.
+- Added a lightweight periodic sort refresh so distance/recency changes can reorder an unchanged list.
+- Added the repository MIT license to match the existing CurseForge license declaration.
+
+
 ## 0.4.6-beta — 2026-10-22
 
 - Player tooltips no longer show **General: no mark yet**, **Your mark: none yet**, or **Flags: none**. General and Flags lines appear only when there is something to say.

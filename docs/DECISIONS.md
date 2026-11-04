@@ -23,3 +23,11 @@ Review detection-source false positives, large-local-population behavior, invite
 - **0.4.5 recognition:** Blue/purple familiar players may trigger a quiet race/class thought on a Nearby entrance or when targeted; one per-person 20-minute cooldown persists, with a 2–5-second delayed Nearby message.
 
 These decisions are evidenced by recorded development changes. Where an original conversation or explicit acceptance is not preserved, do not fabricate one or infer that every implementation choice came from Babuni.dev.
+
+
+## Pre-release decisions — 2026-11-04
+
+- **Invites remain deliberate:** friend auto-invite and same-mob auto-invite are removed. An invitation is only sent from a player's secure click.
+- **Future social highlighting:** better friend highlighting and highlighting players who fought the same mob are future ideas, not implemented features.
+- **Forever-only race/class data:** icon overrides follow Blizzard's official Forever combinations; later-client-only combinations are not supported.
+- **Raid membership is not proximity:** being in the same raid cannot by itself keep a character in Nearby.

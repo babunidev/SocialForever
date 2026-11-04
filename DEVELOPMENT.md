@@ -4,6 +4,19 @@ Social Forever, by Babunigaming. Newest step first.
 
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
+
+## Unreleased — Forever release preparation
+
+- Removed friend auto-invite UI/state and the empty `UI.TryAutoInvite` path; friend detection remains for future highlighting.
+- Removed `sameMobAutoInvite`, `sameMobApiInvite`, `InviteByKey`, and the automatic same-mob branch. The existing same-mob prompt remains opt-in and its Invite action is a secure user click.
+- Rebuilt the icon map from Blizzard's official Forever race/class matrix, including the six new combinations and Skyborne Mage/Shaman faction options; later-client Draenei/Blood Elf/Death Knight combinations were removed.
+- `IdentityIcon` now prefers a known class icon before a generic race portrait.
+- Group roster caches retain unit tokens; validation reuses them instead of a second full raid sweep, and raid members without positive nearby evidence can stale out.
+- Added a `C.SORT_EVERY` UI refresh ticker so distance/recency can be reconsidered without membership changes.
+- Added `LICENSE` (MIT) to align GitHub with the existing CurseForge license declaration.
+- Source change only; live Forever behavior remains unverified.
+
+
 ## 0.4.6-beta — Cleaner hover tooltip
 
 - `UI.ShowTip`: drop empty General / Your mark / Flags lines. Keep General tally and Flags list only when non-empty; name color already carries the mark.

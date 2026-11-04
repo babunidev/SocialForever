@@ -76,6 +76,8 @@ New names fade in, departing names fade out, and names that change position brie
 
 ## Targeting and inviting
 
+Social Forever never sends invitations automatically. Every invitation remains a deliberate player click through the secure Invite button.
+
 Click a nearby player's name to try to target them.
 
 If the target does not resolve to that player, Social Forever removes them from the nearby list rather than pretending they are still there.
@@ -227,7 +229,7 @@ The window normally sits above the chat frame.
 - Hover the **x** for a reminder that `/sf` or `/socialforever` brings the window back.
 - Drag the title bar to move it.
 - Drag the `..` grip in the bottom-right corner to resize it.
-- Use the gear button to change grouping options, name size, background opacity, and Memory reset (one player or all remembered players).
+- Use the gear button to toggle the same-mob invite prompt, change name size and background opacity, and reset Memory (one player or all remembered players).
 - Use the mouse wheel to scroll longer lists.
 - Press Escape to close the right-click menu or group-rating window. The main Social Forever window stays open.
 
@@ -258,6 +260,11 @@ Then reload the game:
 ```text
 /reload
 ```
+
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Development
 

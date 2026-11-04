@@ -162,8 +162,6 @@ S.P = {
     nameplateByUnit = {},
     staleTrackable = 18,
     staleInteraction = 25,
-    -- false until a programmatic invite is proven; Forever rejects these.
-    sameMobApiInvite = false,
     sameMobStamp = nil,
     sameMobPromptPending = false,
     meterAttempt = 0,
@@ -256,12 +254,10 @@ C.FACTION_BY_RACE = {
     Dwarf = "Alliance",
     NightElf = "Alliance",
     Gnome = "Alliance",
-    Draenei = "Alliance",
     Orc = "Horde",
     Troll = "Horde",
     Tauren = "Horde",
     Scourge = "Horde",
-    BloodElf = "Horde",
 }
 
 C.CRAFT_VERBS = {
@@ -280,13 +276,11 @@ C.RACE_ICONS = {
     Dwarf = "Interface\\Icons\\Achievement_Character_Dwarf_Male",
     NightElf = "Interface\\Icons\\Achievement_Character_Nightelf_Male",
     Gnome = "Interface\\Icons\\Achievement_Character_Gnome_Male",
-    Draenei = "Interface\\Icons\\Achievement_Character_Draenei_Male",
     Orc = "Interface\\Icons\\Achievement_Character_Orc_Male",
     Troll = "Interface\\Icons\\Achievement_Character_Troll_Male",
     Tauren = "Interface\\Icons\\Achievement_Character_Tauren_Male",
     Scourge = "Interface\\Icons\\Achievement_Character_Undead_Male",
     Undead = "Interface\\Icons\\Achievement_Character_Undead_Male",
-    BloodElf = "Interface\\Icons\\Achievement_Character_Bloodelf_Male",
     Skyborne = "Interface\\Icons\\Ability_Druid_FlightForm",
     Skyborn = "Interface\\Icons\\Ability_Druid_FlightForm",
 }
@@ -301,7 +295,6 @@ C.RACE_CLASS_ICONS = {
         PRIEST = "Interface\\Icons\\Spell_Holy_DivineSpirit",
         MAGE = "Interface\\Icons\\Spell_Holy_MagicalSentry",
         WARLOCK = "Interface\\Icons\\Spell_Shadow_SummonImp",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
     },
     Dwarf = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Dwarf_Male",
@@ -309,34 +302,21 @@ C.RACE_CLASS_ICONS = {
         HUNTER = "Interface\\Icons\\Ability_Hunter_RunningShot",
         ROGUE = "Interface\\Icons\\Ability_Rogue_Disguise",
         PRIEST = "Interface\\Icons\\Spell_Holy_WordFortitude",
-        MAGE = "Interface\\Icons\\Spell_Frost_IceStorm",
-        WARLOCK = "Interface\\Icons\\Spell_Shadow_CurseOfTounges",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
+        SHAMAN = "Interface\\Icons\\Spell_Nature_Lightning",
     },
     NightElf = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Nightelf_Male",
         HUNTER = "Interface\\Icons\\Ability_Hunter_Pet_Owl",
         ROGUE = "Interface\\Icons\\Ability_Druid_SupriseAttack",
         PRIEST = "Interface\\Icons\\Spell_Nature_Moonglow",
-        MAGE = "Interface\\Icons\\Spell_Arcane_Blink",
         DRUID = "Interface\\Icons\\Ability_Racial_ShadowMeld",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
     },
     Gnome = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Gnome_Male",
         ROGUE = "Interface\\Icons\\Ability_Rogue_FleetFooted",
         MAGE = "Interface\\Icons\\Spell_Arcane_MindMastery",
         WARLOCK = "Interface\\Icons\\Spell_Shadow_ShadowBolt",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
-    },
-    Draenei = {
-        WARRIOR = "Interface\\Icons\\Achievement_Character_Draenei_Male",
-        PALADIN = "Interface\\Icons\\Spell_Holy_HolyGuidance",
-        HUNTER = "Interface\\Icons\\Ability_Hunter_Pet_WarpStalker",
-        PRIEST = "Interface\\Icons\\Spell_Holy_HolyProtection",
-        MAGE = "Interface\\Icons\\Spell_Arcane_PortalShattrath",
-        SHAMAN = "Interface\\Icons\\Spell_Nature_BloodLust",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
+        PRIEST = "Interface\\Icons\\Spell_Holy_PowerWordShield",
     },
     Orc = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Orc_Male",
@@ -345,7 +325,6 @@ C.RACE_CLASS_ICONS = {
         SHAMAN = "Interface\\Icons\\Spell_Nature_BloodLust",
         MAGE = "Interface\\Icons\\Spell_Fire_Fireball02",
         WARLOCK = "Interface\\Icons\\Spell_Shadow_SummonFelHunter",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
     },
     Troll = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Troll_Male",
@@ -355,37 +334,20 @@ C.RACE_CLASS_ICONS = {
         SHAMAN = "Interface\\Icons\\Spell_Nature_Lightning",
         MAGE = "Interface\\Icons\\Spell_Fire_Fireball",
         WARLOCK = "Interface\\Icons\\Spell_Shadow_CurseOfMannoroth",
-        DRUID = "Interface\\Icons\\Ability_Druid_CatForm",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
     },
     Tauren = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Tauren_Male",
         HUNTER = "Interface\\Icons\\Ability_Hunter_Pet_TallStrider",
         SHAMAN = "Interface\\Icons\\Spell_Nature_EarthBindTotem",
         DRUID = "Interface\\Icons\\Ability_Racial_BearForm",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
-        PALADIN = "Interface\\Icons\\Spell_Holy_SealOfMight",
-        PRIEST = "Interface\\Icons\\Spell_Holy_WordFortitude",
-        MAGE = "Interface\\Icons\\Spell_Arcane_Blast",
     },
     Scourge = {
         WARRIOR = "Interface\\Icons\\Achievement_Character_Undead_Male",
-        HUNTER = "Interface\\Icons\\Spell_Shadow_Twilight",
         ROGUE = "Interface\\Icons\\Ability_Stealth",
         PRIEST = "Interface\\Icons\\Spell_Shadow_Shadowform",
         MAGE = "Interface\\Icons\\Spell_Frost_FrostBolt02",
         WARLOCK = "Interface\\Icons\\Spell_Shadow_DeathCoil",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
-    },
-    BloodElf = {
-        WARRIOR = "Interface\\Icons\\Achievement_Character_Bloodelf_Male",
-        PALADIN = "Interface\\Icons\\Spell_Holy_WeaponMastery",
-        HUNTER = "Interface\\Icons\\Ability_Hunter_Pet_DragonHawk",
-        ROGUE = "Interface\\Icons\\Ability_Rogue_ShadowStrikes",
-        PRIEST = "Interface\\Icons\\Spell_Holy_PowerWordShield",
-        MAGE = "Interface\\Icons\\Spell_Arcane_ArcaneTorrent",
-        WARLOCK = "Interface\\Icons\\Spell_Shadow_SummonVoidWalker",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
+        PALADIN = "Interface\\Icons\\Spell_Holy_SealOfMight",
     },
     Skyborne = {
         WARRIOR = "Interface\\Icons\\Ability_Warrior_Charge",
@@ -394,10 +356,6 @@ C.RACE_CLASS_ICONS = {
         MAGE = "Interface\\Icons\\Spell_Arcane_TeleportDarnassus",
         SHAMAN = "Interface\\Icons\\Spell_Nature_Cyclone",
         DRUID = "Interface\\Icons\\Ability_Druid_FlightForm",
-        PRIEST = "Interface\\Icons\\Spell_Holy_HolyBolt",
-        WARLOCK = "Interface\\Icons\\Spell_Shadow_SoulLeech_3",
-        DEATHKNIGHT = "Interface\\Icons\\Spell_Deathknight_ClassIcon",
-        PALADIN = "Interface\\Icons\\Spell_Holy_AvengineWrath",
     },
 }
 
@@ -407,7 +365,6 @@ C.CLASS_ICONS = {
     HUNTER = "Interface\\Icons\\ClassIcon_Hunter",
     ROGUE = "Interface\\Icons\\ClassIcon_Rogue",
     PRIEST = "Interface\\Icons\\ClassIcon_Priest",
-    DEATHKNIGHT = "Interface\\Icons\\ClassIcon_DeathKnight",
     SHAMAN = "Interface\\Icons\\ClassIcon_Shaman",
     MAGE = "Interface\\Icons\\ClassIcon_Mage",
     WARLOCK = "Interface\\Icons\\ClassIcon_Warlock",
@@ -649,12 +606,9 @@ function Util.InitDB()
     if db.sameMobAsk ~= true then
         db.sameMobAsk = false
     end
-    if db.sameMobAutoInvite ~= true then
-        db.sameMobAutoInvite = false
-    end
-    if db.sameMobAsk and db.sameMobAutoInvite then
-        db.sameMobAutoInvite = false
-    end
+    -- Removed pre-release options are discarded harmlessly from older SavedVariables.
+    db.autoInviteFriends = nil
+    db.sameMobAutoInvite = nil
     if not db.migratedIgnoreFlags then
         local hasIgnoredName = false
         for _, existing in ipairs(db.customFlags) do
@@ -778,11 +732,11 @@ function Util.IdentityIcon(raceFile, classFile)
             return byRace[classFile]
         end
     end
-    if raceFile and C.RACE_ICONS[raceFile] then
-        return C.RACE_ICONS[raceFile]
-    end
     if classFile and C.CLASS_ICONS[classFile] then
         return C.CLASS_ICONS[classFile]
+    end
+    if raceFile and C.RACE_ICONS[raceFile] then
+        return C.RACE_ICONS[raceFile]
     end
     return nil
 end

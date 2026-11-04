@@ -8,6 +8,12 @@ Code, metadata, README and existing changelog are present. This documentation pa
 
 ## Verification backlog (proposed)
 
+## Future ideas (not implemented)
+
+- Better visual highlighting for existing friends.
+- Highlight players who fought the same mob, without inviting them automatically.
+
+
 Review detection-source false positives, large-local-population behavior, invite prompts, group review, sharing privacy and SavedVariables migrations in-game.
 
 No unapproved features were added as milestones.
@@ -25,3 +31,9 @@ No unapproved features were added as milestones.
 - [ ] Review accessibility and privacy-safe screenshots before portfolio publication.
 
 These are verification tasks, not approval for new gameplay features. No in-game tests were performed in this documentation pass.
+
+
+## Release preparation
+
+- [ ] Update the CurseForge description before the next public release: marks are shared, flags stay private, and no friend or same-mob auto-invite is offered.
+- [ ] Complete live Forever verification after the client is available; local/mock checks do not replace in-game testing.

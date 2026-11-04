@@ -205,28 +205,22 @@ function Detection.Publish()
     Detection.DropOfflineGroupSightings()
     Detection.PurgeOtherZones()
     Detection.PurgeOtherSubzones()
+    local raidOk, inRaid = pcall(IsInRaid)
+    inRaid = raidOk and Util.PlainBool(inRaid) == true
     local now = GetTime()
     local found = {}
     local function AddFound(key, seen)
         found[key] = {
-            key = key,
-            bucket = seen.bucket or 3,
-            class = seen.class,
-            race = seen.race,
-            faction = seen.faction,
-            yards = seen.yards,
-            level = seen.level,
-            area = seen.area,
-            zone = seen.zone,
-            at = seen.at,
-            ttl = seen.ttl,
+            key = key, bucket = seen.bucket or 3, class = seen.class, race = seen.race,
+            faction = seen.faction, yards = seen.yards, level = seen.level,
+            area = seen.area, zone = seen.zone, at = seen.at, ttl = seen.ttl,
         }
     end
     for key, seen in pairs(S.sightings) do
         if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
             S.sightings[key] = nil
             S.inviteState[key] = nil
-        elseif Group.InMyGroup and Group.InMyGroup(key) then
+        elseif Group.InMyGroup and Group.InMyGroup(key) and not inRaid then
             seen.at = now
             seen.lastConfirmedAt = now
             seen.unconfirmedSince = nil
@@ -235,9 +229,6 @@ function Detection.Publish()
             Memory.NoteHistory(key)
             AddFound(key, seen)
             Sharing.MaybeHello(key)
-            if UI.TryAutoInvite then
-                UI.TryAutoInvite(key)
-            end
         elseif seen.unconfirmedSince
             and (now - seen.unconfirmedSince) >= (seen.trackable and S.P.staleTrackable or S.P.staleInteraction)
         then
@@ -249,9 +240,6 @@ function Detection.Publish()
         else
             AddFound(key, seen)
             Sharing.MaybeHello(key)
-            if UI.TryAutoInvite then
-                UI.TryAutoInvite(key)
-            end
         end
     end
     local zoneFound = {}
@@ -259,59 +247,31 @@ function Detection.Publish()
         if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneSeen[key] = nil
         elseif not found[key] then
-            zoneFound[key] = {
-                key = key,
-                class = seen.class,
-                race = seen.race,
-                faction = seen.faction,
-                zone = seen.zone,
-                at = seen.at,
-                ttl = C.ZONE_TTL,
-            }
+            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL}
         end
     end
     for key, seen in pairs(S.zoneRoster) do
         if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneRoster[key] = nil
         elseif not found[key] and not zoneFound[key] then
-            zoneFound[key] = {
-                key = key,
-                class = seen.class,
-                race = seen.race,
-                faction = seen.faction,
-                zone = seen.zone,
-                at = seen.at,
-                ttl = C.ZONE_TTL,
-                roster = true,
-            }
+            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL,roster=true}
         end
     end
     local targetKey = Util.UnitIdentity("target")
-    local sig = Detection.DisplayMapSig(found)
-        .. "\29"
-        .. Detection.DisplayMapSig(zoneFound)
-        .. "\28"
-        .. (targetKey or "")
-        .. "\27"
-        .. (S.P.zoneRosterFull and "+" or "")
+    local sig = Detection.DisplayMapSig(found) .. "\29" .. Detection.DisplayMapSig(zoneFound)
+        .. "\28" .. (targetKey or "") .. "\27" .. (S.P.zoneRosterFull and "+" or "")
     local changed = sig ~= S.P.publishSig
     local previousNearby = S.nearby
     S.nearby = found
     S.inZone = zoneFound
     S.P.publishSig = sig
-    -- New Nearby appearance only (not zone roster / yell). Skip until armed
-    -- so login does not dump a wall of recognition thoughts.
     if S.armed and Memory.NoteNearbyRecognition then
         for key in pairs(found) do
-            if type(previousNearby) ~= "table" or not previousNearby[key] then
-                Memory.NoteNearbyRecognition(key)
-            end
+            if type(previousNearby) ~= "table" or not previousNearby[key] then Memory.NoteNearbyRecognition(key) end
         end
     end
     if changed and UI.RefreshList then
-        if UI.EnsureListFreezeHonest then
-            UI.EnsureListFreezeHonest()
-        end
+        if UI.EnsureListFreezeHonest then UI.EnsureListFreezeHonest() end
         UI.RefreshList()
     end
 end
@@ -527,47 +487,21 @@ function Detection.BuildLiveUnitMap()
     local map = {}
     local function take(unit)
         unit = Util.PlainString(unit) or unit
-        if not unit then
-            return
-        end
+        if not unit then return end
         local ok, exists = pcall(UnitExists, unit)
-        if not ok or Util.PlainBool(exists) ~= true then
-            return
-        end
-        if Detection.UnitConnectedPlain(unit) == false then
-            return
-        end
+        if not ok or Util.PlainBool(exists) ~= true then return end
+        if Detection.UnitConnectedPlain(unit) == false then return end
         local playerOk, isPlayer = pcall(UnitIsPlayer, unit)
-        if not playerOk or Util.PlainBool(isPlayer) ~= true then
-            return
-        end
+        if not playerOk or Util.PlainBool(isPlayer) ~= true then return end
         local key = Util.UnitIdentity(unit)
-        if not key or Util.IsMe(key) then
-            return
-        end
+        if not key or Util.IsMe(key) then return end
         map[key] = unit
         local norm = Detection.NormPresenceKey(key)
-        if norm then
-            map[norm] = unit
-        end
+        if norm then map[norm] = unit end
     end
-    for i = 1, #C.LOOK_UNITS do
-        take(C.LOOK_UNITS[i])
-    end
-    for i = 1, 4 do
-        take("party" .. i)
-        take("party" .. i .. "target")
-    end
-    local raidOk, inRaid = pcall(IsInRaid)
-    if raidOk and Util.PlainBool(inRaid) == true then
-        for i = 1, 40 do
-            take("raid" .. i)
-            take("raid" .. i .. "target")
-        end
-    end
-    for unit in pairs(S.P.nameplateByUnit) do
-        take(unit)
-    end
+    for i = 1, #C.LOOK_UNITS do take(C.LOOK_UNITS[i]) end
+    for _, unit in pairs(S.P.groupByKey) do take(unit) end
+    for unit in pairs(S.P.nameplateByUnit) do take(unit) end
     return map
 end
 
@@ -590,67 +524,56 @@ end
 
 function Detection.ValidatePresence()
     local any = false
-    for _ in pairs(S.sightings) do
-        any = true
-        break
-    end
-    if not any then
-        return
-    end
+    for _ in pairs(S.sightings) do any = true break end
+    if not any then return end
+    local raidOk, inRaid = pcall(IsInRaid)
+    inRaid = raidOk and Util.PlainBool(inRaid) == true
     local now = GetTime()
     local live = Detection.BuildLiveUnitMap()
     local dirty = false
-    for key, seen in pairs(S.sightings) do
-        if Group.InMyGroup and Group.InMyGroup(key) then
-            seen.lastConfirmedAt = now
-            seen.unconfirmedSince = nil
-            local unit = live[key] or live[Detection.NormPresenceKey(key)]
-            if unit then
-                local okNear, yards = Detection.UnitStillNearby(unit)
-                if yards then
-                    seen.yards = yards
-                end
-                if okNear == true then
-                    seen.at = now
-                end
-            end
-        else
-            local unit = live[key] or live[Detection.NormPresenceKey(key)]
-            if unit then
-                local okNear, yards = Detection.UnitStillNearby(unit)
-                if okNear == false then
-                    S.sightings[key] = nil
-                    S.inviteState[key] = nil
-                    dirty = true
-                elseif okNear == true then
-                    seen.lastConfirmedAt = now
-                    seen.unconfirmedSince = nil
-                    seen.at = now
-                    if yards then
-                        seen.yards = yards
-                    end
-                else
-                    -- Token exists but no distance/visible proof: still a positive match.
-                    seen.lastConfirmedAt = now
-                    seen.unconfirmedSince = nil
-                    seen.at = now
-                end
-            else
-                if not seen.unconfirmedSince then
-                    seen.unconfirmedSince = now
-                end
-                local grace = seen.trackable and S.P.staleTrackable or S.P.staleInteraction
-                if (now - seen.unconfirmedSince) >= grace then
-                    S.sightings[key] = nil
-                    S.inviteState[key] = nil
-                    dirty = true
-                end
-            end
+    local function staleOrDrop(key, seen)
+        if not seen.unconfirmedSince then seen.unconfirmedSince = now end
+        local grace = seen.trackable and S.P.staleTrackable or S.P.staleInteraction
+        if (now - seen.unconfirmedSince) >= grace then
+            S.sightings[key] = nil
+            S.inviteState[key] = nil
+            dirty = true
         end
     end
-    if dirty then
-        Detection.Publish()
+    for key, seen in pairs(S.sightings) do
+        local grouped = Group.InMyGroup and Group.InMyGroup(key)
+        local unit = live[key] or live[Detection.NormPresenceKey(key)]
+        if grouped and not inRaid then
+            seen.lastConfirmedAt = now
+            seen.unconfirmedSince = nil
+            if unit then
+                local okNear, yards = Detection.UnitStillNearby(unit)
+                if yards then seen.yards = yards end
+                if okNear == true then seen.at = now end
+            end
+        elseif unit then
+            local okNear, yards = Detection.UnitStillNearby(unit)
+            if yards then seen.yards = yards end
+            if okNear == false then
+                S.sightings[key] = nil
+                S.inviteState[key] = nil
+                dirty = true
+            elseif okNear == true then
+                seen.lastConfirmedAt = now
+                seen.unconfirmedSince = nil
+                seen.at = now
+            elseif grouped and inRaid then
+                staleOrDrop(key, seen)
+            else
+                seen.lastConfirmedAt = now
+                seen.unconfirmedSince = nil
+                seen.at = now
+            end
+        else
+            staleOrDrop(key, seen)
+        end
     end
+    if dirty then Detection.Publish() end
 end
 
 function Detection.MarkPresenceStale(key, accelerate)
@@ -1336,36 +1259,26 @@ end
 
 function Detection.QueueDamageMeterHarvest(attempt)
     attempt = tonumber(attempt) or 1
-    if attempt < 1 then
-        attempt = 1
-    end
-    if S.P.meterPending then
-        return
-    end
+    if attempt < 1 then attempt = 1 end
+    if S.P.meterPending then return end
     S.P.meterPending = true
     S.P.meterAttempt = attempt
     local stamp = S.P.combatGen
     local delay = attempt == 1 and 0.75 or math.min(3, 0.5 + attempt * 0.5)
     C_Timer.After(delay, function()
         S.P.meterPending = false
-        if stamp ~= S.P.combatGen then
-            return
-        end
+        if stamp ~= S.P.combatGen then return end
         if InCombatLockdown() then
-            if attempt < 6 then
-                Detection.QueueDamageMeterHarvest(attempt + 1)
-            end
+            if attempt < 6 then Detection.QueueDamageMeterHarvest(attempt + 1) end
             return
         end
         local lastTry = attempt >= 6
         Detection.HarvestDamageMeter(stamp, lastTry)
         local sameMobDone = true
-        if Group.SameMobAskOn() or Group.SameMobAutoOn() then
+        if Group.SameMobAskOn() then
             sameMobDone = Detection.EvaluateSameMobGrouping(stamp) == true
         end
-        if not sameMobDone and not lastTry then
-            Detection.QueueDamageMeterHarvest(attempt + 1)
-        end
+        if not sameMobDone and not lastTry then Detection.QueueDamageMeterHarvest(attempt + 1) end
     end)
 end
 
@@ -1587,67 +1500,16 @@ end
 -- Returns true when this combat stamp is finished (handled or nothing to do).
 -- Returns false when the meter looks empty / not ready so the caller can retry.
 function Detection.EvaluateSameMobGrouping(combatStamp)
-    if InCombatLockdown() then
-        return false
-    end
-    if not Group.SameMobAskOn() and not Group.SameMobAutoOn() then
-        return true
-    end
-    if combatStamp ~= nil and S.P.sameMobStamp == combatStamp then
-        return true
-    end
-    if not Group.PartyHasRoom() then
-        return true
-    end
+    if InCombatLockdown() then return false end
+    if not Group.SameMobAskOn() then return true end
+    if combatStamp ~= nil and S.P.sameMobStamp == combatStamp then return true end
+    if not Group.PartyHasRoom() then return true end
     local candidates = Detection.CollectSameMobCandidates()
-    if #candidates == 0 then
-        return false
-    end
-    if combatStamp ~= nil then
-        S.P.sameMobStamp = combatStamp
-    end
-    if Group.SameMobAutoOn() then
-        local anyInvited = false
-        local fallbackFrom = nil
-        for i = 1, #candidates do
-            if not Group.PartyHasRoom() then
-                break
-            end
-            local cand = candidates[i]
-            if Detection.SameMobEligible(cand.key, cand) then
-                if Group.InviteByKey(cand.key) then
-                    Detection.MarkSameMobCooldown(cand.key)
-                    anyInvited = true
-                elseif S.P.sameMobApiInvite == false then
-                    fallbackFrom = i
-                    break
-                end
-            end
-        end
-        if UI.RefreshList and anyInvited then
-            UI.RefreshList()
-        end
-        if fallbackFrom then
-            -- Forever blocked API invites — fall back to clickable secure Invite.
-            wipe(S.sameMobQueue)
-            for i = fallbackFrom, #candidates do
-                S.sameMobQueue[#S.sameMobQueue + 1] = candidates[i]
-            end
-            if UI.ShowSameMobPrompt then
-                UI.ShowSameMobPrompt()
-            end
-        end
-        return true
-    end
-    if Group.SameMobAskOn() then
-        wipe(S.sameMobQueue)
-        for i = 1, #candidates do
-            S.sameMobQueue[#S.sameMobQueue + 1] = candidates[i]
-        end
-        if UI.ShowSameMobPrompt then
-            UI.ShowSameMobPrompt()
-        end
-    end
+    if #candidates == 0 then return false end
+    if combatStamp ~= nil then S.P.sameMobStamp = combatStamp end
+    wipe(S.sameMobQueue)
+    for i = 1, #candidates do S.sameMobQueue[#S.sameMobQueue + 1] = candidates[i] end
+    if UI.ShowSameMobPrompt then UI.ShowSameMobPrompt() end
     return true
 end
 

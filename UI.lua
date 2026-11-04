@@ -378,9 +378,6 @@ function UI.PaintInvite(button)
     button:SetBackdropBorderColor(fr, fg, fb, 1)
 end
 
-function UI.TryAutoInvite()
-end
-
 function UI.BackgroundAlpha()
     local alpha = SF.db and tonumber(SF.db.bgAlpha)
     if not alpha or alpha ~= alpha then
@@ -479,12 +476,10 @@ function UI.RaceLabel(raceFile)
         Dwarf = "Dwarf",
         NightElf = "Night Elf",
         Gnome = "Gnome",
-        Draenei = "Draenei",
         Orc = "Orc",
         Troll = "Troll",
         Tauren = "Tauren",
         Scourge = "Undead",
-        BloodElf = "Blood Elf",
         Skyborne = "Skyborne",
     }
     if labels[raceFile] then
@@ -740,7 +735,7 @@ function UI.BuildMain()
 
     local panel = CreateFrame("Frame", "SocialForeverSettings", UIParent, "BackdropTemplate")
     panel:SetFrameStrata("DIALOG")
-    panel:SetSize(176, 430)
+    panel:SetSize(176, 310)
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
     panel:Hide()
@@ -769,38 +764,28 @@ function UI.BuildMain()
     local head = MenuRow(-8, false)
     head.label:SetText("Settings")
     head.label:SetTextColor(1, 0.82, 0.25)
-    local autoHead = MenuRow(-28, false)
-    autoHead.label:SetText("Auto-invite friends")
-    autoHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local autoOn = MenuRow(-46, true)
-    local autoOff = MenuRow(-64, true)
-    local sameHead = MenuRow(-88, false)
+    local sameHead = MenuRow(-28, false)
     sameHead.label:SetText("Same-mob grouping")
     sameHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local askHead = MenuRow(-106, false)
+    local askHead = MenuRow(-46, false)
     askHead.label:SetText("Ask before inviting")
     askHead.label:SetTextColor(0.65, 0.65, 0.65)
-    local askOn = MenuRow(-124, true)
-    local askOff = MenuRow(-142, true)
-    local sameAutoHead = MenuRow(-166, false)
-    sameAutoHead.label:SetText("Auto-invite")
-    sameAutoHead.label:SetTextColor(0.65, 0.65, 0.65)
-    local sameAutoOn = MenuRow(-184, true)
-    local sameAutoOff = MenuRow(-202, true)
-    local sizeHead = MenuRow(-226, false)
+    local askOn = MenuRow(-64, true)
+    local askOff = MenuRow(-82, true)
+    local sizeHead = MenuRow(-106, false)
     sizeHead.label:SetText("Name size")
     sizeHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local size16 = MenuRow(-244, true)
-    local size18 = MenuRow(-262, true)
-    local size20 = MenuRow(-280, true)
-    local opacityHead = MenuRow(-304, false)
+    local size16 = MenuRow(-124, true)
+    local size18 = MenuRow(-142, true)
+    local size20 = MenuRow(-160, true)
+    local opacityHead = MenuRow(-184, false)
     opacityHead.label:SetText("Background")
     opacityHead.label:SetTextColor(0.75, 0.68, 0.4)
     local opacityValue = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     opacityValue:SetPoint("RIGHT", opacityHead, "RIGHT", -4, 0)
     opacityValue:SetTextColor(0.9, 0.9, 0.9)
     local slider = CreateFrame("Slider", nil, panel, "BackdropTemplate")
-    slider:SetPoint("TOPLEFT", 18, -326)
+    slider:SetPoint("TOPLEFT", 18, -206)
     slider:SetSize(140, 16)
     slider:SetOrientation("HORIZONTAL")
     slider:SetMinMaxValues(15, 100)
@@ -853,16 +838,10 @@ function UI.BuildMain()
     end
 
     local function PaintSettingsMenu()
-        local auto = Group.FriendsAutoOn()
         local ask = Group.SameMobAskOn and Group.SameMobAskOn()
-        local sameAuto = Group.SameMobAutoOn and Group.SameMobAutoOn()
         local size = Util.NameSize()
-        PaintSettingsChoice(autoOn, auto, "On")
-        PaintSettingsChoice(autoOff, not auto, "Off")
         PaintSettingsChoice(askOn, ask, "On")
         PaintSettingsChoice(askOff, not ask, "Off")
-        PaintSettingsChoice(sameAutoOn, sameAuto, "On")
-        PaintSettingsChoice(sameAutoOff, not sameAuto, "Off")
         PaintSettingsChoice(size16, size == 16, "16")
         PaintSettingsChoice(size18, size == 18, "18")
         PaintSettingsChoice(size20, size == 20, "20")
@@ -878,52 +857,17 @@ function UI.BuildMain()
             PaintSettingsMenu()
         end)
     end
-    LeaveChoice(autoOn)
-    LeaveChoice(autoOff)
     LeaveChoice(askOn)
     LeaveChoice(askOff)
-    LeaveChoice(sameAutoOn)
-    LeaveChoice(sameAutoOff)
     LeaveChoice(size16)
     LeaveChoice(size18)
     LeaveChoice(size20)
-
-    autoOn:SetScript("OnClick", function()
-        if not SF.db then
-            return
-        end
-        SF.db.autoInviteFriends = true
-        PaintSettingsMenu()
-    end)
-    autoOff:SetScript("OnClick", function()
-        if not SF.db then
-            return
-        end
-        SF.db.autoInviteFriends = false
-        PaintSettingsMenu()
-    end)
     askOn:SetScript("OnClick", function()
-        if Group.SetSameMobAsk then
-            Group.SetSameMobAsk(true)
-        end
+        if Group.SetSameMobAsk then Group.SetSameMobAsk(true) end
         PaintSettingsMenu()
     end)
     askOff:SetScript("OnClick", function()
-        if Group.SetSameMobAsk then
-            Group.SetSameMobAsk(false)
-        end
-        PaintSettingsMenu()
-    end)
-    sameAutoOn:SetScript("OnClick", function()
-        if Group.SetSameMobAuto then
-            Group.SetSameMobAuto(true)
-        end
-        PaintSettingsMenu()
-    end)
-    sameAutoOff:SetScript("OnClick", function()
-        if Group.SetSameMobAuto then
-            Group.SetSameMobAuto(false)
-        end
+        if Group.SetSameMobAsk then Group.SetSameMobAsk(false) end
         PaintSettingsMenu()
     end)
     local function PickSize(size)
@@ -942,13 +886,13 @@ function UI.BuildMain()
     size18:SetScript("OnClick", PickSize(18))
     size20:SetScript("OnClick", PickSize(20))
 
-    local memoryHead = MenuRow(-354, false)
+    local memoryHead = MenuRow(-234, false)
     memoryHead.label:SetText("Memory")
     memoryHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local resetOne = MenuRow(-372, true)
+    local resetOne = MenuRow(-252, true)
     resetOne.label:SetText("  Reset one player…")
     resetOne.label:SetTextColor(0.9, 0.9, 0.9)
-    local resetAll = MenuRow(-390, true)
+    local resetAll = MenuRow(-270, true)
     resetAll.label:SetText("  Reset all remembered…")
     resetAll.label:SetTextColor(0.95, 0.55, 0.45)
     LeaveChoice(resetOne)
@@ -1859,6 +1803,12 @@ function UI.RequestListPaint()
     else
         UI.RefreshList()
     end
+end
+
+function UI.RefreshSortOrder()
+    if not S.main or not S.main:IsShown() or S.listFrozen then return end
+    if GetTime() - (S.sortHold.at or 0) < C.SORT_EVERY then return end
+    UI.RefreshList()
 end
 
 function UI.GetListTab()

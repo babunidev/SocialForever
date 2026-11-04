@@ -17,7 +17,7 @@ A player's name and tooltip can reflect individual Green/Yellow/Red marks, gener
 
 ## Interaction safety
 
-The 0.4.2-beta entry documents why invite confirmation must reflect an actual secure send path rather than a successful API call wrapper. Same-mob ask/auto behavior is opt-in; when automation cannot send an invite reliably, the secure invitation interface takes precedence. Interaction freezing should protect intentional selection while not hiding newly detected players indefinitely.
+The 0.4.2-beta entry documents why invite confirmation must reflect an actual secure send path rather than a successful API call wrapper. Automatic invitations are now removed entirely: same-mob grouping may offer an opt-in prompt, but the invitation itself always requires the player's secure click. Interaction freezing should protect intentional selection while not hiding newly detected players indefinitely.
 
 ## Open accessibility and runtime checks
 

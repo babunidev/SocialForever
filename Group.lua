@@ -44,9 +44,9 @@ function Group.RebuildGroupMembers()
         if not key or Util.IsMe(key) then
             return
         end
-        S.P.groupByKey[key] = true
+        S.P.groupByKey[key] = unit
         local norm = key:gsub("[%s%-]+", ""):lower()
-        S.P.groupByNorm[norm] = true
+        S.P.groupByNorm[norm] = unit
     end
     local raidOk, inRaid = pcall(IsInRaid)
     if raidOk and Util.PlainBool(inRaid) == true then
@@ -64,14 +64,10 @@ function Group.RebuildGroupMembers()
 end
 
 Group.InMyGroup = function(key)
-    if not key then
-        return false
-    end
-    if S.P.groupByKey[key] then
-        return true
-    end
+    if not key then return false end
+    if S.P.groupByKey[key] then return true end
     local norm = key:gsub("[%s%-]+", ""):lower()
-    return S.P.groupByNorm[norm] == true
+    return S.P.groupByNorm[norm] ~= nil
 end
 
 function Group.RefreshFriends()
@@ -100,10 +96,6 @@ function Group.RefreshFriends()
             end
         end
     end
-end
-
-function Group.FriendsAutoOn()
-    return SF.db and SF.db.autoInviteFriends ~= false
 end
 
 function Group.NoteGroupButtons(members)
@@ -319,78 +311,11 @@ function Group.PartyHasRoom()
     return true
 end
 
--- Direct invite when Forever allows it. Returns true only when a real send
--- was proven. Forever rejects programmatic invites (pcall can still succeed),
--- so unproven API calls fall through to the secure Invite button.
-function Group.InviteByKey(key)
-    key = Util.SafeKey(key)
-    if not key or InCombatLockdown() then
-        return false
-    end
-    if Group.InMyGroup(key) or Memory.IsBlocked(key) or Memory.FlaggedKos(key) then
-        return false
-    end
-    if Util.IsOtherFaction(key) then
-        return false
-    end
-    if not Group.PartyHasRoom() then
-        return false
-    end
-    -- Forever blocks non-click invites. Once we know that, never pretend.
-    if S.P.sameMobApiInvite ~= true then
-        S.P.sameMobApiInvite = false
-        return false
-    end
-    local name = UI.SlashName and UI.SlashName(key) or nil
-    if not name then
-        return false
-    end
-    if C_PartyInfo and type(C_PartyInfo.InviteUnit) == "function" then
-        local ok = pcall(C_PartyInfo.InviteUnit, name)
-        if ok then
-            S.inviteState[key] = "invited"
-            return true
-        end
-    end
-    if type(InviteUnit) == "function" then
-        local ok = pcall(InviteUnit, name)
-        if ok then
-            S.inviteState[key] = "invited"
-            return true
-        end
-    end
-    S.P.sameMobApiInvite = false
-    return false
-end
-
 function Group.SameMobAskOn()
     return SF.db and SF.db.sameMobAsk == true
 end
 
-function Group.SameMobAutoOn()
-    return SF.db and SF.db.sameMobAutoInvite == true
-end
-
 function Group.SetSameMobAsk(on)
-    if not SF.db then
-        return
-    end
-    if on then
-        SF.db.sameMobAsk = true
-        SF.db.sameMobAutoInvite = false
-    else
-        SF.db.sameMobAsk = false
-    end
-end
-
-function Group.SetSameMobAuto(on)
-    if not SF.db then
-        return
-    end
-    if on then
-        SF.db.sameMobAutoInvite = true
-        SF.db.sameMobAsk = false
-    else
-        SF.db.sameMobAutoInvite = false
-    end
+    if not SF.db then return end
+    SF.db.sameMobAsk = on and true or false
 end
