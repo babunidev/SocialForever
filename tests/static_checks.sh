@@ -11,7 +11,6 @@ done < <(awk '!/^#/ && /\.lua$/' SocialForever.toc)
 echo "Checking removed auto-invite runtime symbols..."
 runtime_files=(Core.lua Memory.lua Group.lua Detection.lua Sharing.lua UI.lua Events.lua)
 matches="$(grep -niE 'autoInviteFriends|sameMobAutoInvite|sameMobApiInvite|TryAutoInvite|FriendsAutoOn|SameMobAutoOn|SetSameMobAuto|InviteByKey|InviteUnit' "${runtime_files[@]}" || true)"
-
 unexpected="$(printf '%s\n' "$matches" | grep -vE '^Core\.lua:[0-9]+:[[:space:]]*db\.(autoInviteFriends|sameMobAutoInvite)[[:space:]]*=[[:space:]]*nil[[:space:]]*$' || true)"
 
 if [[ -n "$unexpected" ]]; then
@@ -30,12 +29,9 @@ echo "Checking periodic sorting ticker..."
 grep -Fq 'C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)' Events.lua
 
 echo "Checking CurseForge packaging metadata..."
-grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*
-
-echo "PASS: static source and manifest checks"
- .pkgmeta
-for ignored in .github tests AGENTS.md CONCEPT.md DEVELOPMENT.md ROADMAP.md docs; do
-  grep -Eq "^[[:space:]]*-[[:space:]]+${ignored//./\\.}[[:space:]]*$" .pkgmeta
+grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*$' .pkgmeta
+for ignored in '.github' 'tests' 'AGENTS.md' 'CONCEPT.md' 'DEVELOPMENT.md' 'ROADMAP.md' 'docs'; do
+  grep -Fq "  - $ignored" .pkgmeta
 done
 
 echo "PASS: static source and manifest checks"
