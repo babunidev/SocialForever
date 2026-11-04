@@ -7,6 +7,9 @@ When a change ships, add it at the top. Keep the note about what the player can 
 
 ## Unreleased — Forever release preparation
 
+- Added `.github/workflows/verify.yml` and a repository-local `tests/` suite so deterministic pre-release checks run automatically on pushes, pull requests, and manual workflow dispatches.
+- CI validates all seven Lua modules, SavedVariables cleanup, identity icons, familiarity/recognition, reset behavior, raid proximity and call counts, sorting, detection separation, same-mob prompt-only behavior, sharing privacy, player-name normalization, static cleanup, TOC references, and a clean re-extracted package. These are automated/mock checks only, not in-game verification.
+
 - Removed friend auto-invite UI/state and the empty `UI.TryAutoInvite` path; friend detection remains for future highlighting.
 - Removed `sameMobAutoInvite`, `sameMobApiInvite`, `InviteByKey`, and the automatic same-mob branch. The existing same-mob prompt remains opt-in and its Invite action is a secure user click.
 - Rebuilt the icon map from Blizzard's official Forever race/class matrix, including the six new combinations and Skyborne Mage/Shaman faction options; later-client Draenei/Blood Elf/Death Knight combinations were removed.

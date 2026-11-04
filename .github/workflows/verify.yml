@@ -1,0 +1,38 @@
+name: Pre-release verification
+
+on:
+  push:
+    branches:
+      - main
+      - "ci/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lua, mocks, static checks, package integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Lua and packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4 zip unzip
+
+      - name: Record tool versions
+        run: |
+          lua5.4 -v
+          luac5.4 -v
+          zip -v | head -n 2
+          unzip -v | head -n 2
+
+      - name: Run pre-release verification
+        env:
+          LUA_BIN: lua5.4
+          LUAC_BIN: luac5.4
+        run: bash tests/run.sh
