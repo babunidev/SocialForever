@@ -1,5 +1,10 @@
 # Social Forever — Changelog
 
+## Unreleased — documentation reconciliation
+
+- Reconciled the repository record after the `v0.4.7-beta` tag and GitHub prerelease were published and CurseForge accepted the tag-triggered beta file for processing.
+- Corrected current-version and human–AI attribution wording in project documentation without changing addon runtime behavior or moving the published tag.
+
 ## 0.4.7-beta — 2026-11-04
 
 - Added a GitHub Actions pre-release verification suite covering Lua syntax, SavedVariables migration, the Forever race/class icon matrix, familiarity and recognition, memory reset, raid presence and API-call counts, sorting, Nearby/Zone separation, same-mob prompt safety, sharing privacy, name normalization, static cleanup, TOC integrity, and package re-extraction checks.

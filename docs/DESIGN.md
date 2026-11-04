@@ -1,7 +1,7 @@
 # SocialForever — Interaction and Visual Design
 
-**Author:** Babuni.dev  
-**Scope:** Source-grounded guide to the 0.4.6-beta interface; no fresh in-game tests.
+**Human creative:** Babuni  
+**Scope:** Source-grounded guide to the 0.4.7-beta interface; final launch-day in-game verification remains pending.
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # SocialForever — design evidence
 
-**Author:** Babuni.dev
+**Human creative:** Babuni
 
 ## Approach found in source
 
@@ -14,7 +14,7 @@ Review detection-source false positives, large-local-population behavior, invite
 
 ## Documented decisions and corrections — audit #32
 
-- **Local familiarity rather than nameplates:** Babuni.dev's direction is an unobtrusive list while nameplates are off, supporting recognition and deliberate invitations. This is the human design aim; automated recognition/detection details evolved through implementation.
+- **Local familiarity rather than nameplates:** Babuni's direction is an unobtrusive list while nameplates are off, supporting recognition and deliberate invitations. This is the human design aim; automated recognition/detection details evolved through implementation.
 - **0.3.0 modularization:** [DEVELOPMENT](../DEVELOPMENT.md) records moving from one large Lua unit into seven ordered modules; saved-data compatibility was intended to remain intact.
 - **0.3.1 interaction stability:** Hover freezes list movement and the target pins to the first Nearby row; deferred updates appear after the user exits the interactive area.
 - **0.4.1 provenance distinction:** General roster supplies **Zone** entries; personal familiarity derives from **Nearby** sightings. Same-mob invite prompts are optional and default off.
@@ -22,7 +22,7 @@ Review detection-source false positives, large-local-population behavior, invite
 - **0.4.4 privacy decision:** Marks can be shared; subjective personal flags stay private. The wire field remains empty for compatibility.
 - **0.4.5 recognition:** Blue/purple familiar players may trigger a quiet race/class thought on a Nearby entrance or when targeted; one per-person 20-minute cooldown persists, with a 2–5-second delayed Nearby message.
 
-These decisions are evidenced by recorded development changes. Where an original conversation or explicit acceptance is not preserved, do not fabricate one or infer that every implementation choice came from Babuni.dev.
+These decisions are evidenced by recorded development changes. Where an original conversation or explicit acceptance is not preserved, do not fabricate one or infer that every implementation choice came from Babuni.
 
 
 ## Pre-release decisions — 2026-11-04

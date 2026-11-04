@@ -18,6 +18,8 @@ When a change ships, add it at the top. Keep the note about what the player can 
 - Added a `C.SORT_EVERY` UI refresh ticker so distance/recency can be reconsidered without membership changes.
 - Added `LICENSE` (MIT) to align GitHub with the existing CurseForge license declaration.
 - Automated/local verification is green. Babuni approved preparing 0.4.7-beta for public release before final launch-day in-game verification; live Forever behavior remains unverified and any client-specific defects found after servers open will be handled in a follow-up version.
+- Release commit `4c71618fa453619cfae6144d6fe8f576b995c60b` was tagged as annotated `v0.4.7-beta`; the matching GitHub prerelease was published on 2026-11-04.
+- The tag-triggered CurseForge beta for game version 1.60.1 reached **Processing**. That confirms the integration accepted the tag, but does not yet count as CurseForge approval or completed publication verification.
 
 
 ## 0.4.6-beta — Cleaner hover tooltip

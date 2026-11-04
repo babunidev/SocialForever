@@ -1,10 +1,10 @@
 # SocialForever — roadmap
 
-**Author:** Babuni.dev
+**Human creative:** Babuni
 
 ## Existing state
 
-Code, metadata, README and existing changelog are present. This documentation pass did not execute the game or tests.
+Code, metadata, README and release history are present. The 2026-10-27 documentation pass did not execute the game or tests; the later 0.4.7-beta release candidate passed automated/mock verification, while live Forever verification remains pending.
 
 ## Verification backlog (proposed)
 
@@ -36,6 +36,9 @@ These are verification tasks, not approval for new gameplay features. No in-game
 ## Release preparation
 
 - [x] Run deterministic pre-release syntax, mock, privacy, static and package-integrity checks through GitHub Actions; keep them explicitly separate from live Forever testing.
-- [ ] Update the CurseForge description before the next public release: marks are shared, flags stay private, and no friend or same-mob auto-invite is offered.
+- [ ] Update the live CurseForge project description: marks are shared, flags stay private, and no friend or same-mob auto-invite is offered. Corrected copy is prepared in `docs/CURSEFORGE_DESCRIPTION.md`, but the live description has not been confirmed updated.
 - [x] Prepare 0.4.7-beta from the green automated verification suite for launch-day publication.
+- [x] Publish annotated tag `v0.4.7-beta` and the matching GitHub prerelease from release commit `4c71618fa453619cfae6144d6fe8f576b995c60b`.
+- [x] Confirm the CurseForge integration accepted the tag and created a Beta file for Forever 1.60.1; it was observed in **Processing** state.
+- [ ] Confirm the CurseForge file reaches **Approved** and verify the final downloadable package contents.
 - [ ] Complete live Forever verification after the client is available; for 0.4.7-beta this is explicitly deferred until after publication and does not retroactively become pre-release verification.
