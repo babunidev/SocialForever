@@ -1515,8 +1515,9 @@ function UI.BuildMain()
     combatCover:SetAllPoints(list)
     combatCover:SetFrameLevel((list:GetFrameLevel() or 1) + 40)
     combatCover:SetBackdrop(C.FLAT_BACKDROP)
-    -- The main window already provides the user-configured background.
-    combatCover:SetBackdropColor(0.04, 0.04, 0.04, 0)
+    -- Mask frozen protected rows when the visible combat entries change.
+    -- Fully transparent overlay backgrounds expose duplicate old labels.
+    combatCover:SetBackdropColor(0.04, 0.04, 0.04, 1)
     combatCover:SetBackdropBorderColor(0.04, 0.04, 0.04, 0)
     combatCover:EnableMouse(false)
     combatCover:Hide()
@@ -2270,6 +2271,25 @@ function UI.RefreshCombatList()
     local source = tab == "zone" and S.inZone or S.nearby
     local ordered = UI.CombatOrderedEntries(source)
     S.main.combatOrdered = ordered
+
+    -- When the same entries remain visible, keep the ordinary secure rows
+    -- on screen instead of swapping their appearance on combat entry.
+    if not S.main.combatCover:IsShown() and type(S.displayOrdered) == "table" then
+        local old = S.displayOrdered
+        local unchanged = #old == #ordered
+        if unchanged then
+            for i = 1, #old do
+                if old[i].key ~= ordered[i].key or old[i].header ~= ordered[i].header then
+                    unchanged = false
+                    break
+                end
+            end
+        end
+        if unchanged then
+            S.listDirty = true
+            return
+        end
+    end
 
     local rowH = Util.RowHeight()
     local view = S.main.list and S.main.list:GetHeight() or nil
