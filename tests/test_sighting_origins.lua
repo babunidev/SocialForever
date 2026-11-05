@@ -33,23 +33,23 @@ SF.Util.InitDB()
 
 local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": expected "..tostring(e)..", got "..tostring(a),2) end end
 
-Detection.Remember("Nearbyone",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","target")
-assertEqual(#S.sightings.Nearbyone.origins,1,"first origin was not stored")
-assertEqual(S.sightings.Nearbyone.origins[1],"target","target origin mismatch")
+Detection.Remember("Nearby One",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","target")
+assertEqual(#S.sightings["Nearby-One"].origins,1,"first origin was not stored")
+assertEqual(S.sightings["Nearby-One"].origins[1],"target","target origin mismatch")
 
 now=now+1
-Detection.Remember("Nearbyone",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","fighting")
-assertEqual(#S.sightings.Nearbyone.origins,2,"second origin did not accumulate")
-assertEqual(S.sightings.Nearbyone.origins[2],"fighting","fighting origin mismatch")
+Detection.Remember("Nearby One",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","fighting")
+assertEqual(#S.sightings["Nearby-One"].origins,2,"second origin did not accumulate")
+assertEqual(S.sightings["Nearby-One"].origins[2],"fighting","fighting origin mismatch")
 
 now=now+1
-Detection.Remember("Nearbyone",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","target")
-assertEqual(#S.sightings.Nearbyone.origins,2,"duplicate origin was not deduplicated")
-assertEqual(UI.OriginText(S.sightings.Nearbyone),"Mouseover","target sighting should display one mouseover reason")
+Detection.Remember("Nearby One",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","target")
+assertEqual(#S.sightings["Nearby-One"].origins,2,"duplicate origin was not deduplicated")
+assertEqual(UI.OriginText(S.sightings["Nearby-One"]),"Mouseover","target sighting should display one mouseover reason")
 assertEqual(UI.OriginText({origins={"mouseover","target","mouseover"}}),"Mouseover","duplicate hover and target origins should collapse")
 assertEqual(UI.OriginText({origins={"fighting"}}),"Fighting","distinct fighting reason should survive")
 assertEqual(UI.OriginText({origins={"target","helpful_aura"}}),"Buff","buff reason should take precedence")
-assertEqual(SF.db.players.Nearbyone.origins,nil,"current-sighting provenance leaked into SavedVariables")
+assertEqual(SF.db.players["Nearby-One"].origins,nil,"current-sighting provenance leaked into SavedVariables")
 assertEqual(SF.Const.ORIGIN_LABELS.mouseover,"Hovered / mouseover","mouseover label mismatch")
 
 assertEqual(Detection.UnitOrigin("target"),"target","target unit origin mismatch")
