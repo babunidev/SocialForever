@@ -340,6 +340,8 @@ function Memory.SyncBattlegroundSession()
 end
 
 function Memory.CurrentArea()
+    local bgName = Memory.BattlegroundInfo()
+    if bgName then return bgName end
     local zone = Memory.CurrentZone()
     if zone and C.CITY_ZONES[zone:lower()] then
         return zone
