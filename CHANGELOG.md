@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Replaced the duplicate protected-row/combat-overlay list with one ordinary Nearby/Zone list. The same rows and font, mark, level, class, tooltip, right-click menu and Invite controls update in and out of combat, without a dark overlay. Left-click targeting was deliberately removed; the separate secure same-fight invitation prompt is unchanged. Mock regression for combat transitions added; live Forever verification pending.
+
 - Corrected Forever character identity: `UnitName` returns first name and surname, not realm. Nearby rejects incomplete one-word keys so alternate detection sources cannot create separate identities for one character.
 - Changed secure click-to-target macros to use the full two-part name with `/targetexact`; requires live Forever validation.
 - Kept normal list visuals during combat when entries have not changed. Where a separate combat layer is necessary, it now mirrors normal font sizing and class/level icons; protected secure rows remain frozen.
