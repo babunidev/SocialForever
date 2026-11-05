@@ -49,28 +49,28 @@ Detection.NoteChat("Jasmine Amberbrew", nil)
 assertEqual(S.sightings["Jasmine-Amberbrew"], nil, "self chat with missing GUID was added to Nearby")
 assertEqual(Memory.Familiarity("Jasmine-Amberbrew"), 0, "self gained familiarity")
 
-Detection.NoteZone("Zoneperson","1. General - Elwynn Forest","General",nil)
-assertTrue(S.zoneSeen.Zoneperson~=nil,"General-channel player not stored as Zone candidate")
-assertEqual(Memory.Familiarity("Zoneperson"),0,"Zone-only player increased familiarity")
-assertEqual(S.sightings.Zoneperson,nil,"Zone-only player became Nearby")
+Detection.NoteZone("Zone Person","1. General - Elwynn Forest","General",nil)
+assertTrue(S.zoneSeen["Zone-Person"]~=nil,"General-channel player not stored as Zone candidate")
+assertEqual(Memory.Familiarity("Zone Person"),0,"Zone-only player increased familiarity")
+assertEqual(S.sightings["Zone-Person"],nil,"Zone-only player became Nearby")
 
-Detection.NoteChat("Nearperson",nil)
-assertTrue(S.sightings.Nearperson~=nil,"say/emote-style nearby input did not create sighting")
-assertEqual(Memory.Familiarity("Nearperson"),1,"first Nearby encounter not counted")
+Detection.NoteChat("Near Person",nil)
+assertTrue(S.sightings["Near-Person"]~=nil,"say/emote-style nearby input did not create sighting")
+assertEqual(Memory.Familiarity("Near Person"),1,"first Nearby encounter not counted")
 
 now=now+1
-Detection.NoteChat("Nearperson",nil)
-assertEqual(Memory.Familiarity("Nearperson"),1,"repeated same sighting increased familiarity")
+Detection.NoteChat("Near Person",nil)
+assertEqual(Memory.Familiarity("Near Person"),1,"repeated same sighting increased familiarity")
 
-S.sightings.Nearperson=nil
+S.sightings["Near-Person"]=nil
 now=now+1
-Detection.NoteChat("Nearperson",nil)
-assertEqual(Memory.Familiarity("Nearperson"),1,"same-place re-entry increased familiarity")
+Detection.NoteChat("Near Person",nil)
+assertEqual(Memory.Familiarity("Near Person"),1,"same-place re-entry increased familiarity")
 
-S.sightings.Nearperson=nil
+S.sightings["Near-Person"]=nil
 subzone="Goldshire"
 now=now+1
-Detection.NoteChat("Nearperson",nil)
-assertEqual(Memory.Familiarity("Nearperson"),2,"different-place encounter did not increase familiarity")
+Detection.NoteChat("Near Person",nil)
+assertEqual(Memory.Familiarity("Near Person"),2,"different-place encounter did not increase familiarity")
 
 print("PASS: Nearby/Zone separation and place-based familiarity tests")
