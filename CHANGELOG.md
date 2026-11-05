@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Simplified Nearby tooltip provenance to one reason: targeting and hovering display **Mouseover**, while a detected helpful buff displays **Buff / helpful aura**. The complete ephemeral origin set remains available internally.
+- Simplified Nearby tooltip provenance to one reason: targeting and hovering display **Mouseover**, while a detected helpful buff displays **Buff**. The complete ephemeral origin set remains available internally.
 
 - Restored event-driven instant mouseover presentation without waiting for the half-second scan or a moving-row transition.
 - Helpful aura caster GUIDs from freshly added buffs no longer require a currently targetable unit token; recent identified buff casters receive temporary top-list priority, beneath the currently targeted player.
