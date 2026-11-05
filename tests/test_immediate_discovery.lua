@@ -52,6 +52,8 @@ dofile("Group.lua")
 dofile("Detection.lua")
 local SF, publishes = SocialForever, {}
 SF.Util.InitDB()
+-- The isolated detection test does not load Sharing.lua.
+SF.Sharing.MaybeHello = function() end
 SF.UI.RefreshList = function(opts) publishes[#publishes + 1] = opts end
 
 SF.Detection.OnMouseoverChanged()
