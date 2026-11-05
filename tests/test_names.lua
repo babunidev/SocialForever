@@ -36,8 +36,7 @@ assertTrue(Util.IsMe("Jasmine Amberbrew"),"self two-word GUID name was not recog
 assertTrue(Util.IsMe("Jasmine-Amberbrew"),"self normalized two-word GUID name was not recognized")
 assertTrue(Util.IsMe("Jasmine-Amberbrew","Player-Self-123"),"self identity by GUID was not excluded")
 assertFalse(Util.IsMe("Other Amberbrew"),"similarly named stranger mistaken for self")
-assertEqual(SocialForever.UI.TargetMacro("Lyswin-Lightanvil"),"/targetexact Lyswin Lightanvil","full-name target macro")
-assertEqual(SocialForever.UI.TargetMacro("Lyswin"),nil,"partial name should not be targetable")
+assertTrue(SocialForever.UI.TargetMacro == nil,"legacy secure row targeting should be absent")
 
 assertEqual(Util.SafeKey("A"),nil,"one-character invalid name accepted")
 assertEqual(Util.SafeKey("Bad|Name"),nil,"unsafe name accepted")
