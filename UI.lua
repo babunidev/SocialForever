@@ -1175,7 +1175,7 @@ function UI.BuildMain()
     thumb:SetSize(8, 28)
     bar:SetThumbTexture(thumb)
     bar:SetScript("OnValueChanged", function(self, value)
-        if self.lock or InCombatLockdown() then
+        if self.lock then
             return
         end
         local nextOffset = math.floor((tonumber(value) or 0) + 0.5)
