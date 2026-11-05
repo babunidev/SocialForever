@@ -13,6 +13,7 @@ local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": 
 assertEqual(Util.MakeKey("Alice",nil),"Alice","one-word name")
 assertEqual(Util.MakeKey("Alice","ForeverRealm"),"Alice","local realm should not be appended")
 assertEqual(Util.MakeKey("Alice","Other Realm"),"Alice-OtherRealm","other realm normalization")
+assertEqual(Util.MakeKey("Lyswin Lightanvil","CAMWOWEU4Realm10RP"),"Lyswin-Lightanvil","internal Forever realm token was exposed in player name")
 assertEqual(Util.MakeKey("First Second","ForeverRealm"),"First-Second","Forever two-word name")
 assertEqual(Util.SafeKey("First Second"),"First-Second","SafeKey space normalization")
 assertTrue(Util.SameKey("First Second","First-Second"),"spaces/hyphens not normalized equivalently")
