@@ -36,7 +36,7 @@ function UnitRace() return "Human", "Human" end
 function UnitFactionGroup() return "Alliance" end
 function GetPlayerInfoByGUID(guid)
     if guid == "Player-123-Caster" then
-        return "Priest", "PRIEST", "Human", "Human", 2, "Caster", "ForeverRealm"
+        return "Priest", "PRIEST", "Human", "Human", 2, "Caster", "CAMWOWEU4Realm10RP"
     end
 end
 C_UnitAuras = {
@@ -67,6 +67,20 @@ assert(SF.State.P.recentBuffKey == "Caster", "newly identified buff caster shoul
 assert(publishes[#publishes] and publishes[#publishes].skipMove, "aura caster should paint without a movement hold")
 assert(SF.State.sightings.Caster.origins[1] == "helpful_aura", "caster origin missing")
 
+local countedAt = SF.State.sightings.Caster.at
+local recencyAt = SF.State.P.recentBuffAt
+SF.Detection.OnPlayerAura("player", {addedAuras={aura}})
+assert(SF.State.sightings.Caster.at == countedAt, "the same aura was repeatedly counted")
+assert(SF.State.P.recentBuffAt == recencyAt, "the same aura repeatedly pinned the caster")
+
+-- A full aura snapshot must not refresh a buff simply because it persists.
+C_UnitAuras.GetAuraDataByIndex = function(unit, index, filter)
+    if unit == "player" and index == 1 and filter == "HELPFUL" then
+        return aura
+    end
+end
 SF.Detection.OnPlayerAura("player", {addedAuras={}})
+assert(SF.State.sightings.Caster.at == countedAt, "persistent helpful aura refreshed a stale player")
+assert(SF.State.sightings.Caster.ttl == SF.Const.BUFF_TTL, "buff-only sightings should expire quickly")
 assert(SF.State.nearby.Caster, "empty aura delta must not remove confirmed caster")
 print("PASS: immediate mouseover and fresh helpful-aura GUID discovery")
