@@ -491,20 +491,25 @@ function UI.OriginText(seen)
     if type(seen) ~= "table" or type(seen.origins) ~= "table" then
         return nil
     end
-    local labels = {}
-    local used = {}
+    -- The tooltip needs one useful reason, not the entire collection of
+    -- sighting sources. Keep all origins internally for detection diagnostics.
+    local fallback
+    local hovered = false
     for i = 1, #seen.origins do
         local code = seen.origins[i]
-        local label = type(code) == "string" and C.ORIGIN_LABELS[code] or nil
-        if label and not used[label] then
-            labels[#labels + 1] = label
-            used[label] = true
+        if code == "helpful_aura" then
+            return C.ORIGIN_LABELS.helpful_aura
+        end
+        if code == "mouseover" or code == "target" or code == "soft_target" then
+            hovered = true
+        elseif type(code) == "string" and C.ORIGIN_LABELS[code] then
+            fallback = C.ORIGIN_LABELS[code]
         end
     end
-    if #labels == 0 then
-        return nil
+    if hovered then
+        return "Mouseover"
     end
-    return table.concat(labels, ", ")
+    return fallback
 end
 
 function UI.ShowTip(owner, key)
@@ -2224,6 +2229,14 @@ function UI.CombatOrderedEntries(source)
     for i = 1, #stable do
         ordered[#ordered + 1] = stable[i]
     end
+    if S.P.recentBuffKey and (GetTime() - (S.P.recentBuffAt or 0)) < 12 then
+        for i = 1, #ordered do
+            if Util.SameKey(ordered[i].key, S.P.recentBuffKey) then
+                table.insert(ordered, 1, table.remove(ordered, i))
+                break
+            end
+        end
+    end
     return ordered
 end
 
@@ -2382,6 +2395,13 @@ function UI.RefreshList(opts)
         local here = useYards and Memory.CurrentArea() or nil
         local now = GetTime()
         table.sort(list, function(a, b)
+            -- A recent helpful caster takes priority during the short interaction
+            -- window; target pinning is applied afterward and stays authoritative.
+            if useYards and S.P.recentBuffKey and (now - (S.P.recentBuffAt or 0)) < 12 then
+                local buffA = Util.SameKey(a.key, S.P.recentBuffKey)
+                local buffB = Util.SameKey(b.key, S.P.recentBuffKey)
+                if buffA ~= buffB then return buffA end
+            end
             local function zoneRank(entry)
                 if not hereZone or not entry.zone then
                     return 1

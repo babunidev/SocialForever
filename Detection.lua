@@ -251,7 +251,7 @@ function Detection.PurgeOtherZones()
     end
 end
 
-function Detection.Publish()
+function Detection.Publish(immediate)
     Detection.DropOfflineGroupSightings()
     Detection.PurgeOtherZones()
     Detection.PurgeOtherSubzones()
@@ -321,9 +321,9 @@ function Detection.Publish()
             if type(previousNearby) ~= "table" or not previousNearby[key] then Memory.NoteNearbyRecognition(key) end
         end
     end
-    if changed and UI.RefreshList then
+    if (changed or immediate) and UI.RefreshList then
         if UI.EnsureListFreezeHonest then UI.EnsureListFreezeHonest() end
-        UI.RefreshList()
+        UI.RefreshList(immediate and { skipMove = true } or nil)
     end
 end
 
@@ -495,7 +495,15 @@ function Detection.ConsiderUnit(unit, loose, origin)
     )
 end
 
+-- Event-driven mouseovers should not wait for the periodic multi-unit scan.
+function Detection.OnMouseoverChanged()
+    pcall(Detection.ConsiderUnit, "mouseover", true, "mouseover")
+    Detection.Publish(true)
+end
+
 function Detection.Scan()
+    -- Keep match boundaries up to date even when no players are detected.
+    if Memory.SyncBattlegroundSession then Memory.SyncBattlegroundSession() end
     for i = 1, #C.LOOK_UNITS do
         pcall(Detection.ConsiderUnit, C.LOOK_UNITS[i], true)
     end
@@ -1151,12 +1159,18 @@ function Detection.NoteHelpfulAuraCaster(aura)
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
             if casterGuid then
-                key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
+                -- A freshly added helpful aura is current interaction evidence.
+                -- Its caster need not still have a resolvable unit token.
+                key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
+                faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
             end
         end
     end
     if key and not Util.IsMe(key) then
         Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+        -- Prefer the most recently identified helpful caster temporarily.
+        S.P.recentBuffKey = key
+        S.P.recentBuffAt = GetTime()
         return true
     end
     return false
@@ -1216,18 +1230,19 @@ function Detection.OnPlayerAura(unit, updateInfo)
             added = nil
         end
     end
-    if type(added) == "table" then
+    if type(added) == "table" and #added > 0 then
         for i = 1, #added do
             if Detection.NoteHelpfulAuraCaster(added[i]) then
                 found = true
             end
         end
     else
-        -- Classic-style UNIT_AURA (no updateInfo) or sealed combat payload.
+        -- Classic-style, empty or sealed payload: inspect helpful auras.
         found = Detection.ScanPlayerHelpfulCasters()
     end
     if found then
-        Detection.Publish()
+        if UI.InvalidateListSort then UI.InvalidateListSort() end
+        Detection.Publish(true)
     end
 end
 
