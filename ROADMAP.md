@@ -8,6 +8,9 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Prepare 0.4.9-beta release candidate with match-scoped battleground encounters, prompt mouseovers and buff discovery, concise tooltip evidence and combat overlay updates.
+- [ ] Confirm Git tag publication, GitHub prerelease status and actual CurseForge Beta file after release authorization and execution.
+
 - [ ] Live-test battleground familiarity across deaths/respawns, graveyard changes, repeated encounters, /reload, match exit and a second match on the same map; ensure each player counts once per match and ordinary-world encounters remain unchanged.
 
 - [ ] Live-test instant mouseover additions with nameplates disabled, including during combat and when the list is being hovered.
