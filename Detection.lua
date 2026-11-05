@@ -1139,6 +1139,10 @@ function Detection.NoteHelpfulAuraCaster(aura)
     if Util.PlainBool(helpful) ~= true and helpful ~= true then
         return false
     end
+    local instanceId = Util.PlainNumber(aura.auraInstanceID)
+    if instanceId and S.P.helpfulAuraSeen[instanceId] then
+        return false -- the same long-running aura is not a fresh encounter
+    end
     local key, classFile, raceFile, faction
     local source = Util.PlainString(aura.sourceUnit)
     if source then
@@ -1154,20 +1158,23 @@ function Detection.NoteHelpfulAuraCaster(aura)
         end
     end
     if not key and C_UnitAuras and type(C_UnitAuras.GetAuraCasterGUID) == "function" then
-        local instanceId = Util.PlainNumber(aura.auraInstanceID)
         if instanceId then
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
             if casterGuid then
                 -- A freshly added helpful aura is current interaction evidence.
                 -- Its caster need not still have a resolvable unit token.
-                key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
-                faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
+                key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
+                if not key then
+                    key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
+                    faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
+                end
             end
         end
     end
     if key and not Util.IsMe(key) then
-        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+        Detection.Remember(key, 1, classFile, C.BUFF_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+        if instanceId then S.P.helpfulAuraSeen[instanceId] = true end
         -- Prefer the most recently identified helpful caster temporarily.
         S.P.recentBuffKey = key
         S.P.recentBuffAt = GetTime()
@@ -1180,13 +1187,30 @@ end
 function Detection.ScanPlayerHelpfulCasters()
     local found = false
     if C_UnitAuras and type(C_UnitAuras.GetAuraDataByIndex) == "function" then
+        local active = {}
+        local complete = true
         for i = 1, 40 do
             local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-            if not ok or not aura then
+            if not ok then
+                complete = false
                 break
             end
+            if not aura then break end
+            if type(aura) ~= "table" or Util.Secret(aura) then
+                complete = false
+                break
+            end
+            local id = Util.PlainNumber(aura.auraInstanceID)
+            if id then active[id] = true end
             if Detection.NoteHelpfulAuraCaster(aura) then
                 found = true
+            end
+        end
+        -- Only clear an instance ID if a complete, readable snapshot proves
+        -- it no longer exists. A sealed aura snapshot is not such proof.
+        if complete then
+            for id in pairs(S.P.helpfulAuraSeen) do
+                if not active[id] then S.P.helpfulAuraSeen[id] = nil end
             end
         end
         return found
@@ -1228,6 +1252,15 @@ function Detection.OnPlayerAura(unit, updateInfo)
         added = updateInfo.addedAuras
         if type(added) == "table" and Util.Secret(added) then
             added = nil
+        end
+    end
+    if type(updateInfo) == "table" and not Util.Secret(updateInfo) then
+        local removed = updateInfo.removedAuraInstanceIDs
+        if type(removed) == "table" and not Util.Secret(removed) then
+            for i = 1, #removed do
+                local id = Util.PlainNumber(removed[i])
+                if id then S.P.helpfulAuraSeen[id] = nil end
+            end
         end
     end
     if type(added) == "table" and #added > 0 then
