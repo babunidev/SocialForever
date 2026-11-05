@@ -1536,9 +1536,6 @@ function UI.IsListHovered()
                 if row.invite and row.invite:IsShown() and row.invite:IsMouseOver() then
                     return true
                 end
-                if row.combatShield and row.combatShield:IsShown() and row.combatShield:IsMouseOver() then
-                    return true
-                end
             end
         end
     end
