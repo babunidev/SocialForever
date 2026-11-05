@@ -470,6 +470,12 @@ function Util.NormRealm(realm)
     if realm == "" then
         return nil
     end
+    -- Forever can expose internal server identifiers through
+    -- GetPlayerInfoByGUID (e.g. CAMWOWEU4Realm10RP). These are not
+    -- playable realm names and must never become a player-name suffix.
+    if realm:upper():match("^CAMWOW[%w]+REALM%d+[%w]*$") then
+        return nil
+    end
     return realm
 end
 
