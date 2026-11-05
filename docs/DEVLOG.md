@@ -53,3 +53,9 @@ That is enough evidence for this narrow hotfix to move forward, but it is not a 
 Standing beside another player made the gap obvious: fighting and then skinning a creature did not necessarily make that player appear in Nearby. The old implementation blurred several chat categories together and also kept a legacy three-second Combat Log parser that Forever's protected UI no longer allows to provide useful text.
 
 The useful correction is narrower. Real craft announcements now enter through both the trade-skill and system-message routes, with Blizzard's own localized craft format used when text parsing is necessary. Skill-up messages are no longer treated as evidence of another player's crafting, and the dead Combat Log polling path is gone. Skinning remains deliberately unresolved: it is gathering, not crafting, and I do not want the addon inventing a nearby identity unless the live client actually exposes one.
+
+## 2026-11-05 — Showing why somebody appeared
+
+While checking crafting and combat detection, I wanted the list to explain itself rather than leave a name there without context. A person can now carry several observed reasons during the same Nearby appearance: perhaps I hovered them, then targeted them, then the Damage Meter showed that they were fighting beside me. The tooltip presents those as **Nearby because** while the older place memory stays under **Seen before in**.
+
+That distinction matters. These labels describe what SocialForever actually observed in the current sighting; they are not permanent claims about what a player usually does. AI implemented the bounded provenance list, source labels, tooltip presentation and regression coverage.

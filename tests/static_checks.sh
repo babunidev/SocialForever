@@ -62,3 +62,8 @@ if grep -Fq 'CHAT_MSG_SKILL' Events.lua; then
   echo "CHAT_MSG_SKILL should not be used as nearby craft evidence" >&2
   exit 1
 fi
+
+echo "Checking current-sighting provenance wiring..."
+grep -Fq 'origins = seen.origins' Detection.lua
+grep -Fq 'Nearby because:' UI.lua
+grep -Fq 'C.ORIGIN_LABELS' Core.lua

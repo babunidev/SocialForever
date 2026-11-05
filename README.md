@@ -219,6 +219,8 @@ Instead, Social Forever builds the nearby list from players the game has already
 
 **In this zone** is broader and weaker. It includes people who speak in General, people currently on the General channel roster, and yell. Being on that roster alone does not count as an encounter or raise familiarity.
 
+The tooltip keeps current detection evidence separate from long-term memory: **Nearby because** explains how the current sighting entered the list, while **Seen before in** lists remembered places from earlier Nearby encounters.
+
 Because of that, a silent player standing beside you may not appear immediately if the game has not exposed them to the addon yet. Skinning is a gathering action rather than a craft announcement, and no dedicated nearby-player Skinning event is currently verified; a skinner therefore still needs some other usable identity signal such as a unit token, nameplate, interaction, or shared Damage Meter session.
 
 Social Forever does not enable nameplates or use `/who` to build the list. Forever's protected Combat Log text is not parsed; post-combat combat discovery uses the built-in Damage Meter when available.

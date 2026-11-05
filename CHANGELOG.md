@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added current-sighting provenance to Nearby tooltips. A player can show multiple observed reasons such as **Your target**, **Hovered / mouseover**, **Visible nameplate**, **Crafting**, **Fighting**, **Buff / helpful aura**, **Trade**, **Duel**, or **Resurrection**.
+- Detection reasons are ephemeral current-sighting evidence, not permanent reputation/history data. Historical locations remain separate under **Seen before in**.
 - Improved nearby crafting detection: SocialForever now accepts real craft announcements from both `CHAT_MSG_TRADESKILLS` and craft-shaped `CHAT_MSG_SYSTEM` messages.
 - Craft messages use Blizzard's localized `TRADESKILL_LOG_THIRDPERSON` / created-item templates when available, with the event sender/GUID preferred over text parsing for player identity.
 - Stopped treating `CHAT_MSG_SKILL` as nearby crafting evidence; it primarily reports the local player's own skill gains.

@@ -51,6 +51,7 @@ assertEqual(Detection.CraftNameFromMessage("Two Name creates [Copper Bar]."),"Tw
 
 assertTrue(Detection.NoteCraftEvent("Smith creates [Copper Bar].","Smith",nil,true),"system craft line was not accepted")
 assertTrue(S.sightings.Smith~=nil,"system craft line did not create Nearby sighting")
+assertEqual(S.sightings.Smith.origins[1],"crafting","craft sighting did not record crafting provenance")
 
 assertTrue(Detection.NoteCraftEvent("Two Name creates [Copper Bar].","",nil,true),"two-word system craft line was not accepted")
 assertTrue(S.sightings["Two-Name"]~=nil,"two-word craft name was not normalized")

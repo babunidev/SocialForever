@@ -488,6 +488,26 @@ function UI.RaceLabel(raceFile)
     return raceFile
 end
 
+function UI.OriginText(seen)
+    if type(seen) ~= "table" or type(seen.origins) ~= "table" then
+        return nil
+    end
+    local labels = {}
+    local used = {}
+    for i = 1, #seen.origins do
+        local code = seen.origins[i]
+        local label = type(code) == "string" and C.ORIGIN_LABELS[code] or nil
+        if label and not used[label] then
+            labels[#labels + 1] = label
+            used[label] = true
+        end
+    end
+    if #labels == 0 then
+        return nil
+    end
+    return table.concat(labels, ", ")
+end
+
 function UI.ShowTip(owner, key)
     if not key then
         return
@@ -552,6 +572,10 @@ function UI.ShowTip(owner, key)
     if type(lastPlace) == "string" and lastPlace ~= "" then
         GameTooltip:AddLine("Last seen: " .. lastPlace, 0.9, 0.9, 0.75, true)
     end
+    local originText = UI.OriginText(S.sightings[key] or (S.nearby and S.nearby[key]))
+    if originText then
+        GameTooltip:AddLine("Nearby because: " .. originText, 0.72, 0.84, 1, true)
+    end
     local history = SF.db and SF.db.players and SF.db.players[key]
     local places = type(history) == "table" and history.places
     if type(places) == "table" and #places > 0 then
@@ -562,7 +586,7 @@ function UI.ShowTip(owner, key)
             end
         end
         if #names > 0 then
-            GameTooltip:AddLine("Seen before: " .. table.concat(names, ", "), 0.75, 0.85, 0.75, true)
+            GameTooltip:AddLine("Seen before in: " .. table.concat(names, ", "), 0.75, 0.85, 0.75, true)
         end
     end
     local general, good, okay, bad = Memory.Tally(key)

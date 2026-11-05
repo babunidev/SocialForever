@@ -5,6 +5,13 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — sighting provenance
+
+- Nearby sightings now retain a bounded set of verified origin codes for the current appearance instead of exposing the internal coarse `trackable` / `interaction` source field.
+- The tooltip renders those origins as **Nearby because**, with human-readable labels such as target, mouseover, nameplate, group proximity, chat/emote, crafting, fighting, helpful aura, trade, duel and resurrection.
+- Repeated evidence is deduplicated and multiple real pathways can accumulate during one sighting. Origins disappear when that sighting expires; they are not stored as permanent judgments about a player.
+- **Seen before** was clarified to **Seen before in** so historical place memory remains visibly separate from present detection provenance.
+
 ## Unreleased — nearby activity detection review
 
 - Live observation showed a player fighting and then skinning directly beside Babuni without appearing in Nearby.

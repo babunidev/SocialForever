@@ -146,11 +146,11 @@ events:SetScript("OnEvent", function(_, event, ...)
         or event == "CHAT_MSG_LOOT"
         or event == "CHAT_MSG_COMBAT_HONOR_GAIN"
     then
-        Detection.NoteActivity(arg1, arg2, false)
+        Detection.NoteActivity(arg1, arg2, false, event == "CHAT_MSG_OPENING" and "opening" or "nearby_activity")
         return
     end
     if event == "CHAT_MSG_PET_INFO" or event == "CHAT_MSG_COMBAT_MISC_INFO" then
-        Detection.NoteActivity(arg1, nil, false)
+        Detection.NoteActivity(arg1, nil, false, "nearby_activity")
         return
     end
     if event == "FRIENDLIST_UPDATE" then
@@ -158,8 +158,12 @@ events:SetScript("OnEvent", function(_, event, ...)
         Detection.Publish()
         return
     end
-    if event == "DUEL_REQUESTED" or event == "TRADE_REQUEST" then
-        Detection.NoteNamed(arg1, 1, C.CHAT_TTL)
+    if event == "DUEL_REQUESTED" then
+        Detection.NoteNamed(arg1, 1, C.CHAT_TTL, "duel")
+        return
+    end
+    if event == "TRADE_REQUEST" then
+        Detection.NoteNamed(arg1, 1, C.CHAT_TTL, "trade")
         return
     end
     if event == "PARTY_INVITE_REQUEST" then
@@ -167,7 +171,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         return
     end
     if event == "RESURRECT_REQUEST" then
-        Detection.NoteNearbyNamed(arg1, arg2)
+        Detection.NoteNearbyNamed(arg1, arg2, "resurrection")
         return
     end
     if event == "NAME_PLATE_UNIT_ADDED" then

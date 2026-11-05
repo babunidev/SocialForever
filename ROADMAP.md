@@ -8,6 +8,8 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Add current-sighting provenance to Nearby tooltip entries without persisting it as reputation data.
+- [ ] Live-test tooltip provenance for target, mouseover, crafting and post-combat Damage Meter detection.
 - [x] Audit nearby craft/combat detection after live observation of an undetected fighter/skinner.
 - [x] Add `CHAT_MSG_SYSTEM` craft detection and localized craft-template parsing; stop using `CHAT_MSG_SKILL` as nearby craft evidence.
 - [x] Remove protected Combat Log chat polling and keep `C_DamageMeter` as the supported post-combat source.

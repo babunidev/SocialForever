@@ -49,7 +49,55 @@ function Detection.IsVisibleMobName(key)
     return false
 end
 
-function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source)
+function Detection.CopyOrigins(prev, origin)
+    local origins = {}
+    local seen = {}
+    if prev and type(prev.origins) == "table" then
+        for i = 1, #prev.origins do
+            local value = Util.PlainString(prev.origins[i])
+            if value and C.ORIGIN_LABELS[value] and not seen[value] then
+                origins[#origins + 1] = value
+                seen[value] = true
+            end
+        end
+    end
+    origin = Util.PlainString(origin)
+    if origin and C.ORIGIN_LABELS[origin] and not seen[origin] then
+        origins[#origins + 1] = origin
+        while #origins > (C.MAX_ORIGINS or 12) do
+            table.remove(origins, 1)
+        end
+    end
+    return origins
+end
+
+function Detection.UnitOrigin(unit)
+    unit = Util.PlainString(unit) or unit
+    if type(unit) ~= "string" then
+        return nil
+    end
+    if unit == "target" then return "target" end
+    if unit == "mouseover" then return "mouseover" end
+    if unit == "focus" then return "focus" end
+    if unit == "softfriend" or unit == "softenemy" or unit == "softinteract" then
+        return "soft_target"
+    end
+    if unit:match("^nameplate%d+$") then
+        return "nameplate"
+    end
+    if unit:match("^party%d+$") or unit:match("^raid%d+$") then
+        return "group"
+    end
+    if unit == "npc" then
+        return "interaction"
+    end
+    if unit:sub(-6) == "target" then
+        return "tracked_target"
+    end
+    return nil
+end
+
+function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source, origin)
     key = Util.SafeKey(key)
     if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
         if key then
@@ -99,6 +147,7 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
     local now = GetTime()
     source = Util.PlainString(source) or (prev and prev.source) or "interaction"
     local trackable = source == "trackable" or source == "nameplate" or (prev and prev.trackable)
+    local origins = Detection.CopyOrigins(prev, origin)
     S.sightings[key] = {
         key = key,
         bucket = bucket or 3,
@@ -114,6 +163,7 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
         lastConfirmedAt = now,
         unconfirmedSince = nil,
         source = source,
+        origins = origins,
         trackable = trackable and true or nil,
     }
     Memory.NoteHistory(key)
@@ -214,6 +264,7 @@ function Detection.Publish()
             key = key, bucket = seen.bucket or 3, class = seen.class, race = seen.race,
             faction = seen.faction, yards = seen.yards, level = seen.level,
             area = seen.area, zone = seen.zone, at = seen.at, ttl = seen.ttl,
+            origins = seen.origins,
         }
     end
     for key, seen in pairs(S.sightings) do
@@ -298,6 +349,7 @@ function Detection.DisplayMapSig(map)
             tostring(entry and entry.level or ""),
             (entry and entry.area) or "",
             (entry and entry.zone) or "",
+            (entry and type(entry.origins) == "table") and table.concat(entry.origins, ",") or "",
             entry and entry.roster and "r" or "",
             grouped and "g" or "",
         }, "\31")
@@ -393,7 +445,7 @@ function Detection.UnitLevelPlain(unit)
     return math.floor(level)
 end
 
-function Detection.ConsiderUnit(unit, loose)
+function Detection.ConsiderUnit(unit, loose, origin)
     local ok, exists = pcall(UnitExists, unit)
     if not ok or Util.PlainBool(exists) ~= true then
         return
@@ -437,7 +489,10 @@ function Detection.ConsiderUnit(unit, loose)
     else
         return
     end
-    Detection.Remember(key, bucket, classFile, C.UNIT_TTL, yards, Detection.UnitLevelPlain(unit), raceFile, faction, "trackable")
+    Detection.Remember(
+        key, bucket, classFile, C.UNIT_TTL, yards, Detection.UnitLevelPlain(unit),
+        raceFile, faction, "trackable", origin or Detection.UnitOrigin(unit)
+    )
 end
 
 function Detection.Scan()
@@ -595,13 +650,13 @@ function Detection.MarkPresenceStale(key, accelerate)
     end
 end
 
-function Detection.NoteNamed(sender, bucket, ttl)
+function Detection.NoteNamed(sender, bucket, ttl, origin)
     sender = Util.PlainString(sender)
     if not sender then
         return
     end
     local name, realm = strsplit("-", sender, 2)
-    Detection.Remember(Util.MakeKey(name, realm), bucket, nil, ttl, nil, nil, nil, nil, "interaction")
+    Detection.Remember(Util.MakeKey(name, realm), bucket, nil, ttl, nil, nil, nil, nil, "interaction", origin)
     Detection.Publish()
 end
 
@@ -610,7 +665,7 @@ function Detection.NoteChat(sender, guid)
     if guid and guid:sub(1, 6) ~= "Player" then
         return
     end
-    Detection.NoteNamed(sender, 2, C.CHAT_TTL)
+    Detection.NoteNamed(sender, 2, C.CHAT_TTL, "chat")
 end
 
 function Detection.KeyFromSender(sender)
@@ -779,7 +834,7 @@ function Detection.NoteZoneWeak(sender, guid)
     Detection.Publish()
 end
 
-function Detection.NoteNearbyNamed(sender, guid)
+function Detection.NoteNearbyNamed(sender, guid, origin)
     local key = Detection.KeyFromSender(sender)
     local classFile, raceFile, faction
     if guid then
@@ -796,7 +851,7 @@ function Detection.NoteNearbyNamed(sender, guid)
     if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
         return
     end
-    Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction")
+    Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", origin or "interaction")
     Detection.Publish()
 end
 
@@ -1038,7 +1093,7 @@ function Detection.OnNameplateAdded(unit)
     if key and not Util.IsMe(key) then
         S.P.nameplateByUnit[unit] = key
     end
-    pcall(Detection.ConsiderUnit, unit, true)
+    pcall(Detection.ConsiderUnit, unit, true, "nameplate")
     local seen = key and S.sightings[key]
     if seen then
         seen.source = "nameplate"
@@ -1101,7 +1156,7 @@ function Detection.NoteHelpfulAuraCaster(aura)
         end
     end
     if key and not Util.IsMe(key) then
-        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction")
+        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
         return true
     end
     return false
@@ -1138,7 +1193,7 @@ function Detection.ScanPlayerHelpfulCasters()
                 if playerOk and Util.PlainBool(isPlayer) == true then
                     local key, classFile, raceFile, faction = Util.UnitIdentity(sourceUnit)
                     if key and Detection.UnitConnectedPlain(sourceUnit) ~= false and not Util.IsMe(key) then
-                        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction")
+                        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
                         found = true
                     end
                 end
@@ -1230,7 +1285,7 @@ function Detection.HarvestDamageMeter(combatStamp, forceMark)
         if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
             return
         end
-        Detection.Remember(key, 2, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction")
+        Detection.Remember(key, 2, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "fighting")
         found = true
     end
     for _, meterType in ipairs(sessionTypes) do
@@ -1636,7 +1691,7 @@ function Detection.NoteCraftEvent(message, sender, guid, requireMessageMatch)
     if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
         return false
     end
-    Detection.Remember(key, 2, classFile, C.SEEN_TTL, nil, nil, raceFile, faction, "interaction")
+    Detection.Remember(key, 2, classFile, C.SEEN_TTL, nil, nil, raceFile, faction, "interaction", "crafting")
     Detection.Publish()
     return true
 end
@@ -1647,7 +1702,7 @@ function Detection.NoteCraftSender(sender)
         return
     end
     if not sender:find("%s") then
-        Detection.NoteNamed(sender, 2, C.SEEN_TTL)
+        Detection.NoteNamed(sender, 2, C.SEEN_TTL, "crafting")
         return
     end
     local first, second = sender:match("^(%S+)%s+(%S+)$")
@@ -1656,17 +1711,17 @@ function Detection.NoteCraftSender(sender)
     if not first or not second or C.SKIP_WORDS[first:lower()] or C.SKIP_WORDS[second:lower()] then
         return
     end
-    Detection.Remember(Util.SafeKey(first .. "-" .. second), 2, nil, C.SEEN_TTL, nil, nil, nil, nil, "interaction")
+    Detection.Remember(Util.SafeKey(first .. "-" .. second), 2, nil, C.SEEN_TTL, nil, nil, nil, nil, "interaction", "crafting")
     Detection.Publish()
 end
 
-function Detection.NoteActivity(message, sender, craft)
+function Detection.NoteActivity(message, sender, craft, origin)
     if craft then
         Detection.NoteCraftSender(sender)
     else
         sender = Util.PlainString(sender)
         if sender and sender ~= "" and not sender:find("%s") and not C.SKIP_WORDS[sender:lower()] then
-            Detection.NoteNamed(sender, 2, C.SEEN_TTL)
+            Detection.NoteNamed(sender, 2, C.SEEN_TTL, origin or "nearby_activity")
         end
     end
     message = Util.PlainString(message)
@@ -1677,7 +1732,7 @@ function Detection.NoteActivity(message, sender, craft)
     for name in message:gmatch("|Hplayer:([^|:]+)") do
         if name ~= "" and not C.SKIP_WORDS[name:lower()] then
             sawLink = true
-            Detection.NoteNamed(name, 2, C.SEEN_TTL)
+            Detection.NoteNamed(name, 2, C.SEEN_TTL, origin or (craft and "crafting" or "nearby_activity"))
         end
     end
     if sawLink or not craft then
@@ -1685,7 +1740,7 @@ function Detection.NoteActivity(message, sender, craft)
     end
     local lead = Detection.LeadingName(message)
     if lead then
-        Detection.Remember(Util.SafeKey(lead), 2, nil, C.SEEN_TTL, nil, nil, nil, nil, "interaction")
+        Detection.Remember(Util.SafeKey(lead), 2, nil, C.SEEN_TTL, nil, nil, nil, nil, "interaction", "crafting")
         Detection.Publish()
     end
 end

@@ -27,3 +27,9 @@ The player rows and Invite controls use `SecureActionButtonTemplate` so targetin
 Crafting and combat are separate evidence families. Ordinary trade-skill craft announcements may arrive through `CHAT_MSG_TRADESKILLS` or craft-shaped `CHAT_MSG_SYSTEM` lines; SocialForever prefers the event GUID/sender and uses Blizzard's localized third-person craft strings only as a fallback parser. `CHAT_MSG_SKILL` is not treated as nearby-player evidence because it primarily reports the local character's skill gains.
 
 Forever intentionally protects Combat Log text from addon parsing, so SocialForever does not poll or parse the Combat Log chat frame. Combat-related Nearby discovery instead uses unit tokens/nameplates/interactions while they exist and `C_DamageMeter` after combat when another player is present in the same recorded session. Skinning is gathering, not ordinary crafting, and currently has no verified direct nearby-player event path.
+
+## Current-sighting provenance
+
+Each entry in `S.sightings` may carry a bounded `origins` array describing the concrete evidence observed during that current Nearby appearance. Origin codes are additive and deduplicated; examples include target, mouseover, nameplate, group member, crafting, Damage Meter fighting, helpful aura, trade, duel and resurrection. `Detection.Publish` copies those origins into the current Nearby display entry and includes them in its display signature so a new reason can repaint the tooltip/list state.
+
+This provenance is deliberately ephemeral. It is not stored in `SocialForeverDB`, does not affect familiarity, sorting, marks or flags, and disappears when the current sighting expires. Historical place memory remains separate.
