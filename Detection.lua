@@ -670,6 +670,9 @@ end
 
 function Detection.NoteChat(sender, guid)
     guid = Util.PlainString(guid)
+    if Util.IsMyGuid(guid) then
+        return -- own say/emote must never create a Nearby sighting
+    end
     if guid and guid:sub(1, 6) ~= "Player" then
         return
     end
