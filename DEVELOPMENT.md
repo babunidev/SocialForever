@@ -5,6 +5,15 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — combat-time Nearby and inviting
+
+- Live use showed that the 0.4.8 protected-frame hotfix had become too conservative: detection continued during combat, but a player discovered by mouseover could remain invisible until combat ended.
+- The secure target rows are still never rearranged or rebound during combat. Instead, `UI.RefreshCombatList` paints current Nearby entries into a separate normal-frame overlay that can safely change geometry, visibility, text and colors while lockdown is active.
+- Fresh combat discoveries are placed ahead of the stable overlay order so a new mouseover remains visible even when the pre-combat list was already full.
+- The combat overlay uses a normal Invite button calling `C_PartyInfo.InviteUnit` from the user's deliberate click with a plain stored player name. The ordinary out-of-combat rows and same-mob prompt keep their existing secure macro paths.
+- The overlay deliberately intercepts the frozen secure rows underneath. A newly displayed combat entry therefore cannot accidentally fire an old target macro; secure click-to-target is restored only by the full post-combat repaint.
+- Automated tests verify that the combat painter never touches protected-row geometry and that the direct invite helper receives the intended player name. Actual combat-time behavior still requires live Forever testing.
+
 ## Unreleased — recognition/list synchronization
 
 - A live inconsistency showed the familiar-player thought could appear before the same player was visible in Nearby.

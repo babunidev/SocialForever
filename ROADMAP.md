@@ -8,6 +8,11 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Restore immediate visual Nearby additions during combat without mutating protected target rows.
+- [x] Add a deliberate combat-time Invite path for newly detected overlay entries.
+- [ ] Live-test mouseover discovery while already in combat: entry should appear immediately with **Nearby because: Hovered / mouseover**.
+- [ ] Live-test inviting that newly detected player before combat ends and confirm no `ADDON_ACTION_BLOCKED` event occurs.
+- [ ] Confirm the combat overlay disappears cleanly after combat and the normal secure target rows are repainted/re-armed.
 - [x] Keep familiar-player recognition synchronized with the actual Nearby list.
 - [ ] Live-test recognition from a deliberate target, delayed Nearby recognition, disappearance before the timer fires, and recognition queued across combat lockdown.
 - [x] Add current-sighting provenance to Nearby tooltip entries without persisting it as reputation data.

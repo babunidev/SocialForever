@@ -65,3 +65,9 @@ That distinction matters. These labels describe what SocialForever actually obse
 A familiar-player message occasionally arrived before the person appeared in Nearby. That made the little recognition thought feel detached from the actual world: it said I had seen this Paladin before, but the list gave me no immediate clue who it meant.
 
 The rule is now simple: recognition is downstream of detection. A deliberate target is promoted through the ordinary Nearby path first, delayed recognition checks that the player is still present when its timer finishes, and combat-time recognition waits until the secure list can repaint after combat. The thought should only appear when SocialForever can also show the person it is talking about.
+
+## 2026-11-05 — Nearby should stay useful during the fight
+
+Freezing the protected rows solved the blocked-action errors, but live play made the cost obvious: hovering somebody during a fight could detect them underneath without actually showing them until combat ended. That defeated one of the useful moments for SocialForever, because the point is often to notice somebody helping nearby and invite them while the fight is still happening.
+
+The protected target rows now stay exactly where Forever requires them to stay, while a separate ordinary overlay carries the live combat presentation. A new mouseover can appear there immediately and gets a deliberate Invite button. The old secure target action is intentionally not borrowed for a different name during combat; after combat the normal rows repaint and targeting works again. AI implemented the separation and regression checks. The actual invite and overlay behavior still need to be exercised in the live client before they count as verified.

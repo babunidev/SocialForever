@@ -16,7 +16,7 @@ done < <(awk '!/^#/ && /\.lua$/' SocialForever.toc)
 
 echo "Checking removed auto-invite runtime symbols..."
 runtime_files=(Core.lua Memory.lua Group.lua Detection.lua Sharing.lua UI.lua Events.lua)
-matches="$(grep -niE 'autoInviteFriends|sameMobAutoInvite|sameMobApiInvite|TryAutoInvite|FriendsAutoOn|SameMobAutoOn|SetSameMobAuto|InviteByKey|InviteUnit' "${runtime_files[@]}" || true)"
+matches="$(grep -niE 'autoInviteFriends|sameMobAutoInvite|sameMobApiInvite|TryAutoInvite|FriendsAutoOn|SameMobAutoOn|SetSameMobAuto|InviteByKey' "${runtime_files[@]}" || true)"
 unexpected="$(printf '%s\n' "$matches" | grep -vE '^Core\.lua:[0-9]+:[[:space:]]*db\.(autoInviteFriends|sameMobAutoInvite)[[:space:]]*=[[:space:]]*nil[[:space:]]*$' || true)"
 
 if [[ -n "$unexpected" ]]; then
@@ -34,11 +34,22 @@ fi
 echo "Checking periodic sorting ticker..."
 grep -Fq 'C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)' Events.lua
 
-echo "Checking combat-lockdown deferred list repaint..."
-grep -Fq 'if InCombatLockdown() then' UI.lua
+echo "Checking combat-lockdown overlay and post-combat repaint..."
+grep -Fq 'function UI.RefreshCombatList()' UI.lua
+grep -Fq 'UI.RefreshCombatList()' UI.lua
 grep -Fq 'S.listDirty = true' UI.lua
 grep -Fq 'if S.listDirty and UI.RefreshList then' Events.lua
 grep -Fq 'UI.RefreshList({ force = true, skipMove = true })' Events.lua
+
+echo "Checking protected-row combat shield..."
+grep -Fq 'RegisterStateDriver(shield, "visibility", "[combat] show; hide")' UI.lua
+grep -Fq 'UI.EnsureCombatShield(row)' UI.lua
+
+echo "Checking deliberate combat invite path..."
+grep -Fq 'local invite = C_PartyInfo and C_PartyInfo.InviteUnit' UI.lua
+grep -Fq 'if self.key and UI.DirectInvite(self.key) then' UI.lua
+direct_invite_refs="$(grep -c 'UI.DirectInvite' UI.lua)"
+[[ "$direct_invite_refs" -eq 2 ]] || { echo "Unexpected UI.DirectInvite call count: $direct_invite_refs" >&2; exit 1; }
 
 echo "Checking combat-safe interaction fallback..."
 grep -Fq 'type(InCombatLockdown) == "function" and InCombatLockdown()' Core.lua

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Restored immediate Nearby presentation during combat without mutating protected target rows. Mouseover/target/nameplate and other usable detections now paint into a separate normal-frame combat overlay as soon as SocialForever receives them.
+- Added a deliberate combat-time Invite action for overlay entries using `C_PartyInfo.InviteUnit` with the already-normalized player name. The existing protected target rows remain frozen underneath and are fully repainted after combat.
+- Newly remapped combat entries intentionally do not expose the stale secure row target action; click-to-target is re-armed only after combat ends. Live Forever verification of the new combat overlay/invite path is still required.
 - Fixed familiar-player recognition so the "I've seen this ... before" thought cannot appear before the player exists in the current Nearby list.
 - Target recognition now promotes the target through the normal Nearby detection path before printing the thought.
 - Delayed recognition re-checks that the player is still Nearby before firing, preventing stale messages after somebody has already disappeared.

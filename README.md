@@ -209,7 +209,7 @@ Social Forever does **not** scan every player within a fixed radius. WoW does no
 
 Instead, Social Forever builds the nearby list from players the game has already exposed through things such as:
 
-- Your target, mouseover, focus, or soft target.
+- Your target, mouseover, focus, or soft target. A player exposed by mouseover can enter Nearby immediately even while you are in combat.
 - Friendly nameplates, if you have turned them on yourself (Shift+V). Social Forever never changes that setting.
 - Someone who buffs you, when Forever still exposes the caster.
 - A resurrection cast on you.
@@ -222,6 +222,8 @@ Instead, Social Forever builds the nearby list from players the game has already
 The tooltip keeps current detection evidence separate from long-term memory: **Nearby because** explains how the current sighting entered the list, while **Seen before in** lists remembered places from earlier Nearby encounters.
 
 Because of that, a silent player standing beside you may not appear immediately if the game has not exposed them to the addon yet. Skinning is a gathering action rather than a craft announcement, and no dedicated nearby-player Skinning event is currently verified; a skinner therefore still needs some other usable identity signal such as a unit token, nameplate, interaction, or shared Damage Meter session.
+
+During combat, Social Forever paints a separate non-secure Nearby overlay instead of rearranging its protected target rows. Newly detected players can therefore appear immediately, and the overlay's **Invite** button uses Forever's party API from your deliberate click. Row click-to-target remains unavailable for a newly remapped combat entry until combat ends and the secure target rows can be armed safely again.
 
 Social Forever does not enable nameplates or use `/who` to build the list. Forever's protected Combat Log text is not parsed; post-combat combat discovery uses the built-in Damage Meter when available.
 

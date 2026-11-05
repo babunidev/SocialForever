@@ -16,7 +16,11 @@ The [0.4.2 release entry](../DEVELOPMENT.md) records that a nominally successful
 
 ## Secure list-row boundary
 
-The player rows and Invite controls use `SecureActionButtonTemplate` so targeting and invitations remain deliberate hardware-driven actions. Their geometry and visibility are therefore treated as combat-locked state: `UI.RefreshList` defers row repainting while `InCombatLockdown()` is true, and `PLAYER_REGEN_ENABLED` flushes any dirty list state afterward. Detection and SavedVariables updates are not paused by this presentation guard.
+The ordinary player rows use `SecureActionButtonTemplate` for deliberate click-to-target behavior. Their geometry, visibility and secure target attributes are combat-locked and are never rearranged or rebound by insecure addon code while `InCombatLockdown()` is true.
+
+Combat presentation is separated from that protected layer. `UI.RefreshCombatList` renders current Nearby/Zone entries into normal overlay rows above the frozen secure rows. These overlay rows can be shown, hidden and repainted immediately as combat-time detection changes, including a fresh mouseover. Their Invite button is a normal deliberate-click control that calls `C_PartyInfo.InviteUnit` with the plain stored player name; it does not rewrite secure attributes. Overlay rows do not provide click-to-target because arbitrary new names cannot be safely rebound to the underlying secure target action during combat.
+
+When combat ends, `PLAYER_REGEN_ENABLED` runs the full protected-row repaint and the overlay is hidden. Detection and SavedVariables updates continue throughout combat.
 
 ## Protected range-query boundary
 
