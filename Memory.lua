@@ -458,9 +458,49 @@ function Memory.PrintRecognition(key)
     end
 end
 
+function Memory.RecognitionCurrentlyNearby(key)
+    key = Util.SafeKey(key)
+    if not key then
+        return false
+    end
+    return type(S.nearby) == "table" and S.nearby[key] ~= nil
+end
+
+function Memory.QueueRecognitionAfterCombat(key)
+    key = Util.SafeKey(key)
+    if not key then
+        return false
+    end
+    S.P.recognitionCombatPending = S.P.recognitionCombatPending or {}
+    S.P.recognitionCombatPending[key] = true
+    return true
+end
+
+function Memory.FlushRecognitionAfterCombat()
+    local pending = S.P.recognitionCombatPending
+    if type(pending) ~= "table" then
+        return
+    end
+    S.P.recognitionCombatPending = {}
+    for key in pairs(pending) do
+        if Memory.RecognitionCurrentlyNearby(key) then
+            Memory.FireRecognition(key)
+        end
+    end
+end
+
 function Memory.FireRecognition(key)
     key = Util.SafeKey(key)
     if not key then
+        return false
+    end
+    -- The thought must never outrun the Nearby list. A delayed recognition can
+    -- become stale, and secure rows cannot repaint during combat lockdown.
+    if not Memory.RecognitionCurrentlyNearby(key) then
+        return false
+    end
+    if type(InCombatLockdown) == "function" and InCombatLockdown() then
+        Memory.QueueRecognitionAfterCombat(key)
         return false
     end
     if not Memory.RecognitionEligible(key) then
@@ -533,8 +573,19 @@ function Memory.NoteTargetRecognition()
     if not okPlayer or Util.PlainBool(isPlayer) ~= true then
         return
     end
+
+    -- Recognition is downstream of detection. Promote the deliberate target
+    -- through the normal Nearby path first so the message cannot describe a
+    -- player who is absent from the current list.
+    if Detection and Detection.ConsiderUnit then
+        pcall(Detection.ConsiderUnit, "target", true, "target")
+        if Detection.Publish then
+            Detection.Publish()
+        end
+    end
+
     local key = Util.UnitIdentity("target")
-    if not key or Util.IsMe(key) then
+    if not key or Util.IsMe(key) or not Memory.RecognitionCurrentlyNearby(key) then
         return
     end
     -- Deliberate target: quiet thought now (Nearby appearances stay delayed).

@@ -59,3 +59,9 @@ The useful correction is narrower. Real craft announcements now enter through bo
 While checking crafting and combat detection, I wanted the list to explain itself rather than leave a name there without context. A person can now carry several observed reasons during the same Nearby appearance: perhaps I hovered them, then targeted them, then the Damage Meter showed that they were fighting beside me. The tooltip presents those as **Nearby because** while the older place memory stays under **Seen before in**.
 
 That distinction matters. These labels describe what SocialForever actually observed in the current sighting; they are not permanent claims about what a player usually does. AI implemented the bounded provenance list, source labels, tooltip presentation and regression coverage.
+
+## 2026-11-05 — The recognition thought must point to somebody visible
+
+A familiar-player message occasionally arrived before the person appeared in Nearby. That made the little recognition thought feel detached from the actual world: it said I had seen this Paladin before, but the list gave me no immediate clue who it meant.
+
+The rule is now simple: recognition is downstream of detection. A deliberate target is promoted through the ordinary Nearby path first, delayed recognition checks that the player is still present when its timer finishes, and combat-time recognition waits until the secure list can repaint after combat. The thought should only appear when SocialForever can also show the person it is talking about.

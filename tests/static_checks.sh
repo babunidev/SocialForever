@@ -67,3 +67,8 @@ echo "Checking current-sighting provenance wiring..."
 grep -Fq 'origins = seen.origins' Detection.lua
 grep -Fq 'Nearby because:' UI.lua
 grep -Fq 'C.ORIGIN_LABELS' Core.lua
+
+echo "Checking recognition/list synchronization..."
+grep -Fq 'not Memory.RecognitionCurrentlyNearby(key)' Memory.lua
+grep -Fq 'pcall(Detection.ConsiderUnit, "target", true, "target")' Memory.lua
+grep -Fq 'Memory.FlushRecognitionAfterCombat()' Events.lua

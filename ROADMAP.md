@@ -8,6 +8,8 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Keep familiar-player recognition synchronized with the actual Nearby list.
+- [ ] Live-test recognition from a deliberate target, delayed Nearby recognition, disappearance before the timer fires, and recognition queued across combat lockdown.
 - [x] Add current-sighting provenance to Nearby tooltip entries without persisting it as reputation data.
 - [ ] Live-test tooltip provenance for target, mouseover, crafting and post-combat Damage Meter detection.
 - [x] Audit nearby craft/combat detection after live observation of an undetected fighter/skinner.

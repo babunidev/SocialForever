@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed familiar-player recognition so the "I've seen this ... before" thought cannot appear before the player exists in the current Nearby list.
+- Target recognition now promotes the target through the normal Nearby detection path before printing the thought.
+- Delayed recognition re-checks that the player is still Nearby before firing, preventing stale messages after somebody has already disappeared.
+- Recognition that becomes ready during combat is deferred until combat ends and the secure Nearby rows can repaint.
 - Added current-sighting provenance to Nearby tooltips. A player can show multiple observed reasons such as **Your target**, **Hovered / mouseover**, **Visible nameplate**, **Crafting**, **Fighting**, **Buff / helpful aura**, **Trade**, **Duel**, or **Resurrection**.
 - Detection reasons are ephemeral current-sighting evidence, not permanent reputation/history data. Historical locations remain separate under **Seen before in**.
 - Improved nearby crafting detection: SocialForever now accepts real craft announcements from both `CHAT_MSG_TRADESKILLS` and craft-shaped `CHAT_MSG_SYSTEM` messages.

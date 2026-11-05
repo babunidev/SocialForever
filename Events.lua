@@ -230,6 +230,9 @@ events:SetScript("OnEvent", function(_, event, ...)
             S.listDirty = false
             UI.RefreshList({ force = true, skipMove = true })
         end
+        if Memory.FlushRecognitionAfterCombat then
+            Memory.FlushRecognitionAfterCombat()
+        end
         Detection.QueueDamageMeterHarvest()
         if S.P.sameMobPromptPending or (S.sameMobQueue and #S.sameMobQueue > 0) then
             if UI.ShowSameMobPrompt then

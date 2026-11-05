@@ -5,6 +5,14 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — recognition/list synchronization
+
+- A live inconsistency showed the familiar-player thought could appear before the same player was visible in Nearby.
+- Recognition now treats the current Nearby set as a hard prerequisite at fire time.
+- Deliberate target recognition first runs that target through `Detection.ConsiderUnit(..., "target")` and publishes the resulting Nearby state before scheduling the chat thought.
+- Delayed recognition is discarded if the player is no longer Nearby.
+- If recognition becomes ready during combat lockdown, it is queued until `PLAYER_REGEN_ENABLED`, after detection and the deferred secure-row repaint, so the chat message cannot outrun a list that is intentionally frozen in combat.
+
 ## Unreleased — sighting provenance
 
 - Nearby sightings now retain a bounded set of verified origin codes for the current appearance instead of exposing the internal coarse `trackable` / `interaction` source field.

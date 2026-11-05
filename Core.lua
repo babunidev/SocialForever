@@ -187,6 +187,7 @@ S.P = {
     -- Recognition: pending timer tokens keyed by player.
     recognitionToken = {},
     recognitionPending = {},
+    recognitionCombatPending = {},
 }
 
 C.LOOK_UNITS = {
