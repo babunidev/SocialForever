@@ -162,22 +162,9 @@ function UI.ApplyMacro(button, macro, anyClick)
 end
 
 function UI.SlashName(key)
-    if type(key) ~= "string" or key == "" then
-        return nil
-    end
-    local name = key
-    local mine = Util.MyRealm()
-    if mine and #key > #mine + 1 and key:lower():sub(-(#mine + 1)) == "-" .. mine:lower() then
-        local base = key:sub(1, #key - #mine - 1)
-        name = base:gsub("-", " ") .. "-" .. key:sub(#key - #mine + 1)
-    else
-        name = key:gsub("-", " ")
-    end
-    name = name:gsub("^%s+", ""):gsub("%s+$", "")
-    if name == "" then
-        return nil
-    end
-    return name
+    -- Forever uses exactly two name parts; there are no realm suffixes.
+    if not Util.IsCompleteCharacterKey(key) then return nil end
+    return (key:gsub("-", " "))
 end
 
 function UI.InviteMacro(key)
