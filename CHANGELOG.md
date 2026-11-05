@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fixed synthetic Forever realm identifiers leaking into buff casters' names; prefer connected unit identity and strip internal `CAMWOW...Realm...` tokens from GUID-derived names.
+- Avoid repeatedly recording the same active helpful aura on successive `UNIT_AURA` updates. Buff-only sightings now expire after 30 seconds unless corroborated by fresh nearby evidence. The correction does not silently delete earlier persisted player records. Live Forever verification pending.
+
 ## 0.4.9-beta — 2026-11-05
 
 - Battleground familiarity now counts each encountered player only once per match, independent of respawns, graveyards, subzones and reloads. A persisted character-specific match token allows a later battleground match to count again after a confirmed exit; normal-world subzone counting stays unchanged. Mock regression added; live Forever validation pending.
