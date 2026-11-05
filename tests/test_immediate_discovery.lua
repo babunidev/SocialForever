@@ -20,7 +20,7 @@ function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
     if unit == "player" then return "Localplayer", "ForeverRealm" end
-    if unit == "mouseover" then return "Hovered", "ForeverRealm" end
+    if unit == "mouseover" then return "Hovered", "Person" end
 end
 function UnitExists(unit) return unit == "mouseover" end
 function UnitIsPlayer(unit) return unit == "mouseover" end
@@ -36,7 +36,7 @@ function UnitRace() return "Human", "Human" end
 function UnitFactionGroup() return "Alliance" end
 function GetPlayerInfoByGUID(guid)
     if guid == "Player-123-Caster" then
-        return "Priest", "PRIEST", "Human", "Human", 2, "Caster", "CAMWOWEU4Realm10RP"
+        return "Priest", "PRIEST", "Human", "Human", 2, "Caster Person", "CAMWOWEU4Realm10RP"
     end
 end
 C_UnitAuras = {
@@ -57,7 +57,7 @@ SF.Sharing.MaybeHello = function() end
 SF.UI.RefreshList = function(opts) publishes[#publishes + 1] = opts end
 
 SF.Detection.OnMouseoverChanged()
-assert(SF.State.nearby.Hovered, "mouseover was not published synchronously")
+assert(SF.State.nearby["Hovered-Person"], "mouseover was not published synchronously")
 assert(publishes[#publishes] and publishes[#publishes].skipMove, "mouseover should paint without a movement hold")
 
 -- Preexisting buffs on login must not become new nearby encounters.
@@ -72,15 +72,15 @@ assert(SF.State.P.recentBuffKey == nil, "preexisting aura was treated as newly r
 
 local aura = {isHelpful=true, auraInstanceID=17}
 SF.Detection.OnPlayerAura("player", {addedAuras={aura}})
-assert(SF.State.nearby.Caster, "fresh aura caster GUID should work without a live unit token")
-assert(SF.State.P.recentBuffKey == "Caster", "newly identified buff caster should receive priority")
+assert(SF.State.nearby["Caster-Person"], "fresh aura caster GUID should work without a live unit token")
+assert(SF.State.P.recentBuffKey == "Caster-Person", "newly identified buff caster should receive priority")
 assert(publishes[#publishes] and publishes[#publishes].skipMove, "aura caster should paint without a movement hold")
-assert(SF.State.sightings.Caster.origins[1] == "helpful_aura", "caster origin missing")
+assert(SF.State.sightings["Caster-Person"].origins[1] == "helpful_aura", "caster origin missing")
 
-local countedAt = SF.State.sightings.Caster.at
+local countedAt = SF.State.sightings["Caster-Person"].at
 local recencyAt = SF.State.P.recentBuffAt
 SF.Detection.OnPlayerAura("player", {addedAuras={aura}})
-assert(SF.State.sightings.Caster.at == countedAt, "the same aura was repeatedly counted")
+assert(SF.State.sightings["Caster-Person"].at == countedAt, "the same aura was repeatedly counted")
 assert(SF.State.P.recentBuffAt == recencyAt, "the same aura repeatedly pinned the caster")
 
 -- A full aura snapshot must not refresh a buff simply because it persists.
@@ -90,7 +90,7 @@ C_UnitAuras.GetAuraDataByIndex = function(unit, index, filter)
     end
 end
 SF.Detection.OnPlayerAura("player", {addedAuras={}})
-assert(SF.State.sightings.Caster.at == countedAt, "persistent helpful aura refreshed a stale player")
-assert(SF.State.sightings.Caster.ttl == SF.Const.BUFF_TTL, "buff-only sightings should expire quickly")
-assert(SF.State.nearby.Caster, "empty aura delta must not remove confirmed caster")
+assert(SF.State.sightings["Caster-Person"].at == countedAt, "persistent helpful aura refreshed a stale player")
+assert(SF.State.sightings["Caster-Person"].ttl == SF.Const.BUFF_TTL, "buff-only sightings should expire quickly")
+assert(SF.State.nearby["Caster-Person"], "empty aura delta must not remove confirmed caster")
 print("PASS: immediate mouseover and fresh helpful-aura GUID discovery")
