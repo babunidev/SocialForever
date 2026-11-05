@@ -99,10 +99,10 @@ end
 
 function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source, origin)
     key = Util.SafeKey(key)
-    if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
-        if key then
-            S.sightings[key] = nil
-        end
+    if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+        -- Ignore incomplete first-only names instead of creating a second
+        -- Nearby identity for the same Forever player.
+        if key then S.sightings[key] = nil end
         return
     end
     local prev = S.sightings[key]
