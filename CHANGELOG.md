@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Blocked the player's own two-word Forever character name from Nearby, even when chat, emote and GUID identities differ from `UnitName("player")`. Self-authored chat GUIDs are rejected before creating sightings.
+- Existing buffs are now baselined when logging in or entering the world, so a persistent aura is not interpreted as a new nearby interaction after reload. Added regression tests for both cases. Live verification remains required.
+
 - Fixed synthetic Forever realm identifiers leaking into buff casters' names; prefer connected unit identity and strip internal `CAMWOW...Realm...` tokens from GUID-derived names.
 - Avoid repeatedly recording the same active helpful aura on successive `UNIT_AURA` updates. Buff-only sightings now expire after 30 seconds unless corroborated by fresh nearby evidence. The correction does not silently delete earlier persisted player records. Live Forever verification pending.
 
