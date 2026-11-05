@@ -2224,6 +2224,14 @@ function UI.CombatOrderedEntries(source)
     for i = 1, #stable do
         ordered[#ordered + 1] = stable[i]
     end
+    if S.P.recentBuffKey and (GetTime() - (S.P.recentBuffAt or 0)) < 12 then
+        for i = 1, #ordered do
+            if Util.SameKey(ordered[i].key, S.P.recentBuffKey) then
+                table.insert(ordered, 1, table.remove(ordered, i))
+                break
+            end
+        end
+    end
     return ordered
 end
 
@@ -2382,6 +2390,13 @@ function UI.RefreshList(opts)
         local here = useYards and Memory.CurrentArea() or nil
         local now = GetTime()
         table.sort(list, function(a, b)
+            -- A recent helpful caster takes priority during the short interaction
+            -- window; target pinning is applied afterward and stays authoritative.
+            if useYards and S.P.recentBuffKey and (now - (S.P.recentBuffAt or 0)) < 12 then
+                local buffA = Util.SameKey(a.key, S.P.recentBuffKey)
+                local buffB = Util.SameKey(b.key, S.P.recentBuffKey)
+                if buffA ~= buffB then return buffA end
+            end
             local function zoneRank(entry)
                 if not hereZone or not entry.zone then
                     return 1
