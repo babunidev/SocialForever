@@ -90,11 +90,14 @@ local invite = {
 }
 local combatRow = {
     invite = invite,
-    mark = { SetText = noop, SetTextColor = noop },
+    mark = { SetText = noop, SetTextColor = noop, SetFont = noop, SetWidth = noop },
     name = {
         SetText = function(_, text) paintedName = text end,
         SetTextColor = noop,
+        SetPoint = noop,
     },
+    levelText = { SetPoint = noop, SetText = noop, SetTextColor = noop, SetWidth = noop, Hide = noop, Show = noop },
+    identity = { ClearAllPoints = noop, SetSize = noop, SetTexture = noop, SetVertexColor = noop, SetPoint = noop, Show = noop, Hide = noop },
     SetHeight = noop,
     ClearAllPoints = noop,
     SetPoint = noop,
@@ -129,8 +132,8 @@ S.main = {
     end,
 }
 S.nearby = {
-    Combatmouse = {
-        key = "Combatmouse",
+    ["Combat-Mouse"] = {
+        key = "Combat Mouse",
         bucket = 3,
         at = 100,
         ttl = SF.Const.SEEN_TTL,
@@ -142,13 +145,13 @@ S.listDirty = false
 
 UI.RefreshList()
 assert(overlayShown == true, "combat overlay did not paint")
-assert(paintedName == "Combatmouse", "combat mouseover was not painted immediately")
+assert(paintedName == "Combat Mouse", "combat mouseover was not painted immediately")
 assert(touchedSecureRow == false, "combat refresh touched protected target-row geometry")
 assert(S.listDirty == true, "combat refresh should still request a full post-combat repaint")
 
-assert(UI.DirectInvite("Combatmouse") == true, "direct combat invite path failed")
-assert(invitedName == "Combatmouse", "combat invite used the wrong player name")
-assert(S.inviteState.Combatmouse == "invited", "combat invite state was not recorded")
+assert(UI.DirectInvite("Combat Mouse") == true, "direct combat invite path failed")
+assert(invitedName == "Combat Mouse", "combat invite used the wrong player name")
+assert(S.inviteState["Combat-Mouse"] == "invited", "combat invite state was not recorded")
 assert(touchedSecureRow == false, "combat invite refresh touched protected target-row geometry")
 
 S.listDirty = false
