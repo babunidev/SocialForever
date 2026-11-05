@@ -541,8 +541,41 @@ function Util.MyKey()
     return Util.MakeKey(name, realm)
 end
 
-function Util.IsMe(key)
-    return Util.SameKey(key, Util.MyKey())
+-- Forever two-word character names may differ between UnitName,
+-- GetUnitName, and GUID-backed chat/aura sources. Compare all readable
+-- forms so the local player never becomes a nearby stranger.
+function Util.IsMyGuid(guid)
+    guid = Util.PlainString(guid)
+    if not guid or type(UnitGUID) ~= "function" then return false end
+    local ok, own = pcall(UnitGUID, "player")
+    own = ok and Util.PlainString(own) or nil
+    return own ~= nil and own == guid
+end
+
+function Util.IsMe(key, guid)
+    if Util.IsMyGuid(guid) then return true end
+    key = Util.SafeKey(key)
+    if not key then return false end
+    if Util.SameKey(key, Util.MyKey()) then return true end
+
+    if type(GetUnitName) == "function" then
+        local ok, name = pcall(GetUnitName, "player", true)
+        name = ok and Util.PlainString(name) or nil
+        if name and Util.SameKey(key, Util.MakeKey(name)) then return true end
+    end
+    if type(UnitFullName) == "function" then
+        local ok, name, realm = pcall(UnitFullName, "player")
+        if ok and name and Util.SameKey(key, Util.MakeKey(name, realm)) then return true end
+    end
+    if type(UnitGUID) == "function" and type(GetPlayerInfoByGUID) == "function" then
+        local ok, ownGuid = pcall(UnitGUID, "player")
+        ownGuid = ok and Util.PlainString(ownGuid) or nil
+        if ownGuid then
+            local infoOk, _, _, _, _, _, name, realm = pcall(GetPlayerInfoByGUID, ownGuid)
+            if infoOk and name and Util.SameKey(key, Util.MakeKey(name, realm)) then return true end
+        end
+    end
+    return false
 end
 
 function Util.ValidColor(color)
