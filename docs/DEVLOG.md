@@ -35,3 +35,9 @@ Rather than whack only the reported `SetHeight()` call and wait for the next pro
 The first secure-row fix removed the blocked layout mutation, but live play immediately exposed another modern-client restriction: SocialForever still called `CheckInteractDistance` through a `pcall` while combat was active. The client blocks that action before Lua can treat it like an ordinary caught error, so wrapping it was never a real safety boundary.
 
 For the hotfix, I kept the fallback deliberately conservative. SocialForever now skips `CheckInteractDistance` entirely during combat; exact distance still comes from `UnitDistanceSquared` when available, and loose visible-unit evidence can still keep appropriate tracked units in the list. AI traced the stack, added the hard combat guard and extended the regression test. The corrected path remains automated-tested until live combat confirms it.
+
+## 2026-11-05 — Immediate 0.4.8-beta hotfix preparation
+
+Two separate combat restrictions surfaced during live launch-day use: first the secure list rows were still being resized during combat, then `CheckInteractDistance` proved unsafe on SocialForever's combat path despite being wrapped in `pcall`. Because both failures affect ordinary play, I chose to package the corrections as a new beta immediately rather than touch the already published 0.4.7 tag.
+
+Version 0.4.8-beta is deliberately narrow. Secure row presentation waits until combat ends, the protected interaction query is skipped during combat, and detection continues through the remaining safe evidence. AI prepared the fixes, regression coverage, version synchronization and release documentation. Automated verification is green; a successful live combat retest remains outstanding.

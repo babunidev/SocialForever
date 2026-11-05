@@ -1,13 +1,13 @@
 # Social Forever — Changelog
 
-## Unreleased
+## 0.4.8-beta — 2026-11-05
 
-- Fixed a live Forever combat-lockdown error where `RefreshList()` tried to resize secure player rows and triggered `[ADDON_ACTION_BLOCKED] Button:SetHeight()`.
-- Secure row geometry, visibility and list animations are now deferred during combat; detection and memory state continue updating underneath, and the list performs a forced repaint on `PLAYER_REGEN_ENABLED`.
-- Added an automated combat-lockdown regression test and static verification for the deferred repaint path. Live client retest is still required.
-- Fixed a second live combat restriction: `CheckInteractDistance` could raise `ADDON_ACTION_BLOCKED` from `Util.Interact`. SocialForever now skips that API entirely during combat instead of relying on `pcall`, allowing the existing visible-unit fallback to handle those cases without invoking the protected function.
-- Reconciled the repository record after the `v0.4.7-beta` tag and GitHub prerelease were published and CurseForge accepted the tag-triggered beta file for processing.
-- Corrected current-version and human–AI attribution wording in project documentation without changing the already-published `v0.4.7-beta` tag.
+- Fixed the live Forever combat-lockdown error `[ADDON_ACTION_BLOCKED] Button:SetHeight()` caused when `RefreshList()` tried to resize secure player rows during combat.
+- Secure row geometry, visibility and list animations are now deferred while combat lockdown is active. Detection and memory state continue updating underneath, and one forced repaint runs on `PLAYER_REGEN_ENABLED`.
+- Fixed a second live protected-action error from `CheckInteractDistance`. SocialForever now skips that API entirely during combat instead of relying on `pcall`, allowing existing distance/visibility fallbacks to handle detection without invoking the restricted function.
+- Added automated combat-lockdown regression coverage and static checks for both the deferred secure-row repaint and the protected interaction guard.
+- Automated verification is green. The corrected paths still require final live-client retesting, so this beta is not claimed as in-game verified after the fixes.
+- Reconciled post-0.4.7 release documentation without moving or rewriting the already-published `v0.4.7-beta` tag.
 
 ## 0.4.7-beta — 2026-11-04
 

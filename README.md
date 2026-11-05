@@ -9,7 +9,7 @@ While you quest, the same players often cross your path again and again. Social 
 Over time, strangers can become familiar names.
 
 Built by **Babunigaming** for **World of Warcraft: Forever** (Interface 16001).  
-Current version: **0.4.7-beta**
+Current version: **0.4.8-beta**
 
 ## What it does
 
@@ -284,4 +284,4 @@ The journal distinguishes source-based reconstruction, human creative direction,
 
 The original [development log](DEVELOPMENT.md) and [changelog](CHANGELOG.md) remain the primary account of releases and corrections. The supporting [design](docs/DESIGN.md), [content/provenance](docs/CONTENT.md), [architecture](docs/ARCHITECTURE.md), [decisions](docs/DECISIONS.md), [development journal](docs/DEVLOG.md), and [AI collaboration](docs/AI_COLLABORATION.md) documents interpret them for the portfolio without inventing missing history.
 
-**Current documented state:** 0.4.7-beta, Interface 16001. The Nearby/Zone split matters: names in General do not prove physical proximity or count as personal familiarity. The familiar-thought mechanic uses a 20-minute per-player cooldown surviving reload/logout. Flags, KOS and declined invite counts are personal; compatible nearby users may exchange color marks, not flags. The 2026-10-27 documentation audit did not execute WoW, send invitations, inspect real player data or test migrations. The later 0.4.7-beta release candidate passed automated/mock verification, while final live Forever verification remains pending.
+**Current documented state:** 0.4.8-beta, Interface 16001. The Nearby/Zone split matters: names in General do not prove physical proximity or count as personal familiarity. The familiar-thought mechanic uses a 20-minute per-player cooldown surviving reload/logout. Flags, KOS and declined invite counts are personal; compatible nearby users may exchange color marks, not flags. The 2026-10-27 documentation audit did not execute WoW, send invitations, inspect real player data or test migrations. The later 0.4.7-beta release candidate passed automated/mock verification, while final live Forever verification remains pending.

@@ -19,3 +19,7 @@ Document proposals as proposals, implemented code as source-observed and release
 ## Release preparation and publication — 4 November 2026
 
 **Human direction:** Babuni approved removing unattended invite paths, keeping invitations deliberate, preparing 0.4.7-beta before final live-client testing, and publishing that exact beta once automated verification was green. **AI contribution:** repository audit, release-diff review, GitHub Actions test coverage, package-integrity checks, release-document preparation and GitHub repository updates. **Human-operated publication:** Babuni created and pushed the annotated `v0.4.7-beta` tag and created the matching GitHub prerelease from the terminal. **Verification:** the exact release commit passed automated/local checks; GitHub publication is confirmed; CurseForge accepted the tag-triggered Beta for Forever 1.60.1 and was observed in Processing state; live Forever testing and final CurseForge approval remain pending.
+
+## Combat hotfix preparation — 5 November 2026
+
+**Human direction:** Babuni supplied both live BugGrabber reports and directed an immediate tagged hotfix once the combat restrictions were diagnosed. **AI contribution:** traced the secure-row and `CheckInteractDistance` failures, implemented combat-safe guards, extended regression/static checks, synchronized release metadata and documentation, and prepared 0.4.8-beta. **Verification:** automated checks cover both corrected paths and package integrity; successful live Forever reproduction after the fixes is still pending.

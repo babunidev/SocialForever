@@ -37,3 +37,7 @@ These decisions are evidenced by recorded development changes. Where an original
 ## Live combat correction — 2026-11-05
 
 - **Combat range fallback:** `CheckInteractDistance` is not called by SocialForever while combat lockdown is active. Live Forever produced `ADDON_ACTION_BLOCKED` despite the call being wrapped in `pcall`; the addon therefore treats the API as unavailable in combat for this path and falls back to other evidence instead of probing it.
+
+## Hotfix release decision — 2026-11-05
+
+- **0.4.8-beta hotfix timing:** Live Forever testing exposed two protected-action failures in 0.4.7-beta: secure list-row layout changes during combat and a combat-time `CheckInteractDistance` call. Babuni directed immediate release preparation once both fixes and their automated regression checks passed. Final live retesting of the corrected paths is still pending and must not be described as completed.

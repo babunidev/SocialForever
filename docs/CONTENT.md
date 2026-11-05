@@ -16,7 +16,7 @@ The October 14 v0.4.4-beta change made **flags private**; `Sharing.Encode` write
 
 ## Release and development evidence
 
-The [CHANGELOG](../CHANGELOG.md) records player-facing releases; [DEVELOPMENT](../DEVELOPMENT.md) describes code decisions and corrections. The current metadata declares interface **16001**, addon version **0.4.7-beta**, and `SocialForeverDB`. Keep these records discoverable without inventing a release/test chronology.
+The [CHANGELOG](../CHANGELOG.md) records player-facing releases; [DEVELOPMENT](../DEVELOPMENT.md) describes code decisions and corrections. The current metadata declares interface **16001**, addon version **0.4.8-beta**, and `SocialForeverDB`. Keep these records discoverable without inventing a release/test chronology.
 
 ## Portfolio publication
 

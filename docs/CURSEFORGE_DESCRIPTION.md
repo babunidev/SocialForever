@@ -26,4 +26,4 @@ Flags, Kill on Sight, encounter counts, group history and declined-invite counts
 
 Built for World of Warcraft: Forever 1.60.1 / Interface 16001.
 
-Version 0.4.7-beta passed automated Lua syntax, migration, privacy, mock behavior and package-integrity checks before release. Final launch-day in-game verification was deferred until the live client became playable.
+Version 0.4.8-beta fixes two live Forever combat restrictions affecting Social Forever's secure list and range fallback. Automated Lua syntax, mock behavior, privacy and package-integrity checks pass; the corrected combat paths still require final live-client retesting.
