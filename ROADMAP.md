@@ -8,6 +8,10 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [ ] Live-test two-part name identity across mouseover, target, buffs, crafting and local chat; no single-name duplicates or synthetic realm suffixes.
+- [ ] Live-test exact full-name targeting when two nearby characters share a first name, including protection during combat.
+- [ ] Compare normal and combat lists at different font sizes, background opacities, and with new detections during combat; verify no stale secure row is clickable.
+
 - [ ] Verify the local character never appears in Nearby when speaking, using emotes, buffing themselves, or receiving a buff across reload; verify previously reported malformed caster names no longer recur.
 
 - [ ] Confirm a buff from an ungrouped player displays a normal two-word name, counts once, expires without fresh evidence and cannot be kept Nearby by unrelated aura changes; test re-buff after the original aura is removed.
