@@ -8,6 +8,10 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Implement a single ordinary Nearby/Zone list across combat transitions, preserving hover tooltips, right-click menus and deliberate Invite controls.
+- [ ] Live-test one list during combat, including new sightings, changed marks, custom font/background, hover, scrolling, Invite clicks and transitions with no duplicate dark cover.
+- [ ] Verify left-click no longer targets a player, and confirm the separate same-fight secure prompt still works as before.
+
 - [ ] Live-test two-part name identity across mouseover, target, buffs, crafting and local chat; no single-name duplicates or synthetic realm suffixes.
 - [ ] Live-test exact full-name targeting when two nearby characters share a first name, including protection during combat.
 - [ ] Compare normal and combat lists at different font sizes, background opacities, and with new detections during combat; verify no stale secure row is clickable.
