@@ -1164,7 +1164,7 @@ function Detection.NoteHelpfulAuraCaster(aura)
         if instanceId then
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
-            if casterGuid then
+            if casterGuid and not Util.IsMyGuid(casterGuid) then
                 -- A freshly added helpful aura is current interaction evidence.
                 -- Its caster need not still have a resolvable unit token.
                 key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
@@ -1184,6 +1184,20 @@ function Detection.NoteHelpfulAuraCaster(aura)
         return true
     end
     return false
+end
+
+-- Existing long-lived buffs are not proof of a fresh nearby encounter
+-- when the addon loads or the player transitions between worlds.
+function Detection.PrimePlayerHelpfulAuras()
+    if not C_UnitAuras or type(C_UnitAuras.GetAuraDataByIndex) ~= "function" then return end
+    for i = 1, 40 do
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+        if not ok or not aura or type(aura) ~= "table" or Util.Secret(aura) then
+            break
+        end
+        local id = Util.PlainNumber(aura.auraInstanceID)
+        if id then S.P.helpfulAuraSeen[id] = true end
+    end
 end
 
 -- When UNIT_AURA updateInfo is missing or sealed in combat, walk helpful auras.
