@@ -4,7 +4,7 @@
 
 **Social Forever remembers the people you meet while playing World of Warcraft: Forever.**
 
-While you quest, the same players often cross your path again and again. Social Forever keeps a small list of those people above your chat so they are easier to recognize, target, invite, and remember the next time you meet.
+While you quest, the same players often cross your path again and again. Social Forever keeps a small list of those people above your chat so they are easier to recognize, inspect, invite, and remember the next time you meet.
 
 Over time, strangers can become familiar names.
 
@@ -18,7 +18,7 @@ Social Forever keeps track of players you encounter and gives you a simple socia
 You can:
 
 - See recently encountered players in a small movable window.
-- Click a name to target that player.
+- Hover a name to inspect that player's history and right-click to manage personal marks.
 - Invite them directly from the list.
 - See how often you have encountered them before.
 - See where you have met them in the past.
@@ -72,17 +72,15 @@ It prioritizes:
 
 The order refreshes every few seconds rather than constantly jumping around.
 
-During combat, Social Forever keeps collecting sightings and memory updates but freezes the secure player-row layout. New, removed, or reordered rows are painted as soon as combat ends. This avoids protected-frame changes while the client is in combat lockdown.
+The same ordinary player list stays visible and updates during combat. There is no separate combat-only list or dark cover.
 
 New names fade in, departing names fade out, and names that change position briefly fade before moving.
 
-## Targeting and inviting
+## Player interaction and inviting
 
-Social Forever never sends invitations automatically. Every invitation remains a deliberate player click through the secure Invite button.
+Social Forever never sends invitations automatically. Every invitation requires a deliberate click on the **Invite** button beside that player's name. The ordinary list and its Invite buttons remain available during combat, without swapping to another display.
 
-Click a nearby player's name to try to target them.
-
-If the target does not resolve to that player, Social Forever removes them from the nearby list rather than pretending they are still there.
+Hover a name for the tooltip or right-click it for the player menu. Left-click targeting has been removed from the list to avoid secure-row combat restrictions.
 
 Your current target is highlighted with a gold frame.
 
@@ -223,7 +221,7 @@ The tooltip keeps current detection evidence separate from long-term memory: **N
 
 Because of that, a silent player standing beside you may not appear immediately if the game has not exposed them to the addon yet. Skinning is a gathering action rather than a craft announcement, and no dedicated nearby-player Skinning event is currently verified; a skinner therefore still needs some other usable identity signal such as a unit token, nameplate, interaction, or shared Damage Meter session.
 
-During combat, Social Forever paints a separate non-secure Nearby overlay instead of rearranging its protected target rows. Newly detected players can therefore appear immediately, and the overlay's **Invite** button uses Forever's party API from your deliberate click. Row click-to-target remains unavailable for a newly remapped combat entry until combat ends and the secure target rows can be armed safely again.
+Nearby and Zone share one ordinary list during and outside combat. New players appear in those same rows as soon as they are detected; hover tooltips, player menus and deliberate Invite buttons retain the same layout. A separate secure same-fight invitation prompt remains independent of this list.
 
 Social Forever does not enable nameplates or use `/who` to build the list. Forever's protected Combat Log text is not parsed; post-combat combat discovery uses the built-in Damage Meter when available.
 
