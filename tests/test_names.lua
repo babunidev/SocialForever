@@ -1,6 +1,12 @@
 function GetRealmName() return "Forever Realm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit) if unit=="player" then return "Local Player","ForeverRealm" end end
+function UnitGUID(unit) if unit == "player" then return "Player-Self-123" end end
+function GetPlayerInfoByGUID(guid)
+    if guid == "Player-Self-123" then
+        return "Priest", "PRIEST", "Dwarf", "Dwarf", 3, "Jasmine Amberbrew", "CAMWOWEU4Realm10RP"
+    end
+end
 
 SocialForever=nil
 dofile("Core.lua")
@@ -21,6 +27,12 @@ assertTrue(Util.SameKey("Anne-Marie","Anne Marie"),"hyphen/space comparison fail
 assertTrue(Util.IsMe("Local Player"),"self name with space not excluded")
 assertTrue(Util.IsMe("Local-Player"),"self name with hyphen not excluded")
 assertFalse(Util.IsMe("Another-Player"),"other player mistaken for self")
+assertTrue(Util.IsMyGuid("Player-Self-123"),"self GUID was not recognized")
+assertTrue(Util.IsMe("Jasmine Amberbrew"),"self two-word GUID name was not recognized")
+assertTrue(Util.IsMe("Jasmine-Amberbrew"),"self normalized two-word GUID name was not recognized")
+assertTrue(Util.IsMe("Jasmine-Amberbrew","Player-Self-123"),"self identity by GUID was not excluded")
+assertFalse(Util.IsMe("Other Amberbrew"),"similarly named stranger mistaken for self")
+
 assertEqual(Util.SafeKey("A"),nil,"one-character invalid name accepted")
 assertEqual(Util.SafeKey("Bad|Name"),nil,"unsafe name accepted")
 
