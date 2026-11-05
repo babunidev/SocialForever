@@ -62,7 +62,7 @@ local function printCounts(label)
 end
 
 for i=1,40 do
- local key="Raidperson"..i
+ local key="Raidperson"..i.."-ForeverRealm"
  local unit="raid"..i
  S.P.groupByKey[key]=unit
  S.P.groupByNorm[key:lower()]=unit
@@ -73,7 +73,7 @@ local live=Detection.BuildLiveUnitMap()
 assertEqual(countPattern("^raid%d+$"),40,"BuildLiveUnitMap cached raid-unit checks")
 assertEqual(countPattern("^raid%d+target$"),0,"BuildLiveUnitMap repeated raid-target sweep")
 assertEqual(calls.UnitDistanceSquared,0,"BuildLiveUnitMap performed distance checks")
-for i=1,40 do assertEqual(live["Raidperson"..i],"raid"..i,"missing cached raid member") end
+for i=1,40 do assertEqual(live["Raidperson"..i.."-ForeverRealm"],"raid"..i,"missing cached raid member") end
 printCounts("BuildLiveUnitMap")
 
 Detection.Publish=function() end
