@@ -8,6 +8,9 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [ ] Live-test instant mouseover additions with nameplates disabled, including during combat and when the list is being hovered.
+- [ ] Live-test an ungrouped player buffing you out of combat and in combat: identify caster and place at top of Nearby (below a currently pinned target); verify secret aura values fail safely.
+
 - [x] Restore immediate visual Nearby additions during combat without mutating protected target rows.
 - [x] Add a deliberate combat-time Invite path for newly detected overlay entries.
 - [ ] Live-test mouseover discovery while already in combat: entry should appear immediately with **Nearby because: Hovered / mouseover**.
