@@ -197,8 +197,11 @@ events:SetScript("OnEvent", function(_, event, ...)
         end
         return
     end
-    if event == "UPDATE_MOUSEOVER_UNIT"
-        or event == "PLAYER_FOCUS_CHANGED"
+    if event == "UPDATE_MOUSEOVER_UNIT" then
+        Detection.OnMouseoverChanged()
+        return
+    end
+    if event == "PLAYER_FOCUS_CHANGED"
         or event == "PLAYER_SOFT_ENEMY_CHANGED"
         or event == "PLAYER_SOFT_FRIEND_CHANGED"
         or event == "PLAYER_SOFT_INTERACT_CHANGED"
