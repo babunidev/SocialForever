@@ -1,3 +1,4 @@
+GameFontHighlight = { GetFont = function() return "Fonts\\FRIZQT__.TTF", 16, "" end }
 local combat = true
 local touchedSecureRow = false
 local stoppedAnimation = false
