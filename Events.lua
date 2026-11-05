@@ -95,6 +95,7 @@ events:SetScript("OnEvent", function(_, event, ...)
         end
         Group.RefreshFriends()
         Group.RebuildGroupMembers()
+        Detection.PrimePlayerHelpfulAuras()
         Detection.SyncRaidTicker()
         Detection.Scan()
         Group.RefreshRoster()
@@ -115,6 +116,7 @@ events:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         S.armed = false
         Detection.ClearSightings()
+        Detection.PrimePlayerHelpfulAuras()
         S.nearby = {}
         UI.RefreshList()
         Group.RebuildGroupMembers()
