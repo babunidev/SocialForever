@@ -223,6 +223,10 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "PLAYER_REGEN_ENABLED" then
         Detection.Scan()
+        if S.listDirty and UI.RefreshList then
+            S.listDirty = false
+            UI.RefreshList({ force = true, skipMove = true })
+        end
         Detection.QueueDamageMeterHarvest()
         if S.P.sameMobPromptPending or (S.sameMobQueue and #S.sameMobQueue > 0) then
             if UI.ShowSameMobPrompt then

@@ -1,9 +1,12 @@
 # Social Forever — Changelog
 
-## Unreleased — documentation reconciliation
+## Unreleased
 
+- Fixed a live Forever combat-lockdown error where `RefreshList()` tried to resize secure player rows and triggered `[ADDON_ACTION_BLOCKED] Button:SetHeight()`.
+- Secure row geometry, visibility and list animations are now deferred during combat; detection and memory state continue updating underneath, and the list performs a forced repaint on `PLAYER_REGEN_ENABLED`.
+- Added an automated combat-lockdown regression test and static verification for the deferred repaint path. Live client retest is still required.
 - Reconciled the repository record after the `v0.4.7-beta` tag and GitHub prerelease were published and CurseForge accepted the tag-triggered beta file for processing.
-- Corrected current-version and human–AI attribution wording in project documentation without changing addon runtime behavior or moving the published tag.
+- Corrected current-version and human–AI attribution wording in project documentation without changing the already-published `v0.4.7-beta` tag.
 
 ## 0.4.7-beta — 2026-11-04
 

@@ -72,6 +72,8 @@ It prioritizes:
 
 The order refreshes every few seconds rather than constantly jumping around.
 
+During combat, Social Forever keeps collecting sightings and memory updates but freezes the secure player-row layout. New, removed, or reordered rows are painted as soon as combat ends. This avoids protected-frame changes while the client is in combat lockdown.
+
 New names fade in, departing names fade out, and names that change position briefly fade before moving.
 
 ## Targeting and inviting

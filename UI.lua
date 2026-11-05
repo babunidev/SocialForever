@@ -1535,6 +1535,16 @@ function UI.KickAnimUpdate()
 end
 
 function UI.OnMainAnimUpdate()
+    -- List rows are SecureActionButtonTemplate frames. Their geometry and
+    -- visibility cannot be changed during combat lockdown, so pause the
+    -- animation and apply the accumulated state after PLAYER_REGEN_ENABLED.
+    if InCombatLockdown() then
+        S.listDirty = true
+        if S.main and S.main.SetScript then
+            S.main:SetScript("OnUpdate", nil)
+        end
+        return
+    end
     if not S.main.rows or S.main.fadingPaint then
         if not UI.AnimActive() then
             S.main:SetScript("OnUpdate", nil)
@@ -2035,6 +2045,15 @@ function UI.RefreshList(opts)
     local force = opts and opts.force
     local scrollOnly = opts and opts.scrollOnly
     local skipMove = opts and opts.skipMove
+
+    -- Every displayed player row and Invite control is secure. Forever blocks
+    -- size/anchor/show/hide mutations on protected frames in combat, even when
+    -- the secure macro attributes themselves are left untouched. Keep collecting
+    -- detection state underneath and repaint once combat ends.
+    if InCombatLockdown() then
+        S.listDirty = true
+        return
+    end
 
     if not force and not scrollOnly then
         UI.EnsureListFreezeHonest()

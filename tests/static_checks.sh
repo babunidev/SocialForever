@@ -28,6 +28,12 @@ fi
 echo "Checking periodic sorting ticker..."
 grep -Fq 'C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)' Events.lua
 
+echo "Checking combat-lockdown deferred list repaint..."
+grep -Fq 'if InCombatLockdown() then' UI.lua
+grep -Fq 'S.listDirty = true' UI.lua
+grep -Fq 'if S.listDirty and UI.RefreshList then' Events.lua
+grep -Fq 'UI.RefreshList({ force = true, skipMove = true })' Events.lua
+
 echo "Checking CurseForge packaging metadata..."
 grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*$' .pkgmeta
 for ignored in '.github' 'tests' 'AGENTS.md' 'CONCEPT.md' 'DEVELOPMENT.md' 'ROADMAP.md' 'docs'; do

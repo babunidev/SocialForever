@@ -5,6 +5,16 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — combat-lockdown list fix
+
+- Live Forever testing produced `[ADDON_ACTION_BLOCKED] AddOn 'SocialForever' tried to call the protected function 'Button:SetHeight()'` from `UI.RefreshList`.
+- Diagnosis: list rows are `SecureActionButtonTemplate` frames. The existing combat path avoided rewriting secure macro attributes, but still changed protected row height, anchors, width and visibility while `InCombatLockdown()` was true.
+- `UI.RefreshList` now defers the entire secure-row paint during combat and marks the list dirty. Detection and memory state continue updating.
+- `UI.OnMainAnimUpdate` also pauses secure-row fade/hide animation during combat so an already-running animation cannot mutate a protected row after lockdown begins.
+- `PLAYER_REGEN_ENABLED` forces one clean repaint when deferred list work exists.
+- Added `tests/test_combat_lockdown.lua` plus a static assertion for the post-combat flush. Automated verification is not a live-client retest; the original reproduction must still be checked in Forever.
+
+
 ## 0.4.7-beta — Forever release preparation
 
 - Added `.github/workflows/verify.yml` and a repository-local `tests/` suite so deterministic pre-release checks run automatically on pushes, pull requests, and manual workflow dispatches.
