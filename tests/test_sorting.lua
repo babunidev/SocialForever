@@ -25,7 +25,7 @@ SocialForever=nil
 SocialForeverDB={
  players={
   ["Alpha-First"]={nearbyTimes=1,flags={}},
-  Beta={nearbyTimes=1,flags={}},
+  ["Beta-First"]={nearbyTimes=1,flags={}},
  },
  remote={},customFlags={},ignored={},listTab="nearby",migratedIgnoreFlags=true,
 }
