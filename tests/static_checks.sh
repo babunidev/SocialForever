@@ -34,6 +34,9 @@ grep -Fq 'S.listDirty = true' UI.lua
 grep -Fq 'if S.listDirty and UI.RefreshList then' Events.lua
 grep -Fq 'UI.RefreshList({ force = true, skipMove = true })' Events.lua
 
+echo "Checking combat-safe interaction fallback..."
+grep -Fq 'type(InCombatLockdown) == "function" and InCombatLockdown()' Core.lua
+
 echo "Checking CurseForge packaging metadata..."
 grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*$' .pkgmeta
 for ignored in '.github' 'tests' 'AGENTS.md' 'CONCEPT.md' 'DEVELOPMENT.md' 'ROADMAP.md' 'docs'; do

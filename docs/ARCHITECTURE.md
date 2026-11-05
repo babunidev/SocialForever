@@ -17,3 +17,7 @@ The [0.4.2 release entry](../DEVELOPMENT.md) records that a nominally successful
 ## Secure list-row boundary
 
 The player rows and Invite controls use `SecureActionButtonTemplate` so targeting and invitations remain deliberate hardware-driven actions. Their geometry and visibility are therefore treated as combat-locked state: `UI.RefreshList` defers row repainting while `InCombatLockdown()` is true, and `PLAYER_REGEN_ENABLED` flushes any dirty list state afterward. Detection and SavedVariables updates are not paused by this presentation guard.
+
+## Protected range-query boundary
+
+`Util.Interact` wraps `CheckInteractDistance` only out of combat. On the live Forever client, calling that API from SocialForever during combat can raise `ADDON_ACTION_BLOCKED`; `pcall` cannot suppress the protected-action event. During combat the helper returns no interaction-range evidence, leaving exact `UnitDistanceSquared` results and ordinary visible-unit fallback logic to drive detection.

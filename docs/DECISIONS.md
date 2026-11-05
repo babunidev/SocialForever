@@ -33,3 +33,7 @@ These decisions are evidenced by recorded development changes. Where an original
 - **Raid membership is not proximity:** being in the same raid cannot by itself keep a character in Nearby.
 
 - **0.4.7-beta release timing:** On 2026-11-04 Babuni approved preparing and publishing the beta before final live-client testing because the Forever servers were not yet playable. Automated/local verification must remain described as such; any launch-day client defects are follow-up fixes, not evidence that the beta was pre-release in-game verified.
+
+## Live combat correction — 2026-11-05
+
+- **Combat range fallback:** `CheckInteractDistance` is not called by SocialForever while combat lockdown is active. Live Forever produced `ADDON_ACTION_BLOCKED` despite the call being wrapped in `pcall`; the addon therefore treats the API as unavailable in combat for this path and falls back to other evidence instead of probing it.

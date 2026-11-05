@@ -29,3 +29,9 @@ After the exact release commit `4c71618fa453619cfae6144d6fe8f576b995c60b` was fr
 The first live launch-day error came from something the automated mocks had not reproduced: SocialForever was still resizing its secure player rows while the client was in combat lockdown. The invite and target macros were already guarded, but the row itself is a protected `SecureActionButtonTemplate`, so changing its height was enough for Forever to block the addon.
 
 Rather than whack only the reported `SetHeight()` call and wait for the next protected layout call to fail, I kept the intended social detection running underneath and chose to freeze the secure list presentation during combat. AI traced the BugGrabber stack, identified the other row geometry and visibility mutations on the same path, implemented the deferred repaint, and added a regression test. Automated checks can prove that the mocked combat path no longer touches the secure rows; the real fix still needs to be reproduced in Forever before it is treated as live-verified.
+
+## 2026-11-05 — A second protected call appeared
+
+The first secure-row fix removed the blocked layout mutation, but live play immediately exposed another modern-client restriction: SocialForever still called `CheckInteractDistance` through a `pcall` while combat was active. The client blocks that action before Lua can treat it like an ordinary caught error, so wrapping it was never a real safety boundary.
+
+For the hotfix, I kept the fallback deliberately conservative. SocialForever now skips `CheckInteractDistance` entirely during combat; exact distance still comes from `UnitDistanceSquared` when available, and loose visible-unit evidence can still keep appropriate tracked units in the list. AI traced the stack, added the hard combat guard and extended the regression test. The corrected path remains automated-tested until live combat confirms it.

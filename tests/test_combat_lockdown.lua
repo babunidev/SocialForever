@@ -1,6 +1,7 @@
 local combat = true
 local touchedSecureRow = false
 local stoppedAnimation = false
+local interactCalls = 0
 
 function wipe(t)
     for k in pairs(t) do t[k] = nil end
@@ -8,6 +9,11 @@ end
 
 function InCombatLockdown()
     return combat
+end
+
+function CheckInteractDistance()
+    interactCalls = interactCalls + 1
+    error("CheckInteractDistance must not be called in combat")
 end
 
 function GetTime()
@@ -23,6 +29,10 @@ dofile("UI.lua")
 local SF = SocialForever
 local S = SF.State
 local UI = SF.UI
+local Util = SF.Util
+
+assert(Util.Interact("target", 2) == nil, "combat interaction fallback should be nil")
+assert(interactCalls == 0, "CheckInteractDistance was invoked during combat")
 
 S.main = {
     rows = {
@@ -52,4 +62,4 @@ assert(S.listDirty == true, "combat animation should mark list dirty")
 assert(stoppedAnimation == true, "combat animation should stop its OnUpdate")
 assert(touchedSecureRow == false, "combat animation touched secure row")
 
-print("PASS: combat lockdown defers secure list-row mutations")
+print("PASS: combat lockdown defers secure list-row mutations and protected interaction checks")

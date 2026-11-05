@@ -9,6 +9,7 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 ## Verification backlog (proposed)
 
 - [x] Diagnose the live Forever `Button:SetHeight()` protected-frame failure during combat and implement deferred secure-row painting.
+- [x] Diagnose the live Forever `CheckInteractDistance` protected-call failure and prevent all combat-time calls through `Util.Interact`.
 - [ ] Re-test combat entry, active list animations, new sightings during combat, and the post-combat repaint in the live Forever client.
 
 ## Future ideas (not implemented)

@@ -662,6 +662,12 @@ function Util.Interact(unit, index)
     if type(CheckInteractDistance) ~= "function" then
         return nil
     end
+    -- CheckInteractDistance is combat-restricted on the live Forever client
+    -- for this addon path. pcall does not prevent ADDON_ACTION_BLOCKED, so do
+    -- not invoke the protected function at all while combat lockdown is active.
+    if type(InCombatLockdown) == "function" and InCombatLockdown() then
+        return nil
+    end
     local ok, value = pcall(CheckInteractDistance, unit, index)
     if not ok then
         return nil

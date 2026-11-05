@@ -13,6 +13,7 @@ When a change ships, add it at the top. Keep the note about what the player can 
 - `UI.OnMainAnimUpdate` also pauses secure-row fade/hide animation during combat so an already-running animation cannot mutate a protected row after lockdown begins.
 - `PLAYER_REGEN_ENABLED` forces one clean repaint when deferred list work exists.
 - Added `tests/test_combat_lockdown.lua` plus a static assertion for the post-combat flush. Automated verification is not a live-client retest; the original reproduction must still be checked in Forever.
+- A second live error then showed `Util.Interact` reaching protected `CheckInteractDistance` during combat. The helper now returns `nil` before invoking that API whenever combat lockdown is active. This matters because `pcall` catches Lua errors but does not prevent the client from raising `ADDON_ACTION_BLOCKED`.
 
 
 ## 0.4.7-beta — Forever release preparation
