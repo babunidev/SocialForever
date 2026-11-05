@@ -17,11 +17,14 @@ local function assertFalse(v,m) if v then error(m,2) end end
 local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": expected "..tostring(e)..", got "..tostring(a),2) end end
 
 assertEqual(Util.MakeKey("Alice",nil),"Alice","one-word name")
-assertEqual(Util.MakeKey("Alice","ForeverRealm"),"Alice","local realm should not be appended")
-assertEqual(Util.MakeKey("Alice","Other Realm"),"Alice-OtherRealm","other realm normalization")
+assertEqual(Util.MakeKey("Alice","Amberbrew"),"Alice-Amberbrew","UnitName second value must be surname")
+assertEqual(Util.MakeKey("Alice","Other Realm"),"Alice","server names must not be appended as surnames")
 assertEqual(Util.MakeKey("Lyswin Lightanvil","CAMWOWEU4Realm10RP"),"Lyswin-Lightanvil","internal Forever realm token was exposed in player name")
 assertEqual(Util.MakeKey("First Second","ForeverRealm"),"First-Second","Forever two-word name")
 assertEqual(Util.SafeKey("First Second"),"First-Second","SafeKey space normalization")
+assertTrue(Util.IsCompleteCharacterKey("First Second"),"complete two-part name rejected")
+assertFalse(Util.IsCompleteCharacterKey("First"),"partial name was accepted")
+assertFalse(Util.IsCompleteCharacterKey("First-Second-Server"),"three-part name was accepted")
 assertTrue(Util.SameKey("First Second","First-Second"),"spaces/hyphens not normalized equivalently")
 assertTrue(Util.SameKey("Anne-Marie","Anne Marie"),"hyphen/space comparison failed")
 assertTrue(Util.IsMe("Local Player"),"self name with space not excluded")
