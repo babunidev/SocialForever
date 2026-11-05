@@ -23,6 +23,12 @@ function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit) if unit=="player" then return "Localplayer","ForeverRealm" end end
 function UnitExists() return false end
+function UnitGUID(unit) if unit == "player" then return "Player-Self-123" end end
+function GetPlayerInfoByGUID(guid)
+    if guid == "Player-Self-123" then
+        return "Priest", "PRIEST", "Dwarf", "Dwarf", 3, "Jasmine Amberbrew", "CAMWOWEU4Realm10RP"
+    end
+end
 
 SocialForever=nil
 SocialForeverDB={players={},remote={},customFlags={},ignored={},migratedIgnoreFlags=true}
@@ -36,6 +42,12 @@ Detection.Publish=function() end
 
 local function assertTrue(v,m) if not v then error(m,2) end end
 local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": expected "..tostring(e)..", got "..tostring(a),2) end end
+
+Detection.NoteChat("Jasmine Amberbrew", "Player-Self-123")
+assertEqual(S.sightings["Jasmine-Amberbrew"], nil, "self chat GUID was added to Nearby")
+Detection.NoteChat("Jasmine Amberbrew", nil)
+assertEqual(S.sightings["Jasmine-Amberbrew"], nil, "self chat with missing GUID was added to Nearby")
+assertEqual(Memory.Familiarity("Jasmine-Amberbrew"), 0, "self gained familiarity")
 
 Detection.NoteZone("Zoneperson","1. General - Elwynn Forest","General",nil)
 assertTrue(S.zoneSeen.Zoneperson~=nil,"General-channel player not stored as Zone candidate")
