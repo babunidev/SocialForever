@@ -502,6 +502,8 @@ function Detection.OnMouseoverChanged()
 end
 
 function Detection.Scan()
+    -- Keep match boundaries up to date even when no players are detected.
+    if Memory.SyncBattlegroundSession then Memory.SyncBattlegroundSession() end
     for i = 1, #C.LOOK_UNITS do
         pcall(Detection.ConsiderUnit, C.LOOK_UNITS[i], true)
     end
