@@ -34,44 +34,44 @@ local function reset()
 end
 
 reset()
-units.raid1={name="Nearperson",distance=20}; S.P.groupByKey.Nearperson="raid1"; S.P.groupByNorm.nearperson="raid1"
-S.sightings.Nearperson={at=900,trackable=true,ttl=180}
+units.raid1={name="Near Person",distance=20}; S.P.groupByKey["Near-Person"]="raid1"; S.P.groupByNorm.nearperson="raid1"
+S.sightings["Near-Person"]={at=900,trackable=true,ttl=180}
 Detection.ValidatePresence()
-assertTrue(S.sightings.Nearperson~=nil,"20-yard raid member removed")
-assertEqual(S.sightings.Nearperson.at,1000,"20-yard member not refreshed")
-assertEqual(S.sightings.Nearperson.unconfirmedSince,nil,"20-yard member stale")
+assertTrue(S.sightings["Near-Person"]~=nil,"20-yard raid member removed")
+assertEqual(S.sightings["Near-Person"].at,1000,"20-yard member not refreshed")
+assertEqual(S.sightings["Near-Person"].unconfirmedSince,nil,"20-yard member stale")
 
 reset()
-units.raid2={name="Farperson",distance=70}; S.P.groupByKey.Farperson="raid2"; S.P.groupByNorm.farperson="raid2"
-S.sightings.Farperson={at=900,trackable=true,ttl=180}
+units.raid2={name="Far Person",distance=70}; S.P.groupByKey["Far-Person"]="raid2"; S.P.groupByNorm.farperson="raid2"
+S.sightings["Far-Person"]={at=900,trackable=true,ttl=180}
 Detection.ValidatePresence()
-assertEqual(S.sightings.Farperson,nil,"70-yard raid member remained")
+assertEqual(S.sightings["Far-Person"],nil,"70-yard raid member remained")
 
 reset()
-S.P.groupByKey.Missingperson="raid3"; S.P.groupByNorm.missingperson="raid3"
-S.sightings.Missingperson={at=900,trackable=true,ttl=180}
+S.P.groupByKey["Missing-Person"]="raid3"; S.P.groupByNorm.missingperson="raid3"
+S.sightings["Missing-Person"]={at=900,trackable=true,ttl=180}
 Detection.ValidatePresence()
-assertTrue(S.sightings.Missingperson~=nil,"missing token removed immediately")
-assertEqual(S.sightings.Missingperson.unconfirmedSince,1000,"missing token not stale")
+assertTrue(S.sightings["Missing-Person"]~=nil,"missing token removed immediately")
+assertEqual(S.sightings["Missing-Person"].unconfirmedSince,1000,"missing token not stale")
 now=now+S.P.staleTrackable; Detection.ValidatePresence()
-assertEqual(S.sightings.Missingperson,nil,"stale raid member immortal")
+assertEqual(S.sightings["Missing-Person"],nil,"stale raid member immortal")
 
 reset()
-units.raid4={name="Unknownrange",distance=nil,visible=false}; S.P.groupByKey.Unknownrange="raid4"; S.P.groupByNorm.unknownrange="raid4"
-S.sightings.Unknownrange={at=900,trackable=true,ttl=180}
+units.raid4={name="Unknown Range",distance=nil,visible=false}; S.P.groupByKey["Unknown-Range"]="raid4"; S.P.groupByNorm.unknownrange="raid4"
+S.sightings["Unknown-Range"]={at=900,trackable=true,ttl=180}
 Detection.ValidatePresence()
-assertEqual(S.sightings.Unknownrange.unconfirmedSince,1000,"membership counted as proximity")
+assertEqual(S.sightings["Unknown-Range"].unconfirmedSince,1000,"membership counted as proximity")
 now=now+S.P.staleTrackable; Detection.ValidatePresence()
-assertEqual(S.sightings.Unknownrange,nil,"unconfirmed raid member did not expire")
+assertEqual(S.sightings["Unknown-Range"],nil,"unconfirmed raid member did not expire")
 
 reset()
-units.raid5={name="Neverseen",distance=20}; S.P.groupByKey.Neverseen="raid5"; S.P.groupByNorm.neverseen="raid5"
+units.raid5={name="Never Seen",distance=20}; S.P.groupByKey["Never-Seen"]="raid5"; S.P.groupByNorm.neverseen="raid5"
 Detection.ValidatePresence()
-assertEqual(S.sightings.Neverseen,nil,"raid membership manufactured Nearby")
+assertEqual(S.sightings["Never-Seen"],nil,"raid membership manufactured Nearby")
 
 reset(); inRaid=false
-units.party1={name="Partyperson",distance=20}; S.P.groupByKey.Partyperson="party1"; S.P.groupByNorm.partyperson="party1"
+units.party1={name="Party Person",distance=20}; S.P.groupByKey["Party-Person"]="party1"; S.P.groupByNorm.partyperson="party1"
 Detection.ValidatePresence()
-assertEqual(S.sightings.Partyperson,nil,"party membership manufactured Nearby")
+assertEqual(S.sightings["Party-Person"],nil,"party membership manufactured Nearby")
 
 print("PASS: raid/Nearby presence tests")
