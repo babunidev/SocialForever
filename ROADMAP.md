@@ -8,6 +8,8 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [ ] Live-test battleground familiarity across deaths/respawns, graveyard changes, repeated encounters, /reload, match exit and a second match on the same map; ensure each player counts once per match and ordinary-world encounters remain unchanged.
+
 - [ ] Live-test instant mouseover additions with nameplates disabled, including during combat and when the list is being hovered.
 - [ ] Live-test an ungrouped player buffing you out of combat and in combat: identify caster and place at top of Nearby (below a currently pinned target); verify secret aura values fail safely.
 
