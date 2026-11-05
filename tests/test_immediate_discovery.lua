@@ -60,6 +60,16 @@ SF.Detection.OnMouseoverChanged()
 assert(SF.State.nearby.Hovered, "mouseover was not published synchronously")
 assert(publishes[#publishes] and publishes[#publishes].skipMove, "mouseover should paint without a movement hold")
 
+-- Preexisting buffs on login must not become new nearby encounters.
+local oldAura = {isHelpful=true, auraInstanceID=88}
+C_UnitAuras.GetAuraDataByIndex = function(unit, index, filter)
+    if unit == "player" and index == 1 and filter == "HELPFUL" then return oldAura end
+end
+SF.Detection.PrimePlayerHelpfulAuras()
+assert(SF.State.P.helpfulAuraSeen[88], "preexisting aura was not primed")
+SF.Detection.OnPlayerAura("player", {addedAuras={oldAura}})
+assert(SF.State.P.recentBuffKey == nil, "preexisting aura was treated as newly received")
+
 local aura = {isHelpful=true, auraInstanceID=17}
 SF.Detection.OnPlayerAura("player", {addedAuras={aura}})
 assert(SF.State.nearby.Caster, "fresh aura caster GUID should work without a live unit token")
