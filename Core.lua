@@ -496,19 +496,19 @@ function Util.MakeKey(name, realm)
     if not name then
         return nil
     end
-    -- Forever two-word names arrive with a space or a hyphen. One form only.
+    -- Forever UnitName returns FIRST NAME, SURNAME, not name/realm.
+    -- Already-complete names from chat/GUIDs may use a space or a hyphen.
+    -- Ignore the optional second field when the first is already complete.
     name = name:gsub("%s+", "-")
-    if #name < 2 or #name > 24 then
-        return nil
+    if not name:find("-", 1, true) then
+        local surname = Util.PlainString(realm)
+        if surname and not surname:find("[%s%-]") and
+            not surname:upper():match("^CAMWOW[%w]+REALM%d+[%w]*$") then
+            name = name .. "-" .. surname
+        end
     end
-    if name:find("[%c|%%%[%]]") then
-        return nil
-    end
-    local theirs = Util.NormRealm(realm)
-    local mine = Util.MyRealm()
-    if theirs and mine and theirs:lower() ~= mine:lower() then
-        return name .. "-" .. theirs
-    end
+    if #name < 2 or #name > 50 then return nil end
+    if name:find("[%c|%%%[%]]") then return nil end
     return name
 end
 
@@ -524,6 +524,13 @@ function Util.SafeKey(key)
         return nil
     end
     return key
+end
+
+function Util.IsCompleteCharacterKey(key)
+    key = Util.SafeKey(key)
+    -- Every Forever character needs a first name and surname, never a
+    -- realm suffix or a guessed first-name-only identity.
+    return key ~= nil and key:match("^[^%-]+%-[^%-]+$") ~= nil
 end
 
 function Util.SameKey(a, b)
