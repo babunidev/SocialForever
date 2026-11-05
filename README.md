@@ -102,7 +102,7 @@ If the other player is still in combat, their invite popup waits until they leav
 
 Social Forever remembers how often you encounter each player.
 
-A “Been nearby” count rises when someone enters Nearby in a **new** place (subzone, or whole city in a capital). If they leave the list and return in the **same** place — including after a reload — that does not add another count.
+A “Been nearby” count rises when someone enters Nearby in a **new** place (subzone, or whole city in a capital). **Battlegrounds are counted once per player per match**, regardless of deaths, respawns, subzone changes or reloads; a later match can count again. If they leave the list and return in the **same** place — including after a reload — that does not add another count.
 
 Names gradually change color based on how familiar that person is compared with the player you have encountered most often:
 
