@@ -41,3 +41,9 @@ For the hotfix, I kept the fallback deliberately conservative. SocialForever now
 Two separate combat restrictions surfaced during live launch-day use: first the secure list rows were still being resized during combat, then `CheckInteractDistance` proved unsafe on SocialForever's combat path despite being wrapped in `pcall`. Because both failures affect ordinary play, I chose to package the corrections as a new beta immediately rather than touch the already published 0.4.7 tag.
 
 Version 0.4.8-beta is deliberately narrow. Secure row presentation waits until combat ends, the protected interaction query is skipped during combat, and detection continues through the remaining safe evidence. AI prepared the fixes, regression coverage, version synchronization and release documentation. Automated verification is green; a successful live combat retest remains outstanding.
+
+## 2026-11-05 — The focused combat retest stayed clean
+
+After copying the exact 0.4.8-beta release candidate into the live Forever AddOns folder, I repeated combat with SocialForever active. The two BugGrabber failures that had driven the hotfix did not recur: no secure-row `SetHeight()` block and no protected interaction call appeared during the retest.
+
+That is enough evidence for this narrow hotfix to move forward, but it is not a blanket verification of every SocialForever feature. AI updated the release record to preserve that distinction before publication.

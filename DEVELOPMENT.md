@@ -14,7 +14,7 @@ When a change ships, add it at the top. Keep the note about what the player can 
 - `PLAYER_REGEN_ENABLED` forces one clean repaint when deferred list work exists.
 - Added `tests/test_combat_lockdown.lua` plus a static assertion for the post-combat flush. Automated verification is not a live-client retest; the original reproduction must still be checked in Forever.
 - A second live error then showed `Util.Interact` reaching protected `CheckInteractDistance` during combat. The helper now returns `nil` before invoking that API whenever combat lockdown is active. This matters because `pcall` catches Lua errors but does not prevent the client from raising `ADDON_ACTION_BLOCKED`.
-- Babuni directed immediate 0.4.8-beta release preparation because both failures affect normal combat use. The release candidate passed automated verification; successful live reproduction after the fixes is still pending.
+- Babuni directed immediate 0.4.8-beta release preparation because both failures affect normal combat use. The release candidate passed automated verification. A focused live Forever retest then reproduced combat without either previously observed BugGrabber protected-action error recurring; broader addon verification remains separate.
 
 
 ## 0.4.7-beta — Forever release preparation

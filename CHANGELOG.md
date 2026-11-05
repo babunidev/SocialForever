@@ -6,7 +6,7 @@
 - Secure row geometry, visibility and list animations are now deferred while combat lockdown is active. Detection and memory state continue updating underneath, and one forced repaint runs on `PLAYER_REGEN_ENABLED`.
 - Fixed a second live protected-action error from `CheckInteractDistance`. SocialForever now skips that API entirely during combat instead of relying on `pcall`, allowing existing distance/visibility fallbacks to handle detection without invoking the restricted function.
 - Added automated combat-lockdown regression coverage and static checks for both the deferred secure-row repaint and the protected interaction guard.
-- Automated verification is green. The corrected paths still require final live-client retesting, so this beta is not claimed as in-game verified after the fixes.
+- Automated verification is green. Babuni then retested the corrected combat paths in the live Forever client and the two previously observed BugGrabber protected-action errors did not recur. This is a focused regression retest, not a claim that every addon feature has been fully reverified in-game.
 - Reconciled post-0.4.7 release documentation without moving or rewriting the already-published `v0.4.7-beta` tag.
 
 ## 0.4.7-beta — 2026-11-04

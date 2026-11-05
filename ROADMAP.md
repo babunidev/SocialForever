@@ -10,9 +10,10 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 - [x] Diagnose the live Forever `Button:SetHeight()` protected-frame failure during combat and implement deferred secure-row painting.
 - [x] Diagnose the live Forever `CheckInteractDistance` protected-call failure and prevent all combat-time calls through `Util.Interact`.
-- [ ] Re-test combat entry, active list animations, new sightings during combat, protected interaction fallback, and the post-combat repaint in the live Forever client.
+- [x] Re-test the two reported combat failure paths in the live Forever client; the previous protected-action errors did not recur.
+- [ ] Continue broader live verification of combat list behavior, new sightings, post-combat repaint details, Nearby/Zone separation, invites, sharing and persistence.
 - [x] Prepare 0.4.8-beta as the urgent combat hotfix candidate after automated verification passed.
-- [ ] Publish and verify 0.4.8-beta on GitHub and CurseForge; successful live retesting remains a separate verification step.
+- [ ] Publish and verify 0.4.8-beta on GitHub and CurseForge.
 
 ## Future ideas (not implemented)
 
