@@ -109,6 +109,8 @@ function UI.PaintRowIdentity(row, entry)
             row.identity:SetVertexColor(1, 1, 1)
             if showLevel and row.levelText then
                 row.identity:SetPoint("RIGHT", row.levelText, "LEFT", -4, 0)
+            elseif row.contentRight then
+                row.identity:SetPoint("RIGHT", row.contentRight, "LEFT", -4, 0)
             else
                 row.identity:SetPoint("RIGHT", row, "RIGHT", -6, 0)
             end
