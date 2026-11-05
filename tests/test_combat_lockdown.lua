@@ -108,6 +108,7 @@ local combatRow = {
 local empty = { SetText = noop, Show = noop, Hide = noop }
 local cover = {
     empty = empty,
+    IsShown = function() return overlayShown end,
     Show = function() overlayShown = true end,
     Hide = noop,
 }
