@@ -136,11 +136,10 @@ function UI.TargetMacro(key)
     if type(spoken) ~= "string" then
         return nil
     end
-    local first = spoken:match("^(%S+)")
-    if not first or first == "" then
-        return nil
-    end
-    return "/target " .. first
+    -- Forever first names are not unique. Never target by a first-name
+    -- prefix: use the complete, region-unique first name and surname.
+    if not Util.IsCompleteCharacterKey(key) then return nil end
+    return "/targetexact " .. spoken
 end
 
 function UI.ApplyMacro(button, macro, anyClick)
