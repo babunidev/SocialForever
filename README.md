@@ -215,13 +215,13 @@ Instead, Social Forever builds the nearby list from players the game has already
 - A resurrection cast on you.
 - Other players from the **current** damage meter after a fight ends, only while they are still online and present to the client.
 - Party and raid members who are online and actually within range. Offline group members are not kept on the list.
-- Say, emotes, craft lines, duel, and trade.
+- Say, emotes, trade-skill craft announcements, duel, and trade. Craft announcements can arrive through either the trade-skill or system chat event path.
 
 **In this zone** is broader and weaker. It includes people who speak in General, people currently on the General channel roster, and yell. Being on that roster alone does not count as an encounter or raise familiarity.
 
-Because of that, a silent player standing beside you may not appear immediately if the game has not exposed them to the addon yet.
+Because of that, a silent player standing beside you may not appear immediately if the game has not exposed them to the addon yet. Skinning is a gathering action rather than a craft announcement, and no dedicated nearby-player Skinning event is currently verified; a skinner therefore still needs some other usable identity signal such as a unit token, nameplate, interaction, or shared Damage Meter session.
 
-Social Forever does not enable nameplates or use `/who` to build the list. The combat log event stream is not used.
+Social Forever does not enable nameplates or use `/who` to build the list. Forever's protected Combat Log text is not parsed; post-combat combat discovery uses the built-in Damage Meter when available.
 
 ## Window and settings
 

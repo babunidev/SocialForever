@@ -1,5 +1,13 @@
 # Social Forever — Changelog
 
+## Unreleased
+
+- Improved nearby crafting detection: SocialForever now accepts real craft announcements from both `CHAT_MSG_TRADESKILLS` and craft-shaped `CHAT_MSG_SYSTEM` messages.
+- Craft messages use Blizzard's localized `TRADESKILL_LOG_THIRDPERSON` / created-item templates when available, with the event sender/GUID preferred over text parsing for player identity.
+- Stopped treating `CHAT_MSG_SKILL` as nearby crafting evidence; it primarily reports the local player's own skill gains.
+- Removed the three-second Combat Log chat-frame parser. Forever intentionally protects combat-log text from addon parsing, so nearby combat discovery now relies on exposed unit tokens/interactions and the built-in Damage Meter path instead.
+- Skinning is documented as gathering rather than crafting; no dedicated nearby-player Skinning event is currently verified.
+
 ## 0.4.8-beta — 2026-11-05
 
 - Fixed the live Forever combat-lockdown error `[ADDON_ACTION_BLOCKED] Button:SetHeight()` caused when `RefreshList()` tried to resize secure player rows during combat.

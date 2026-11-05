@@ -50,3 +50,15 @@ for ignored in '.github' 'tests' 'AGENTS.md' 'CONCEPT.md' 'DEVELOPMENT.md' 'ROAD
 done
 
 echo "PASS: static source and manifest checks"
+
+echo "Checking activity detection sources..."
+grep -Fq 'Detection.NoteCraftEvent(arg1, arg2, select(12, ...), false)' Events.lua
+grep -Fq 'Detection.NoteCraftEvent(arg1, arg2, select(12, ...), true)' Events.lua
+if grep -Fq 'Detection.ScanCombatLog' Events.lua; then
+  echo "Legacy Combat Log polling remains registered" >&2
+  exit 1
+fi
+if grep -Fq 'CHAT_MSG_SKILL' Events.lua; then
+  echo "CHAT_MSG_SKILL should not be used as nearby craft evidence" >&2
+  exit 1
+fi

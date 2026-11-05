@@ -1558,6 +1558,89 @@ function Detection.LeadingName(text)
     return nil
 end
 
+function Detection.NameFromTwoStringTemplate(message, template)
+    message = Util.PlainString(message)
+    template = Util.PlainString(template)
+    if not message or not template then
+        return nil
+    end
+    local firstStart = template:find("%s", 1, true)
+    if not firstStart then
+        return nil
+    end
+    local secondStart = template:find("%s", firstStart + 2, true)
+    if not secondStart then
+        return nil
+    end
+    local prefix = template:sub(1, firstStart - 1)
+    local middle = template:sub(firstStart + 2, secondStart - 1)
+    local suffix = template:sub(secondStart + 2)
+    if prefix ~= "" and message:sub(1, #prefix) ~= prefix then
+        return nil
+    end
+    local nameStart = #prefix + 1
+    local middleAt
+    if middle == "" then
+        middleAt = nameStart
+    else
+        middleAt = message:find(middle, nameStart, true)
+    end
+    if not middleAt then
+        return nil
+    end
+    if suffix ~= "" and message:sub(-#suffix) ~= suffix then
+        return nil
+    end
+    local name = Util.Trim(message:sub(nameStart, middleAt - 1))
+    if name == "" or name:lower() == "you" then
+        return nil
+    end
+    return name
+end
+
+function Detection.CraftNameFromMessage(message)
+    message = Util.PlainString(message)
+    if not message then
+        return nil
+    end
+    local templates = {
+        _G.TRADESKILL_LOG_THIRDPERSON,
+        _G.CREATED_ITEM,
+        _G.CREATED_ITEM_MULTIPLE,
+    }
+    for i = 1, #templates do
+        local name = Detection.NameFromTwoStringTemplate(message, templates[i])
+        if name then
+            return name
+        end
+    end
+    return Detection.LeadingName(message)
+end
+
+function Detection.NoteCraftEvent(message, sender, guid, requireMessageMatch)
+    local parsedName = Detection.CraftNameFromMessage(message)
+    if requireMessageMatch and not parsedName then
+        return false
+    end
+
+    local key, classFile, raceFile, faction
+    guid = Util.PlainString(guid)
+    if guid then
+        key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(guid)
+        if not key then
+            key, classFile, raceFile = Detection.KeyFromGuid(guid)
+        end
+    end
+    key = key or Detection.KeyFromSender(sender) or (parsedName and Util.SafeKey(parsedName))
+
+    if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+        return false
+    end
+    Detection.Remember(key, 2, classFile, C.SEEN_TTL, nil, nil, raceFile, faction, "interaction")
+    Detection.Publish()
+    return true
+end
+
 function Detection.NoteCraftSender(sender)
     sender = Util.PlainString(sender)
     if not sender or sender == "" or C.SKIP_WORDS[sender:lower()] then
@@ -1607,52 +1690,4 @@ function Detection.NoteActivity(message, sender, craft)
     end
 end
 
-function Detection.CombatLogFrame()
-    local windows = NUM_CHAT_WINDOWS or 10
-    for i = 1, windows do
-        local frame = _G["ChatFrame" .. i]
-        if frame and frame.isCombatLog then
-            return frame
-        end
-    end
-    return ChatFrame2
-end
 
-function Detection.ScanCombatLog()
-    local frame = Detection.CombatLogFrame()
-    if not frame or not frame.GetNumMessages or not frame.GetMessageInfo then
-        return
-    end
-    local ok, count = pcall(frame.GetNumMessages, frame)
-    count = ok and Util.PlainNumber(count) or nil
-    if not count or count < 1 then
-        return
-    end
-    if S.combatLogSeen > count then
-        S.combatLogSeen = 0
-    end
-    local startAt = S.combatLogSeen + 1
-    if S.combatLogSeen == 0 then
-        startAt = math.max(1, count - 4)
-    end
-    local discovered = false
-    for i = startAt, count do
-        local textOk, text = pcall(frame.GetMessageInfo, frame, i)
-        if textOk and Util.PlainString(text) then
-            for name in text:gmatch("|Hplayer:([^|:]+)") do
-                if name ~= "" and not C.SKIP_WORDS[name:lower()] then
-                    local nameOnly, realm = strsplit("-", name, 2)
-                    local key = Util.MakeKey(nameOnly, realm)
-                    if key and not Util.IsMe(key) and not S.sightings[key] then
-                        Detection.Remember(key, 3, nil, C.SEEN_TTL, nil, nil, nil, nil, "interaction")
-                        discovered = true
-                    end
-                end
-            end
-        end
-    end
-    S.combatLogSeen = count
-    if discovered then
-        Detection.Publish()
-    end
-end

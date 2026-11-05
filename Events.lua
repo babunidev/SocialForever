@@ -47,7 +47,6 @@ SF.Events.Listen("PLAYER_SOFT_ENEMY_CHANGED")
 SF.Events.Listen("PLAYER_SOFT_FRIEND_CHANGED")
 SF.Events.Listen("PLAYER_SOFT_INTERACT_CHANGED")
 SF.Events.Listen("CHAT_MSG_TRADESKILLS")
-SF.Events.Listen("CHAT_MSG_SKILL")
 SF.Events.Listen("CHAT_MSG_OPENING")
 SF.Events.Listen("CHAT_MSG_PET_INFO")
 SF.Events.Listen("CHAT_MSG_LOOT")
@@ -105,7 +104,6 @@ events:SetScript("OnEvent", function(_, event, ...)
         end)
         C_Timer.NewTicker(0.5, Detection.Scan)
         C_Timer.NewTicker(5, Detection.ValidatePresence)
-        C_Timer.NewTicker(3, Detection.ScanCombatLog)
         C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)
         C_Timer.NewTicker(0.25, Sharing.Pump)
         C_Timer.NewTicker(45, Sharing.ShareTick)
@@ -140,8 +138,8 @@ events:SetScript("OnEvent", function(_, event, ...)
         Detection.NoteChat(arg2, select(12, ...))
         return
     end
-    if event == "CHAT_MSG_TRADESKILLS" or event == "CHAT_MSG_SKILL" then
-        Detection.NoteActivity(arg1, arg2, true)
+    if event == "CHAT_MSG_TRADESKILLS" then
+        Detection.NoteCraftEvent(arg1, arg2, select(12, ...), false)
         return
     end
     if event == "CHAT_MSG_OPENING"
@@ -211,6 +209,7 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "CHAT_MSG_SYSTEM" then
         UI.NoteDecline(arg1)
+        Detection.NoteCraftEvent(arg1, arg2, select(12, ...), true)
         return
     end
     if event == "CHAT_MSG_ADDON" then

@@ -8,6 +8,11 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Audit nearby craft/combat detection after live observation of an undetected fighter/skinner.
+- [x] Add `CHAT_MSG_SYSTEM` craft detection and localized craft-template parsing; stop using `CHAT_MSG_SKILL` as nearby craft evidence.
+- [x] Remove protected Combat Log chat polling and keep `C_DamageMeter` as the supported post-combat source.
+- [ ] Live-test another player's ordinary crafting announcement and record which Forever event path fires.
+- [ ] Live-test another player's Skinning with Event Trace/debug observation; do not treat Skinning as directly detectable until an identity-bearing event is observed.
 - [x] Diagnose the live Forever `Button:SetHeight()` protected-frame failure during combat and implement deferred secure-row painting.
 - [x] Diagnose the live Forever `CheckInteractDistance` protected-call failure and prevent all combat-time calls through `Util.Interact`.
 - [x] Re-test the two reported combat failure paths in the live Forever client; the previous protected-action errors did not recur.

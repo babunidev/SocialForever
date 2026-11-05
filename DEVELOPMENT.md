@@ -5,6 +5,16 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — nearby activity detection review
+
+- Live observation showed a player fighting and then skinning directly beside Babuni without appearing in Nearby.
+- The existing craft path only handled `CHAT_MSG_TRADESKILLS` / `CHAT_MSG_SKILL`; `CHAT_MSG_SYSTEM` was registered but returned after invite-decline handling, even though craft announcements can arrive there.
+- Craft detection now consumes `CHAT_MSG_TRADESKILLS` directly, checks craft-shaped `CHAT_MSG_SYSTEM` lines, prefers event GUID/sender identity, and uses Blizzard's localized craft templates when available.
+- `CHAT_MSG_SKILL` was removed from nearby-craft detection because it is principally a local skill-gain event, not evidence that another nearby player crafted.
+- The Combat Log chat-frame polling fallback was removed. Forever protects those lines from addon parsing; the supported post-combat path is `C_DamageMeter` when the other player participated in the same combat session.
+- Skinning remains unverified as a direct nearby-player event source. It is a gathering action, and the addon must not infer a skinner's identity unless Forever exposes an identity-bearing event or unit token.
+
+
 ## 0.4.8-beta — combat-lockdown hotfix
 
 - Live Forever testing produced `[ADDON_ACTION_BLOCKED] AddOn 'SocialForever' tried to call the protected function 'Button:SetHeight()'` from `UI.RefreshList`.

@@ -21,3 +21,9 @@ The player rows and Invite controls use `SecureActionButtonTemplate` so targetin
 ## Protected range-query boundary
 
 `Util.Interact` wraps `CheckInteractDistance` only out of combat. On the live Forever client, calling that API from SocialForever during combat can raise `ADDON_ACTION_BLOCKED`; `pcall` cannot suppress the protected-action event. During combat the helper returns no interaction-range evidence, leaving exact `UnitDistanceSquared` results and ordinary visible-unit fallback logic to drive detection.
+
+## Nearby activity evidence
+
+Crafting and combat are separate evidence families. Ordinary trade-skill craft announcements may arrive through `CHAT_MSG_TRADESKILLS` or craft-shaped `CHAT_MSG_SYSTEM` lines; SocialForever prefers the event GUID/sender and uses Blizzard's localized third-person craft strings only as a fallback parser. `CHAT_MSG_SKILL` is not treated as nearby-player evidence because it primarily reports the local character's skill gains.
+
+Forever intentionally protects Combat Log text from addon parsing, so SocialForever does not poll or parse the Combat Log chat frame. Combat-related Nearby discovery instead uses unit tokens/nameplates/interactions while they exist and `C_DamageMeter` after combat when another player is present in the same recorded session. Skinning is gathering, not ordinary crafting, and currently has no verified direct nearby-player event path.

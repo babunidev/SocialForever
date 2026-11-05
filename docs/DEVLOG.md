@@ -47,3 +47,9 @@ Version 0.4.8-beta is deliberately narrow. Secure row presentation waits until c
 After copying the exact 0.4.8-beta release candidate into the live Forever AddOns folder, I repeated combat with SocialForever active. The two BugGrabber failures that had driven the hotfix did not recur: no secure-row `SetHeight()` block and no protected interaction call appeared during the retest.
 
 That is enough evidence for this narrow hotfix to move forward, but it is not a blanket verification of every SocialForever feature. AI updated the release record to preserve that distinction before publication.
+
+## 2026-11-05 — Crafting is observable; Skinning is a different question
+
+Standing beside another player made the gap obvious: fighting and then skinning a creature did not necessarily make that player appear in Nearby. The old implementation blurred several chat categories together and also kept a legacy three-second Combat Log parser that Forever's protected UI no longer allows to provide useful text.
+
+The useful correction is narrower. Real craft announcements now enter through both the trade-skill and system-message routes, with Blizzard's own localized craft format used when text parsing is necessary. Skill-up messages are no longer treated as evidence of another player's crafting, and the dead Combat Log polling path is gone. Skinning remains deliberately unresolved: it is gathering, not crafting, and I do not want the addon inventing a nearby identity unless the live client actually exposes one.
