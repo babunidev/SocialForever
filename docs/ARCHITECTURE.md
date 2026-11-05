@@ -8,19 +8,17 @@ These are code/file observations. Read current README and CHANGELOG for detailed
 
 ## Architecture and behavior boundaries — audit #32
 
-`SocialForever.toc` declares Interface **16001**, version **0.4.8-beta**, account-wide `SocialForeverDB`, and load order `Core.lua → Memory.lua → Group.lua → Detection.lua → Sharing.lua → UI.lua → Events.lua`. The 0.3.0 development entry records the split from a large monolithic Lua file without intending a player-facing behavior change.
+`SocialForever.toc` declares Interface **16001**, version **0.4.9-beta**, account-wide `SocialForeverDB`, and load order `Core.lua → Memory.lua → Group.lua → Detection.lua → Sharing.lua → UI.lua → Events.lua`. The 0.3.0 development entry records the split from a large monolithic Lua file without intending a player-facing behavior change.
 
 `Core.lua` exposes the shared `SocialForever` namespace and constants, including a 50-yard nearby threshold, 180-second sighting TTL, three-second sort interval and 1200-second recognition cooldown. `Detection.lua` gathers varied partial clues while `Memory.lua` maintains records and derives familiarity. `UI.lua` presents a user-stable, target-pinned list. `Sharing.lua` has conservative whisper eligibility for Forever's two-part player names; the v0.4.4 wire format keeps an empty legacy flag slot and sends only marks. `Group.lua` and `Events.lua` connect grouping and runtime events.
 
 The [0.4.2 release entry](../DEVELOPMENT.md) records that a nominally successful protected invite API call need not mean an invitation was actually sent; secure send-path verification is necessary before showing an invited state. Zone roster membership alone must not be interpreted as a distance measurement. This description is static source inspection, not a run of the game client.
 
-## Secure list-row boundary
+## Unified ordinary list and secure-action boundary
 
-The ordinary player rows use `SecureActionButtonTemplate` for deliberate click-to-target behavior. Their geometry, visibility and secure target attributes are combat-locked and are never rearranged or rebound by insecure addon code while `InCombatLockdown()` is true.
+The Nearby/Zone list uses one set of ordinary, non-secure button rows in and outside combat. List sorting, positions, player text, tooltips, class/level display and Invite controls all repaint through `UI.RefreshList`; no combat cover or duplicate row set remains. Each row's hover displays `UI.ShowTip`, and right-click opens the player menu. Left-click targeting was removed because a dynamically changing player name cannot safely rebind secure targeting in combat.
 
-Combat presentation is separated from that protected layer. `UI.RefreshCombatList` renders current Nearby/Zone entries into normal overlay rows above the frozen secure rows. These overlay rows can be shown, hidden and repainted immediately as combat-time detection changes, including a fresh mouseover. Their Invite button is a normal deliberate-click control that calls `C_PartyInfo.InviteUnit` with the plain stored player name; it does not rewrite secure attributes. Overlay rows do not provide click-to-target because arbitrary new names cannot be safely rebound to the underlying secure target action during combat.
-
-When combat ends, `PLAYER_REGEN_ENABLED` runs the full protected-row repaint and the overlay is hidden. Detection and SavedVariables updates continue throughout combat.
+List Invite buttons call `UI.DirectInvite` from a deliberate click. The separate same-fight invitation popup retains its secure macro button, whose attributes are only updated out of combat. `PLAYER_REGEN_ENABLED` may still refresh the list and flush queued recognition, but no longer gates row painting. Live-client Invite success and absence of combat restriction errors require verification.
 
 ## Protected range-query boundary
 
