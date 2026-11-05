@@ -2,6 +2,12 @@
 
 **Human creative:** Babuni
 
+## 2026-11-05 — One list, not two
+
+The dark panel appearing whenever a fight changed the Nearby list was distracting, and my preference remained a single list with the same names and hover information whether fighting or not. I clarified that the important controls are the tooltip and deliberate Invite action, not clicking a row to acquire a target. The earlier implementation had made every visible name a protected targeting button and then copied the whole list into a second layer to work around combat lockdown.
+
+AI refactored that display into ordinary rows and Invite buttons so combat updates use the same layout; the separate same-fight secure prompt was preserved. Click-to-target on the name itself was removed as the explicit trade-off. Automated mock and static verification cover the unified display and Invite path, but live Forever behavior remains to be tested.
+
 ## Retrospective reconstruction — 2026-10-26
 
 SocialForever grew from a simple social problem: familiar people can remain strangely anonymous when playing with nameplates switched off. For me, the addon is meant to make recurring encounters easier to notice, target, invite and remember without turning the world into a permanent scanning overlay. The repository shows how that idea became a seven-module implementation covering proximity signals, encounter persistence, party ratings, sharing and list display.

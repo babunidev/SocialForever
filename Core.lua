@@ -39,6 +39,7 @@ C.ZONE_PURGE_DELAY = 30
 C.AREA_PURGE_DELAY = 15
 C.CHAT_TTL = C.SEEN_TTL
 C.UNIT_TTL = C.SEEN_TTL
+C.BUFF_TTL = 30 -- a buff is evidence of a recent interaction, not lasting proximity
 C.EMPTY_NEARBY = "No one nearby"
 C.EMPTY_ZONE = "No one else listed in this zone yet."
 C.EMPTY_TEXT = C.EMPTY_NEARBY
@@ -55,7 +56,7 @@ C.ORIGIN_LABELS = {
     chat = "Local chat / emote",
     crafting = "Crafting",
     fighting = "Fighting",
-    helpful_aura = "Buff / helpful aura",
+    helpful_aura = "Buff",
     resurrection = "Resurrection",
     trade = "Trade",
     duel = "Duel",
@@ -179,6 +180,7 @@ S.P = {
     zoneRosterFull = false,
     shareRotate = 1,
     nameplateByUnit = {},
+    helpfulAuraSeen = {}, -- dedupe repeated UNIT_AURA snapshots of the same buff
     staleTrackable = 18,
     staleInteraction = 25,
     sameMobStamp = nil,
@@ -470,6 +472,12 @@ function Util.NormRealm(realm)
     if realm == "" then
         return nil
     end
+    -- Forever can expose internal server identifiers through
+    -- GetPlayerInfoByGUID (e.g. CAMWOWEU4Realm10RP). These are not
+    -- playable realm names and must never become a player-name suffix.
+    if realm:upper():match("^CAMWOW[%w]+REALM%d+[%w]*$") then
+        return nil
+    end
     return realm
 end
 
@@ -488,19 +496,19 @@ function Util.MakeKey(name, realm)
     if not name then
         return nil
     end
-    -- Forever two-word names arrive with a space or a hyphen. One form only.
+    -- Forever UnitName returns FIRST NAME, SURNAME, not name/realm.
+    -- Already-complete names from chat/GUIDs may use a space or a hyphen.
+    -- Ignore the optional second field when the first is already complete.
     name = name:gsub("%s+", "-")
-    if #name < 2 or #name > 24 then
-        return nil
+    if not name:find("-", 1, true) then
+        local surname = Util.PlainString(realm)
+        if surname and not surname:find("[%s%-]") and
+            not surname:upper():match("^CAMWOW[%w]+REALM%d+[%w]*$") then
+            name = name .. "-" .. surname
+        end
     end
-    if name:find("[%c|%%%[%]]") then
-        return nil
-    end
-    local theirs = Util.NormRealm(realm)
-    local mine = Util.MyRealm()
-    if theirs and mine and theirs:lower() ~= mine:lower() then
-        return name .. "-" .. theirs
-    end
+    if #name < 2 or #name > 50 then return nil end
+    if name:find("[%c|%%%[%]]") then return nil end
     return name
 end
 
@@ -518,6 +526,13 @@ function Util.SafeKey(key)
     return key
 end
 
+function Util.IsCompleteCharacterKey(key)
+    key = Util.SafeKey(key)
+    -- Every Forever character needs a first name and surname, never a
+    -- realm suffix or a guessed first-name-only identity.
+    return key ~= nil and key:match("^[^%-]+%-[^%-]+$") ~= nil
+end
+
 function Util.SameKey(a, b)
     if type(a) ~= "string" or type(b) ~= "string" then
         return false
@@ -533,8 +548,48 @@ function Util.MyKey()
     return Util.MakeKey(name, realm)
 end
 
-function Util.IsMe(key)
-    return Util.SameKey(key, Util.MyKey())
+-- Forever two-word character names may differ between UnitName,
+-- GetUnitName, and GUID-backed chat/aura sources. Compare all readable
+-- forms so the local player never becomes a nearby stranger.
+function Util.IsMyGuid(guid)
+    guid = Util.PlainString(guid)
+    if not guid or type(UnitGUID) ~= "function" then return false end
+    local ok, own = pcall(UnitGUID, "player")
+    own = ok and Util.PlainString(own) or nil
+    return own ~= nil and own == guid
+end
+
+function Util.IsMe(key, guid)
+    if Util.IsMyGuid(guid) then return true end
+    key = Util.SafeKey(key)
+    if not key then return false end
+    if Util.SameKey(key, Util.MyKey()) then return true end
+
+    if type(GetUnitName) == "function" then
+        local ok, name = pcall(GetUnitName, "player", true)
+        name = ok and Util.PlainString(name) or nil
+        if name and Util.SameKey(key, Util.MakeKey(name)) then return true end
+    end
+    if type(UnitFullName) == "function" then
+        local ok, name, realm = pcall(UnitFullName, "player")
+        if ok and name and Util.SameKey(key, Util.MakeKey(name, realm)) then return true end
+    end
+    if type(UnitGUID) == "function" and type(GetPlayerInfoByGUID) == "function" then
+        local ok, ownGuid = pcall(UnitGUID, "player")
+        ownGuid = ok and Util.PlainString(ownGuid) or nil
+        if ownGuid then
+            if S.P.selfGuid ~= ownGuid then
+                S.P.selfGuid = ownGuid
+                S.P.selfGuidKey = nil
+            end
+            if not S.P.selfGuidKey then
+                local infoOk, _, _, _, _, _, name, realm = pcall(GetPlayerInfoByGUID, ownGuid)
+                if infoOk and name then S.P.selfGuidKey = Util.MakeKey(name, realm) end
+            end
+            if Util.SameKey(key, S.P.selfGuidKey) then return true end
+        end
+    end
+    return false
 end
 
 function Util.ValidColor(color)

@@ -99,10 +99,10 @@ end
 
 function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source, origin)
     key = Util.SafeKey(key)
-    if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
-        if key then
-            S.sightings[key] = nil
-        end
+    if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+        -- Ignore incomplete first-only names instead of creating a second
+        -- Nearby identity for the same Forever player.
+        if key then S.sightings[key] = nil end
         return
     end
     local prev = S.sightings[key]
@@ -251,7 +251,7 @@ function Detection.PurgeOtherZones()
     end
 end
 
-function Detection.Publish()
+function Detection.Publish(immediate)
     Detection.DropOfflineGroupSightings()
     Detection.PurgeOtherZones()
     Detection.PurgeOtherSubzones()
@@ -268,7 +268,7 @@ function Detection.Publish()
         }
     end
     for key, seen in pairs(S.sightings) do
-        if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
             S.sightings[key] = nil
             S.inviteState[key] = nil
         elseif Group.InMyGroup and Group.InMyGroup(key) and not inRaid then
@@ -295,14 +295,14 @@ function Detection.Publish()
     end
     local zoneFound = {}
     for key, seen in pairs(S.zoneSeen) do
-        if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneSeen[key] = nil
         elseif not found[key] then
             zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL}
         end
     end
     for key, seen in pairs(S.zoneRoster) do
-        if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneRoster[key] = nil
         elseif not found[key] and not zoneFound[key] then
             zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL,roster=true}
@@ -321,9 +321,9 @@ function Detection.Publish()
             if type(previousNearby) ~= "table" or not previousNearby[key] then Memory.NoteNearbyRecognition(key) end
         end
     end
-    if changed and UI.RefreshList then
+    if (changed or immediate) and UI.RefreshList then
         if UI.EnsureListFreezeHonest then UI.EnsureListFreezeHonest() end
-        UI.RefreshList()
+        UI.RefreshList(immediate and { skipMove = true } or nil)
     end
 end
 
@@ -495,7 +495,15 @@ function Detection.ConsiderUnit(unit, loose, origin)
     )
 end
 
+-- Event-driven mouseovers should not wait for the periodic multi-unit scan.
+function Detection.OnMouseoverChanged()
+    pcall(Detection.ConsiderUnit, "mouseover", true, "mouseover")
+    Detection.Publish(true)
+end
+
 function Detection.Scan()
+    -- Keep match boundaries up to date even when no players are detected.
+    if Memory.SyncBattlegroundSession then Memory.SyncBattlegroundSession() end
     for i = 1, #C.LOOK_UNITS do
         pcall(Detection.ConsiderUnit, C.LOOK_UNITS[i], true)
     end
@@ -662,6 +670,9 @@ end
 
 function Detection.NoteChat(sender, guid)
     guid = Util.PlainString(guid)
+    if Util.IsMyGuid(guid) then
+        return -- own say/emote must never create a Nearby sighting
+    end
     if guid and guid:sub(1, 6) ~= "Player" then
         return
     end
@@ -1131,6 +1142,10 @@ function Detection.NoteHelpfulAuraCaster(aura)
     if Util.PlainBool(helpful) ~= true and helpful ~= true then
         return false
     end
+    local instanceId = Util.PlainNumber(aura.auraInstanceID)
+    if instanceId and S.P.helpfulAuraSeen[instanceId] then
+        return false -- the same long-running aura is not a fresh encounter
+    end
     local key, classFile, raceFile, faction
     local source = Util.PlainString(aura.sourceUnit)
     if source then
@@ -1146,33 +1161,73 @@ function Detection.NoteHelpfulAuraCaster(aura)
         end
     end
     if not key and C_UnitAuras and type(C_UnitAuras.GetAuraCasterGUID) == "function" then
-        local instanceId = Util.PlainNumber(aura.auraInstanceID)
         if instanceId then
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
-            if casterGuid then
+            if casterGuid and not Util.IsMyGuid(casterGuid) then
+                -- A freshly added helpful aura is current interaction evidence.
+                -- Its caster need not still have a resolvable unit token.
                 key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
+                if not key then
+                    key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
+                    faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
+                end
             end
         end
     end
     if key and not Util.IsMe(key) then
-        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+        Detection.Remember(key, 1, classFile, C.BUFF_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+        if instanceId then S.P.helpfulAuraSeen[instanceId] = true end
+        -- Prefer the most recently identified helpful caster temporarily.
+        S.P.recentBuffKey = key
+        S.P.recentBuffAt = GetTime()
         return true
     end
     return false
+end
+
+-- Existing long-lived buffs are not proof of a fresh nearby encounter
+-- when the addon loads or the player transitions between worlds.
+function Detection.PrimePlayerHelpfulAuras()
+    if not C_UnitAuras or type(C_UnitAuras.GetAuraDataByIndex) ~= "function" then return end
+    for i = 1, 40 do
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+        if not ok or not aura or type(aura) ~= "table" or Util.Secret(aura) then
+            break
+        end
+        local id = Util.PlainNumber(aura.auraInstanceID)
+        if id then S.P.helpfulAuraSeen[id] = true end
+    end
 end
 
 -- When UNIT_AURA updateInfo is missing or sealed in combat, walk helpful auras.
 function Detection.ScanPlayerHelpfulCasters()
     local found = false
     if C_UnitAuras and type(C_UnitAuras.GetAuraDataByIndex) == "function" then
+        local active = {}
+        local complete = true
         for i = 1, 40 do
             local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-            if not ok or not aura then
+            if not ok then
+                complete = false
                 break
             end
+            if not aura then break end
+            if type(aura) ~= "table" or Util.Secret(aura) then
+                complete = false
+                break
+            end
+            local id = Util.PlainNumber(aura.auraInstanceID)
+            if id then active[id] = true end
             if Detection.NoteHelpfulAuraCaster(aura) then
                 found = true
+            end
+        end
+        -- Only clear an instance ID if a complete, readable snapshot proves
+        -- it no longer exists. A sealed aura snapshot is not such proof.
+        if complete then
+            for id in pairs(S.P.helpfulAuraSeen) do
+                if not active[id] then S.P.helpfulAuraSeen[id] = nil end
             end
         end
         return found
@@ -1216,18 +1271,28 @@ function Detection.OnPlayerAura(unit, updateInfo)
             added = nil
         end
     end
-    if type(added) == "table" then
+    if type(updateInfo) == "table" and not Util.Secret(updateInfo) then
+        local removed = updateInfo.removedAuraInstanceIDs
+        if type(removed) == "table" and not Util.Secret(removed) then
+            for i = 1, #removed do
+                local id = Util.PlainNumber(removed[i])
+                if id then S.P.helpfulAuraSeen[id] = nil end
+            end
+        end
+    end
+    if type(added) == "table" and #added > 0 then
         for i = 1, #added do
             if Detection.NoteHelpfulAuraCaster(added[i]) then
                 found = true
             end
         end
     else
-        -- Classic-style UNIT_AURA (no updateInfo) or sealed combat payload.
+        -- Classic-style, empty or sealed payload: inspect helpful auras.
         found = Detection.ScanPlayerHelpfulCasters()
     end
     if found then
-        Detection.Publish()
+        if UI.InvalidateListSort then UI.InvalidateListSort() end
+        Detection.Publish(true)
     end
 end
 

@@ -9,7 +9,7 @@ function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
  if unit=="player" then return "Localplayer","ForeverRealm" end
- if unit=="target" and targetName then return targetName,"ForeverRealm" end
+ if unit=="target" and targetName then return targetName,"First" end
 end
 function InCombatLockdown() return false end
 C_Timer={After=function(_,cb) cb() end}
@@ -24,8 +24,8 @@ GameTooltip={
 SocialForever=nil
 SocialForeverDB={
  players={
-  Alpha={nearbyTimes=1,flags={}},
-  Beta={nearbyTimes=1,flags={}},
+  ["Alpha-First"]={nearbyTimes=1,flags={}},
+  ["Beta-First"]={nearbyTimes=1,flags={}},
  },
  remote={},customFlags={},ignored={},listTab="nearby",migratedIgnoreFlags=true,
 }
@@ -68,33 +68,33 @@ local function order()
 end
 local function setNearby(alphaYards,betaYards)
  S.nearby={
-  Alpha={key="Alpha",yards=alphaYards,at=now,ttl=180,area="Northshire Valley",zone="Elwynn Forest"},
-  Beta={key="Beta",yards=betaYards,at=now,ttl=180,area="Northshire Valley",zone="Elwynn Forest"},
+  ["Alpha-First"]={key="Alpha-First",yards=alphaYards,at=now,ttl=180,area="Northshire Valley",zone="Elwynn Forest"},
+  ["Beta-First"]={key="Beta-First",yards=betaYards,at=now,ttl=180,area="Northshire Valley",zone="Elwynn Forest"},
  }
  S.inZone={}
 end
 
 setNearby(10,20)
 UI.RefreshList({force=true,skipMove=true})
-assertEqual(order(),"Alpha,Beta","initial distance order")
+assertEqual(order(),"Alpha-First,Beta-First","initial distance order")
 
-S.nearby.Alpha.yards=30
-S.nearby.Beta.yards=5
+S.nearby["Alpha-First"].yards=30
+S.nearby["Beta-First"].yards=5
 now=104
 UI.RefreshList({force=true,skipMove=true})
-assertEqual(order(),"Beta,Alpha","changed distance did not reorder same membership")
+assertEqual(order(),"Beta-First,Alpha-First","changed distance did not reorder same membership")
 
-targetName="Alpha"
+targetName="Alpha-First"
 UI.RefreshList({force=true,skipMove=true})
-assertEqual(order(),"Alpha,Beta","current target did not pin to top")
+assertEqual(order(),"Alpha-First,Beta-First","current target did not pin to top")
 
 targetName=nil
-SF.db.players.Alpha.nearbyTimes=10
-SF.db.players.Beta.nearbyTimes=1
+SF.db.players["Alpha-First"].nearbyTimes=10
+SF.db.players["Beta-First"].nearbyTimes=1
 Memory.InvalidateMaxFamiliarity()
 now=108
 UI.RefreshList({force=true,skipMove=true})
-assertEqual(order(),"Alpha,Beta","changed familiarity did not reorder same membership")
+assertEqual(order(),"Alpha-First,Beta-First","changed familiarity did not reorder same membership")
 
 local original=UI.RefreshList
 local periodicCalls=0

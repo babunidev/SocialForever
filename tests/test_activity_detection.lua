@@ -25,7 +25,7 @@ end
 function UnitExists() return false end
 function GetPlayerInfoByGUID(guid)
  if guid=="Player-GUID-Crafter" then
-  return "Mage","MAGE","Human","Human",2,"Crafter","ForeverRealm"
+  return "Mage","MAGE","Human","Human",2,"Crafter Forge","CAMWOWEU4Realm10RP"
  end
 end
 
@@ -46,12 +46,12 @@ local function assertTrue(v,m) if not v then error(m,2) end end
 local function assertFalse(v,m) if v then error(m,2) end end
 local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": expected "..tostring(e)..", got "..tostring(a),2) end end
 
-assertEqual(Detection.CraftNameFromMessage("Smith creates [Copper Bar]."),"Smith","localized craft template did not parse name")
+assertEqual(Detection.CraftNameFromMessage("Smith Forge creates [Copper Bar]."),"Smith Forge","localized craft template did not parse name")
 assertEqual(Detection.CraftNameFromMessage("Two Name creates [Copper Bar]."),"Two Name","two-word craft name did not parse")
 
-assertTrue(Detection.NoteCraftEvent("Smith creates [Copper Bar].","Smith",nil,true),"system craft line was not accepted")
-assertTrue(S.sightings.Smith~=nil,"system craft line did not create Nearby sighting")
-assertEqual(S.sightings.Smith.origins[1],"crafting","craft sighting did not record crafting provenance")
+assertTrue(Detection.NoteCraftEvent("Smith Forge creates [Copper Bar].","Smith Forge",nil,true),"system craft line was not accepted")
+assertTrue(S.sightings["Smith-Forge"]~=nil,"system craft line did not create Nearby sighting")
+assertEqual(S.sightings["Smith-Forge"].origins[1],"crafting","craft sighting did not record crafting provenance")
 
 assertTrue(Detection.NoteCraftEvent("Two Name creates [Copper Bar].","",nil,true),"two-word system craft line was not accepted")
 assertTrue(S.sightings["Two-Name"]~=nil,"two-word craft name was not normalized")
@@ -60,9 +60,9 @@ assertFalse(Detection.NoteCraftEvent("You have learned how to create a new item:
 assertEqual(S.sightings.You,nil,"unrelated system message created bogus player")
 
 assertTrue(Detection.NoteCraftEvent("opaque trade-skill payload","", "Player-GUID-Crafter",false),"trade-skill GUID fallback failed")
-assertTrue(S.sightings.Crafter~=nil,"GUID-backed craft event did not create Nearby sighting")
+assertTrue(S.sightings["Crafter-Forge"]~=nil,"GUID-backed craft event did not create Nearby sighting")
 
-assertFalse(Detection.NoteCraftEvent("You create [Copper Bar].","Localplayer",nil,false),"local player's craft became Nearby")
+assertFalse(Detection.NoteCraftEvent("You create [Copper Bar].","Localplayer ForeverRealm",nil,false),"local player's craft became Nearby")
 assertEqual(S.sightings.Localplayer,nil,"local player was stored as Nearby")
 
 print("PASS: nearby craft event and system craft parsing tests")

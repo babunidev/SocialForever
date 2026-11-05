@@ -8,6 +8,26 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Implement a single ordinary Nearby/Zone list across combat transitions, preserving hover tooltips, right-click menus and deliberate Invite controls.
+- [ ] Live-test one list during combat, including new sightings, changed marks, custom font/background, hover, scrolling, Invite clicks and transitions with no duplicate dark cover.
+- [ ] Verify left-click no longer targets a player, and confirm the separate same-fight secure prompt still works as before.
+
+- [ ] Live-test two-part name identity across mouseover, target, buffs, crafting and local chat; no single-name duplicates or synthetic realm suffixes.
+- [ ] Live-test exact full-name targeting when two nearby characters share a first name, including protection during combat.
+- [ ] Compare normal and combat lists at different font sizes, background opacities, and with new detections during combat; verify no stale secure row is clickable.
+
+- [ ] Verify the local character never appears in Nearby when speaking, using emotes, buffing themselves, or receiving a buff across reload; verify previously reported malformed caster names no longer recur.
+
+- [ ] Confirm a buff from an ungrouped player displays a normal two-word name, counts once, expires without fresh evidence and cannot be kept Nearby by unrelated aura changes; test re-buff after the original aura is removed.
+
+- [x] Prepare 0.4.9-beta release candidate with match-scoped battleground encounters, prompt mouseovers and buff discovery, concise tooltip evidence and combat overlay updates.
+- [ ] Confirm Git tag publication, GitHub prerelease status and actual CurseForge Beta file after release authorization and execution.
+
+- [ ] Live-test battleground familiarity across deaths/respawns, graveyard changes, repeated encounters, /reload, match exit and a second match on the same map; ensure each player counts once per match and ordinary-world encounters remain unchanged.
+
+- [ ] Live-test instant mouseover additions with nameplates disabled, including during combat and when the list is being hovered.
+- [ ] Live-test an ungrouped player buffing you out of combat and in combat: identify caster and place at top of Nearby (below a currently pinned target); verify secret aura values fail safely.
+
 - [x] Restore immediate visual Nearby additions during combat without mutating protected target rows.
 - [x] Add a deliberate combat-time Invite path for newly detected overlay entries.
 - [ ] Live-test mouseover discovery while already in combat: entry should appear immediately with **Nearby because: Hovered / mouseover**.
