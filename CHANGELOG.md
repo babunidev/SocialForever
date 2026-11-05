@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Restored event-driven instant mouseover presentation without waiting for the half-second scan or a moving-row transition.
+- Helpful aura caster GUIDs from freshly added buffs no longer require a currently targetable unit token; recent identified buff casters receive temporary top-list priority, beneath the currently targeted player.
+- Empty aura deltas fall back to scanning readable helpful auras. These paths require live Forever verification, especially with secret aura values in combat.
+
 - Restored immediate Nearby presentation during combat without mutating protected target rows. Mouseover/target/nameplate and other usable detections now paint into a separate normal-frame combat overlay as soon as SocialForever receives them.
 - Added a deliberate combat-time Invite action for overlay entries using `C_PartyInfo.InviteUnit` with the already-normalized player name. The existing protected target rows remain frozen underneath and are fully repainted after combat.
 - Newly remapped combat entries intentionally do not expose the stale secure row target action; click-to-target is re-armed only after combat ends. Live Forever verification of the new combat overlay/invite path is still required.
