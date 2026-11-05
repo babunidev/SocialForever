@@ -268,7 +268,7 @@ function Detection.Publish(immediate)
         }
     end
     for key, seen in pairs(S.sightings) do
-        if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
             S.sightings[key] = nil
             S.inviteState[key] = nil
         elseif Group.InMyGroup and Group.InMyGroup(key) and not inRaid then
@@ -295,14 +295,14 @@ function Detection.Publish(immediate)
     end
     local zoneFound = {}
     for key, seen in pairs(S.zoneSeen) do
-        if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneSeen[key] = nil
         elseif not found[key] then
             zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL}
         end
     end
     for key, seen in pairs(S.zoneRoster) do
-        if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
+        if not Util.IsCompleteCharacterKey(key) or Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneRoster[key] = nil
         elseif not found[key] and not zoneFound[key] then
             zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL,roster=true}
