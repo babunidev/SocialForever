@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected Forever character identity: `UnitName` returns first name and surname, not realm. Nearby rejects incomplete one-word keys so alternate detection sources cannot create separate identities for one character.
+- Changed secure click-to-target macros to use the full two-part name with `/targetexact`; requires live Forever validation.
+- Kept normal list visuals during combat when entries have not changed. Where a separate combat layer is necessary, it now mirrors normal font sizing and class/level icons; protected secure rows remain frozen.
+
 - Blocked the player's own two-word Forever character name from Nearby, even when chat, emote and GUID identities differ from `UnitName("player")`. Self-authored chat GUIDs are rejected before creating sightings.
 - Existing buffs are now baselined when logging in or entering the world, so a persistent aura is not interpreted as a new nearby interaction after reload. Added regression tests for both cases. Live verification remains required.
 
