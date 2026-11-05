@@ -73,7 +73,11 @@ function UI.PaintRowIdentity(row, entry)
             row.levelText:Hide()
         end
         if row.name then
-            row.name:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+            if row.contentRight then
+                row.name:SetPoint("RIGHT", row.contentRight, "LEFT", -6, 0)
+            else
+                row.name:SetPoint("RIGHT", row, "RIGHT", -6, 0)
+            end
         end
         return
     end
@@ -119,6 +123,8 @@ function UI.PaintRowIdentity(row, entry)
             row.name:SetPoint("RIGHT", row.identity, "LEFT", -4, 0)
         elseif showLevel and row.levelText then
             row.name:SetPoint("RIGHT", row.levelText, "LEFT", -4, 0)
+        elseif row.contentRight then
+            row.name:SetPoint("RIGHT", row.contentRight, "LEFT", -6, 0)
         else
             row.name:SetPoint("RIGHT", row, "RIGHT", -6, 0)
         end
@@ -1510,7 +1516,8 @@ function UI.BuildMain()
     combatCover:SetAllPoints(list)
     combatCover:SetFrameLevel((list:GetFrameLevel() or 1) + 40)
     combatCover:SetBackdrop(C.FLAT_BACKDROP)
-    combatCover:SetBackdropColor(0.04, 0.04, 0.04, 1)
+    -- The main window already provides the user-configured background.
+    combatCover:SetBackdropColor(0.04, 0.04, 0.04, 0)
     combatCover:SetBackdropBorderColor(0.04, 0.04, 0.04, 0)
     combatCover:EnableMouse(false)
     combatCover:Hide()
@@ -1534,7 +1541,7 @@ function UI.BuildMain()
         combatRow:SetPoint("TOPRIGHT", list, "TOPRIGHT", 0, -((i - 1) * C.ROW_HEIGHT))
         combatRow:SetFrameLevel(combatCover:GetFrameLevel() + 2)
         combatRow:SetBackdrop(C.FLAT_BACKDROP)
-        combatRow:SetBackdropColor(0.04, 0.04, 0.04, 1)
+        combatRow:SetBackdropColor(0.04, 0.04, 0.04, 0)
         combatRow:SetBackdropBorderColor(0.04, 0.04, 0.04, 0)
         combatRow:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         combatRow:Hide()
@@ -1578,6 +1585,20 @@ function UI.BuildMain()
         combatName:SetJustifyH("LEFT")
         combatName:SetWordWrap(false)
         combatRow.name = combatName
+
+        local combatLevel = combatRow:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        combatLevel:SetPoint("RIGHT", combatInvite, "LEFT", -6, 0)
+        combatLevel:SetJustifyH("RIGHT")
+        combatLevel:SetWidth(28)
+        combatLevel:Hide()
+        combatRow.levelText = combatLevel
+
+        local combatIdentity = combatRow:CreateTexture(nil, "ARTWORK")
+        combatIdentity:SetSize(14, 14)
+        combatIdentity:SetPoint("RIGHT", combatLevel, "LEFT", -4, 0)
+        combatIdentity:Hide()
+        combatRow.identity = combatIdentity
+        combatRow.contentRight = combatInvite
 
         local combatHighlight = combatRow:CreateTexture(nil, "BACKGROUND")
         combatHighlight:SetAllPoints()
@@ -2261,8 +2282,17 @@ function UI.RefreshCombatList()
 
     S.main.combatCover:Show()
     local maxSeen = Memory.MaxFamiliarity()
+    local font, fontSize, fontFlags = Util.NameFont()
     for i = 1, #S.main.combatRows do
         local row = S.main.combatRows[i]
+        Util.ApplyNameFont(row.name)
+        if row.levelText then Util.ApplyNameFont(row.levelText) end
+        pcall(row.mark.SetFont, row.mark, font, fontSize, fontFlags)
+        row.mark:SetWidth(math.max(18, fontSize))
+        if row.identity then
+            local iconSize = math.max(12, math.min(18, fontSize - 2))
+            row.identity:SetSize(iconSize, iconSize)
+        end
         if i <= visible then
             row:SetHeight(rowH)
             row:ClearAllPoints()
@@ -2294,6 +2324,7 @@ function UI.RefreshCombatList()
                 row.name:SetTextColor(nr, ng, nb)
             end
             row.name:SetText(UI.ListName(entry.key))
+            UI.PaintRowIdentity(row, entry)
             UI.PaintInvite(row.invite)
             row:Show()
             local inviteAvailable = C_PartyInfo and type(C_PartyInfo.InviteUnit) == "function"
@@ -2305,6 +2336,7 @@ function UI.RefreshCombatList()
         else
             row.key = nil
             row.invite.key = nil
+            UI.PaintRowIdentity(row, nil)
             row:Hide()
         end
     end
