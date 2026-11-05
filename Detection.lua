@@ -321,7 +321,7 @@ function Detection.Publish(immediate)
             if type(previousNearby) ~= "table" or not previousNearby[key] then Memory.NoteNearbyRecognition(key) end
         end
     end
-    if changed and UI.RefreshList then
+    if (changed or immediate) and UI.RefreshList then
         if UI.EnsureListFreezeHonest then UI.EnsureListFreezeHonest() end
         UI.RefreshList(immediate and { skipMove = true } or nil)
     end
