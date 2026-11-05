@@ -8,6 +8,8 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [ ] Verify the local character never appears in Nearby when speaking, using emotes, buffing themselves, or receiving a buff across reload; verify previously reported malformed caster names no longer recur.
+
 - [ ] Confirm a buff from an ungrouped player displays a normal two-word name, counts once, expires without fresh evidence and cannot be kept Nearby by unrelated aura changes; test re-buff after the original aura is removed.
 
 - [x] Prepare 0.4.9-beta release candidate with match-scoped battleground encounters, prompt mouseovers and buff discovery, concise tooltip evidence and combat overlay updates.
