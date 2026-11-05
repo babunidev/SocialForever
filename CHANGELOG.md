@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.9-beta — 2026-11-05
+
 - Battleground familiarity now counts each encountered player only once per match, independent of respawns, graveyards, subzones and reloads. A persisted character-specific match token allows a later battleground match to count again after a confirmed exit; normal-world subzone counting stays unchanged. Mock regression added; live Forever validation pending.
 
 - Simplified Nearby tooltip provenance to one reason: targeting and hovering display **Mouseover**, while a detected helpful buff displays **Buff**. The complete ephemeral origin set remains available internally.
