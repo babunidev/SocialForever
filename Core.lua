@@ -571,8 +571,15 @@ function Util.IsMe(key, guid)
         local ok, ownGuid = pcall(UnitGUID, "player")
         ownGuid = ok and Util.PlainString(ownGuid) or nil
         if ownGuid then
-            local infoOk, _, _, _, _, _, name, realm = pcall(GetPlayerInfoByGUID, ownGuid)
-            if infoOk and name and Util.SameKey(key, Util.MakeKey(name, realm)) then return true end
+            if S.P.selfGuid ~= ownGuid then
+                S.P.selfGuid = ownGuid
+                S.P.selfGuidKey = nil
+            end
+            if not S.P.selfGuidKey then
+                local infoOk, _, _, _, _, _, name, realm = pcall(GetPlayerInfoByGUID, ownGuid)
+                if infoOk and name then S.P.selfGuidKey = Util.MakeKey(name, realm) end
+            end
+            if Util.SameKey(key, S.P.selfGuidKey) then return true end
         end
     end
     return false
