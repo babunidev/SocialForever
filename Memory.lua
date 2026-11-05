@@ -290,6 +290,55 @@ function Memory.NoteHistory(key)
     end
 end
 
+-- A battleground is one meeting location for its whole match, regardless of
+-- graveyard, subzone, death or a reload. The active match token is saved per
+-- character so /reload does not cause another familiarity count.
+function Memory.BattlegroundInfo()
+    if type(GetInstanceInfo) ~= "function" then return nil end
+    local ok, name, kind = pcall(GetInstanceInfo)
+    name = ok and Util.PlainString(name) or nil
+    kind = ok and Util.PlainString(kind) or nil
+    if kind == "pvp" and name then return name end
+    return nil
+end
+
+function Memory.SyncBattlegroundSession()
+    if not SF.db then return nil end
+    local me = Util.MyKey()
+    if not me then return nil end
+    local sessions = SF.db.battlegroundSessions
+    if type(sessions) ~= "table" then
+        sessions = {}
+        SF.db.battlegroundSessions = sessions
+    end
+    local name = Memory.BattlegroundInfo()
+    local active = sessions[me]
+    if type(active) ~= "table" then active = nil end
+    if name then
+        S.P.bgOutsideAt = nil
+        if active and active.name == name and type(active.token) == "number" then
+            return active.token, name
+        end
+        -- A new session begins when entering a battleground or changing maps.
+        SF.db.battlegroundSerial = (tonumber(SF.db.battlegroundSerial) or 0) + 1
+        local token = SF.db.battlegroundSerial
+        sessions[me] = { token = token, name = name }
+        return token, name
+    end
+    -- Ignore brief instance-type gaps during loading and corpse transitions.
+    -- A sustained return to the world closes the match session.
+    if active then
+        local now = GetTime()
+        if not S.P.bgOutsideAt then
+            S.P.bgOutsideAt = now
+        elseif now - S.P.bgOutsideAt >= 3 then
+            sessions[me] = nil
+            S.P.bgOutsideAt = nil
+        end
+    end
+    return nil
+end
+
 function Memory.CurrentArea()
     local zone = Memory.CurrentZone()
     if zone and C.CITY_ZONES[zone:lower()] then
@@ -310,11 +359,24 @@ end
 -- the last charged meeting. Same subzone/city after a drop, reload, or relog
 -- does not farm nearbyTimes. lastFamiliarityPlace is saved in SocialForeverDB.
 function Memory.NoteNearbyPlace(key, isNew)
-    local area = Memory.CurrentArea()
+    local bgToken, bgName = Memory.SyncBattlegroundSession()
+    local area = bgName or Memory.CurrentArea()
     if not area or not SF.db then
         return area
     end
     local rec = Memory.EnsurePlayer(key)
+    if bgToken then
+        -- Only the first actual Nearby sighting of this character in this
+        -- match counts. Repeated encounters and subzone changes never do.
+        if isNew and rec.lastBattlegroundSession ~= bgToken then
+            rec.nearbyTimes = (tonumber(rec.nearbyTimes) or 0) + 1
+            rec.lastBattlegroundSession = bgToken
+            rec.lastFamiliarityPlace = area
+            Memory.NoteFamiliarityMax(key)
+        end
+        rec.nearbyArea = area
+        return area
+    end
     if isNew then
         local lastPlace = nil
         if type(rec.lastFamiliarityPlace) == "string" and rec.lastFamiliarityPlace ~= "" then
