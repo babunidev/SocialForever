@@ -49,3 +49,4 @@ These decisions are evidenced by recorded development changes. Where an original
 - **Review only confirmed members:** pending or declined invitations do not count as group members. Party unit tokens must be confirmed through Forever's `UnitInParty` API before entering group history or review snapshots.
 - **Departure means roster removal:** the review prompt is triggered when a previously confirmed member is removed from the party roster, whether they leave or are kicked. `UNIT_CONNECTION` only updates online state and never counts as a departure.
 - Live testing is still required to confirm these event transitions in the running Forever client.
+- **Declined invitations are not departures:** the system-message decline handler updates the invite's declined state and personal counter only. It does not create a group rating; only a confirmed member's roster removal does.

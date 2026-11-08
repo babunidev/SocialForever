@@ -5,7 +5,7 @@
 - Separated confirmed party-roster membership from online presence. Disconnected members remain in the party-review snapshot while their online Nearby presence can expire normally.
 - Added Forever's `UNIT_CONNECTION` event to refresh connection state without treating an offline/online transition as a party departure.
 - Party unit tokens must pass `UnitInParty` before they can enter group history or a group-rating snapshot, excluding pending or declined invitations.
-- Added mock regression coverage for disconnect/reconnect, a non-member invite candidate, and a confirmed leave/removal. Live Forever verification remains required.
+- Added mock regression coverage for disconnect/reconnect, a non-member invite candidate, and a confirmed leave/removal. The separate invite-decline message path still updates only the declined-invite record; it does not open a group review. Live Forever verification remains required.
 
 ## 0.4.9-beta — 2026-11-05
 

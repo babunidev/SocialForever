@@ -45,7 +45,7 @@ A nearby player can stay up to **3 minutes** after the last sighting, but Social
 
 Out in the world, moving into another subzone removes players from the previous subzone immediately. Capital cities are treated as one larger place, so walking between areas of Ironforge or Stormwind does not clear everyone from the list.
 
-Party members remain while they are still in your group. Raid membership by itself does not prove proximity; raid members still need positive nearby evidence to stay on Nearby.
+Online party members remain while they are still in your group. Disconnected members are not kept on Nearby, but remain in the party-review snapshot until they are actually removed from the roster. Raid membership by itself does not prove proximity; raid members still need positive nearby evidence to stay on Nearby.
 
 ### In this zone
 
@@ -179,7 +179,7 @@ These become Green, Yellow, and Red marks.
 
 Converting the group into a raid does not open the rating window.
 
-Only confirmed party members are included in group reviews. A pending or declined invitation is not a group member. If someone disconnects, the review waits; it appears only after that person is actually removed from the party roster.
+Only confirmed party members are included in group reviews. A pending or declined invitation is not a group member. The system message for a declined invite only updates its decline record; it does not open a group review. If someone disconnects, the review waits; it appears only after that person is actually removed from the party roster.
 
 ## Shared marks
 

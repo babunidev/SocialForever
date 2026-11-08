@@ -46,3 +46,6 @@ This provenance is deliberately ephemeral. It is not stored in `SocialForeverDB`
 `Group.RebuildGroupMembers` maintains two maps. `groupRosterByKey` / `groupRosterByNorm` represent actual group membership, including offline members; `groupByKey` / `groupByNorm` represent connected group units for Nearby presence. `Group.InMyGroup` answers membership questions such as invite blocking, while `Group.InMyGroupOnline` is used by detection and presence expiry.
 
 `UNIT_CONNECTION` refreshes those maps when a member disconnects or reconnects. The member remains in `S.lastMembers` until the party roster actually removes them; only that confirmed membership change can produce the individual group-review prompt. Pending or declined invites are excluded by the `UnitInParty` check. Automated mocks cover these state transitions; live Forever verification is still required.
+
+
+The invite-decline handler is separate from group review: `UI.NoteDecline` updates `S.inviteState` and the player's decline counter. It does not call `Group.ShowRatePopup`. That popup is driven by `Group.RefreshRoster` when a previously confirmed party member is absent from the current confirmed roster, or when the party ends.
