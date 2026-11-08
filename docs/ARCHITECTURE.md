@@ -49,3 +49,6 @@ This provenance is deliberately ephemeral. It is not stored in `SocialForeverDB`
 
 
 The invite-decline handler is separate from group review: `UI.NoteDecline` updates `S.inviteState` and the player's decline counter. It does not call `Group.ShowRatePopup`. That popup is driven by `Group.RefreshRoster` when a previously confirmed party member is absent from the current confirmed roster, or when the party ends.
+
+
+`GROUP_ROSTER_UPDATE` is declared without a payload in Forever's 1.60.1 API documentation. It reports that the roster changed, not why a member disappeared. The implementation can therefore distinguish an offline member who remains in the roster from a confirmed roster removal; it cannot infer whether a removal was voluntary, a kick, or an automatic server policy without a separate reason-bearing signal. This distinction remains part of live-client validation.

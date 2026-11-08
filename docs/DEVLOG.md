@@ -8,7 +8,7 @@ A group review occasionally appeared at the wrong moment: someone had lost conne
 
 The implementation now keeps confirmed roster membership separate from connected Nearby presence. Forever's `UnitInParty` confirms that a party token is an actual member, `UNIT_CONNECTION` updates online state, and the rating comparison waits for the member to disappear from the actual roster. The decline-message handler was already separate: it updates invite state and the decline counter, not the group-review popup. Pending or declined invites are excluded from the snapshot.
 
-AI contributed the source audit, code changes, regression tests and documentation. Automated verification is separate from live testing: disconnect/reconnect, invite decline, and actual leave/kick still need to be checked in the Forever client.
+AI contributed the source audit, code changes, regression tests and documentation. Automated verification is separate from live testing: disconnect/reconnect, invite decline, and actual leave/kick still need to be checked in the Forever client. Forever's `GROUP_ROSTER_UPDATE` event carries no reason for a removal, so a server-side automatic removal after a long disconnect would need a separate signal before it could be distinguished from a kick.
 
 ## Retrospective reconstruction — 2026-10-26
 
