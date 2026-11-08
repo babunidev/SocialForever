@@ -44,8 +44,10 @@ assertFalse(Memory.RecognitionEligible("White-Person"),"white player eligible")
 assertTrue(Memory.RecognitionEligible("Blue-Person"),"blue player rejected")
 assertTrue(Memory.RecognitionEligible("Purple-Person"),"purple player rejected")
 S.P.groupByKey["Grouped-Person"]="party1"; S.P.groupByNorm["groupedperson"]="party1"
+S.P.groupRosterByKey["Grouped-Person"]="party1"; S.P.groupRosterByNorm["groupedperson"]="party1"
 assertFalse(Memory.RecognitionEligible("Grouped-Person"),"grouped player eligible")
 S.P.groupByKey["Grouped-Person"]=nil; S.P.groupByNorm["groupedperson"]=nil
+S.P.groupRosterByKey["Grouped-Person"]=nil; S.P.groupRosterByNorm["groupedperson"]=nil
 
 assertEqual(Memory.RecognitionPhrase("Blue-Person"),"I've seen this Dwarf Shaman before.","race/class phrase")
 assertEqual(Memory.RecognitionPhrase("ClassOnly-Person"),"I've seen this Priest before.","class phrase")
