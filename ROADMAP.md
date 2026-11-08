@@ -8,6 +8,11 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Separate actual party-roster membership from online connection state; disconnected members remain in the review snapshot but are not kept Nearby.
+- [x] Refresh connection-state maps on Forever's `UNIT_CONNECTION` event without treating it as a departure.
+- [x] Require `UnitInParty` confirmation before a party unit enters group history or a rating snapshot, excluding pending/declined invitations.
+- [ ] Live-test a group member disconnecting and reconnecting, an invite decline, and a confirmed leave/kick; only the confirmed roster removal should open the review.
+
 - [x] Prepare 0.4.9-beta release candidate with match-scoped battleground encounters, prompt mouseovers and buff discovery, concise tooltip evidence and combat overlay updates.
 - [ ] Confirm Git tag publication, GitHub prerelease status and actual CurseForge Beta file after release authorization and execution.
 

@@ -4,6 +4,14 @@ Social Forever, by Babunigaming. Newest step first.
 
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
+## Unreleased — party membership versus connection state
+
+- A group-rating prompt could appear when a party member disconnected. The source review traced this to `Group.PartyKeys`: it discarded unit tokens as soon as `UnitIsConnected` became false, so the next roster comparison mistook an offline member for somebody who had left.
+- Party review now uses a separate roster snapshot. `UnitExists` plus Forever's `UnitInParty` confirms actual party membership; connection state does not remove a member from that snapshot. A pending or declined invitation cannot enter it.
+- `Group.RebuildGroupMembers` now keeps two maps: all roster members for group identity/invite blocking, and connected members for Nearby presence. `Group.InMyGroupOnline` is used by detection so an offline group member is not kept Nearby just because their roster slot remains.
+- `UNIT_CONNECTION` rebuilds those maps when a group member disconnects or reconnects. `GROUP_ROSTER_UPDATE` remains the membership-change path that can trigger a group review.
+- Mock regression coverage verifies disconnect/reconnect does not prompt, an unconfirmed party token is ignored, and a confirmed roster removal does prompt. These are automated tests; the behavior still needs live Forever verification.
+
 
 ## Unreleased — combat-time Nearby and inviting
 

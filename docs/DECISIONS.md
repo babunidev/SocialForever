@@ -41,3 +41,11 @@ These decisions are evidenced by recorded development changes. Where an original
 ## Hotfix release decision — 2026-11-05
 
 - **0.4.8-beta hotfix timing:** Live Forever testing exposed two protected-action failures in 0.4.7-beta: secure list-row layout changes during combat and a combat-time `CheckInteractDistance` call. Babuni directed immediate release preparation once both fixes and their automated regression checks passed. Final live retesting of the corrected paths is still pending and must not be described as completed.
+
+
+## Party review — 2026-11-08
+
+- **Membership is not connection state:** a player who disconnects but remains on the party roster is still a group member. Their online Nearby presence may expire, but the group-review snapshot must retain them.
+- **Review only confirmed members:** pending or declined invitations do not count as group members. Party unit tokens must be confirmed through Forever's `UnitInParty` API before entering group history or review snapshots.
+- **Departure means roster removal:** the review prompt is triggered when a previously confirmed member is removed from the party roster, whether they leave or are kicked. `UNIT_CONNECTION` only updates online state and never counts as a departure.
+- Live testing is still required to confirm these event transitions in the running Forever client.

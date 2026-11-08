@@ -58,6 +58,7 @@ SF.Events.Listen("FRIENDLIST_UPDATE")
 SF.Events.Listen("NAME_PLATE_UNIT_ADDED")
 SF.Events.Listen("NAME_PLATE_UNIT_REMOVED")
 SF.Events.Listen("UNIT_AURA")
+SF.Events.Listen("UNIT_CONNECTION")
 SF.Events.Listen("CHANNEL_ROSTER_UPDATE")
 SF.Events.Listen("CHANNEL_COUNT_UPDATE")
 SF.Events.Listen("PARTY_INVITE_REQUEST")
@@ -208,6 +209,12 @@ events:SetScript("OnEvent", function(_, event, ...)
         or event == "TRADE_SHOW"
     then
         Detection.Scan()
+        return
+    end
+    if event == "UNIT_CONNECTION" then
+        -- Rebuild online-presence maps without treating a disconnect as a
+        -- party departure. The roster snapshot still includes offline members.
+        Group.RefreshRoster()
         return
     end
     if event == "GROUP_ROSTER_UPDATE" or event == "GROUP_LEFT" then

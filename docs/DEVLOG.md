@@ -2,6 +2,14 @@
 
 **Human creative:** Babuni
 
+## 2026-11-08 — A disconnect is not a departure
+
+A group review occasionally appeared at the wrong moment: someone had lost connection, but had not actually left the party. I wanted the prompt to reflect a real group experience rather than a temporary network interruption. The source review found that the party snapshot filtered out disconnected unit tokens, then interpreted their absence as a departure.
+
+The implementation now keeps confirmed roster membership separate from connected Nearby presence. Forever's `UnitInParty` confirms that a party token is an actual member, `UNIT_CONNECTION` updates online state, and the rating comparison waits for the member to disappear from the actual roster. Pending or declined invites are excluded from the snapshot.
+
+AI contributed the source audit, code changes, regression tests and documentation. Automated verification is separate from live testing: disconnect/reconnect, invite decline, and actual leave/kick still need to be checked in the Forever client.
+
 ## Retrospective reconstruction — 2026-10-26
 
 SocialForever grew from a simple social problem: familiar people can remain strangely anonymous when playing with nameplates switched off. For me, the addon is meant to make recurring encounters easier to notice, target, invite and remember without turning the world into a permanent scanning overlay. The repository shows how that idea became a seven-module implementation covering proximity signals, encounter persistence, party ratings, sharing and list display.

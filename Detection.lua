@@ -214,7 +214,7 @@ function Detection.PurgeOtherSubzones()
         return
     end
     for key, seen in pairs(S.sightings) do
-        local grouped = Group.InMyGroup and Group.InMyGroup(key)
+        local grouped = Group.InMyGroupOnline and Group.InMyGroupOnline(key)
         if not grouped and seen.area and seen.area ~= area then
             S.sightings[key] = nil
             S.inviteState[key] = nil
@@ -233,7 +233,7 @@ function Detection.PurgeOtherZones()
         return
     end
     for key, seen in pairs(S.sightings) do
-        local grouped = Group.InMyGroup and Group.InMyGroup(key)
+        local grouped = Group.InMyGroupOnline and Group.InMyGroupOnline(key)
         if not grouped and seen.zone ~= zone then
             S.sightings[key] = nil
             S.inviteState[key] = nil
@@ -271,7 +271,7 @@ function Detection.Publish(immediate)
         if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
             S.sightings[key] = nil
             S.inviteState[key] = nil
-        elseif Group.InMyGroup and Group.InMyGroup(key) and not inRaid then
+        elseif Group.InMyGroupOnline and Group.InMyGroupOnline(key) and not inRaid then
             seen.at = now
             seen.lastConfirmedAt = now
             seen.unconfirmedSince = nil
@@ -339,7 +339,7 @@ function Detection.DisplayMapSig(map)
     local parts = {}
     for i = 1, #keys do
         local entry = map[keys[i]]
-        local grouped = Group.InMyGroup and Group.InMyGroup(keys[i])
+        local grouped = Group.InMyGroupOnline and Group.InMyGroupOnline(keys[i])
         parts[i] = table.concat({
             keys[i],
             tostring(entry and entry.bucket or ""),
@@ -604,7 +604,7 @@ function Detection.ValidatePresence()
         end
     end
     for key, seen in pairs(S.sightings) do
-        local grouped = Group.InMyGroup and Group.InMyGroup(key)
+        local grouped = Group.InMyGroupOnline and Group.InMyGroupOnline(key)
         local unit = live[key] or live[Detection.NormPresenceKey(key)]
         if grouped and not inRaid then
             seen.lastConfirmedAt = now
@@ -642,7 +642,7 @@ end
 function Detection.MarkPresenceStale(key, accelerate)
     key = Util.SafeKey(key)
     local seen = key and S.sightings[key]
-    if not seen or (Group.InMyGroup and Group.InMyGroup(key)) then
+    if not seen or (Group.InMyGroupOnline and Group.InMyGroupOnline(key)) then
         return
     end
     local now = GetTime()

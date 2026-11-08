@@ -179,6 +179,8 @@ These become Green, Yellow, and Red marks.
 
 Converting the group into a raid does not open the rating window.
 
+Only confirmed party members are included in group reviews. A pending or declined invitation is not a group member. If someone disconnects, the review waits; it appears only after that person is actually removed from the party roster.
+
 ## Shared marks
 
 If another nearby player is also using Social Forever, the two addons can quietly exchange **marks only** (Green, Yellow, Red) through WoW's addon-message system.

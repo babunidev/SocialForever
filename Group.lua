@@ -14,12 +14,25 @@ local Detection = SF.Detection
 local Sharing = SF.Sharing
 local UI = SF.UI
 
-function Group.PartyKeys()
+-- A party unit is a confirmed member only when the client says it is in the
+-- party. Pending/declined invitations are not roster membership.
+function Group.IsPartyRosterUnit(unit)
+    if type(UnitInParty) ~= "function" then
+        return false
+    end
+    local ok, member = pcall(UnitInParty, unit)
+    return ok and Util.PlainBool(member) == true
+end
+
+-- This is the actual party roster, not just its connected members. Forever
+-- keeps party unit tokens for disconnected players, so UnitIsConnected must
+-- not decide whether somebody belongs in the group-review snapshot.
+function Group.PartyRosterKeys()
     local list = {}
     for i = 1, 4 do
         local unit = "party" .. i
         local ok, exists = pcall(UnitExists, unit)
-        if ok and Util.PlainBool(exists) and Detection.UnitConnectedPlain(unit) ~= false then
+        if ok and Util.PlainBool(exists) == true and Group.IsPartyRosterUnit(unit) then
             local key = Util.UnitIdentity(unit)
             if key and not Util.IsMe(key) then
                 list[#list + 1] = key
@@ -32,42 +45,66 @@ end
 function Group.RebuildGroupMembers()
     wipe(S.P.groupByKey)
     wipe(S.P.groupByNorm)
-    local function addUnit(unit)
+    wipe(S.P.groupRosterByKey)
+    wipe(S.P.groupRosterByNorm)
+
+    local function addUnit(unit, partyUnit)
         local ok, exists = pcall(UnitExists, unit)
         if not ok or Util.PlainBool(exists) ~= true then
             return
         end
-        if Detection.UnitConnectedPlain(unit) == false then
+        if partyUnit and not Group.IsPartyRosterUnit(unit) then
             return
         end
         local key = Util.UnitIdentity(unit)
         if not key or Util.IsMe(key) then
             return
         end
-        S.P.groupByKey[key] = unit
+
         local norm = key:gsub("[%s%-]+", ""):lower()
-        S.P.groupByNorm[norm] = unit
+        -- Roster membership includes offline players. This map is used for
+        -- invite blocking and group identity, not Nearby presence.
+        S.P.groupRosterByKey[key] = unit
+        S.P.groupRosterByNorm[norm] = unit
+
+        -- The online map remains deliberately narrower for Nearby detection.
+        if Detection.UnitConnectedPlain(unit) ~= false then
+            S.P.groupByKey[key] = unit
+            S.P.groupByNorm[norm] = unit
+        end
     end
+
     local raidOk, inRaid = pcall(IsInRaid)
     if raidOk and Util.PlainBool(inRaid) == true then
         for i = 1, 40 do
-            addUnit("raid" .. i)
+            addUnit("raid" .. i, false)
         end
         return
     end
     local groupOk, inGroup = pcall(IsInGroup)
     if groupOk and Util.PlainBool(inGroup) == true then
         for i = 1, 4 do
-            addUnit("party" .. i)
+            addUnit("party" .. i, true)
         end
     end
 end
 
-Group.InMyGroup = function(key)
+local function HasGroupKey(key, byKey, byNorm)
     if not key then return false end
-    if S.P.groupByKey[key] then return true end
+    if byKey[key] then return true end
     local norm = key:gsub("[%s%-]+", ""):lower()
-    return S.P.groupByNorm[norm] ~= nil
+    return byNorm[norm] ~= nil
+end
+
+-- Membership includes disconnected players who remain on the actual roster.
+Group.InMyGroup = function(key)
+    return HasGroupKey(key, S.P.groupRosterByKey, S.P.groupRosterByNorm)
+end
+
+-- Online presence is separate: detection must not keep disconnected players
+-- in Nearby merely because their group slot remains.
+function Group.InMyGroupOnline(key)
+    return HasGroupKey(key, S.P.groupByKey, S.P.groupByNorm)
 end
 
 function Group.RefreshFriends()
@@ -241,12 +278,12 @@ function Group.RefreshRoster()
         return
     end
     if state == "party" then
-        Group.NoteGroupButtons(Group.PartyKeys())
+        Group.NoteGroupButtons(Group.PartyRosterKeys())
     elseif state == "solo" then
         Group.NoteGroupButtons({})
     end
     if state == "party" then
-        local members = Group.PartyKeys()
+        local members = Group.PartyRosterKeys()
         if S.wasParty then
             local still = {}
             for _, key in ipairs(members) do

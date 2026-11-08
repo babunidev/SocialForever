@@ -83,3 +83,14 @@ echo "Checking recognition/list synchronization..."
 grep -Fq 'not Memory.RecognitionCurrentlyNearby(key)' Memory.lua
 grep -Fq 'pcall(Detection.ConsiderUnit, "target", true, "target")' Memory.lua
 grep -Fq 'Memory.FlushRecognitionAfterCombat()' Events.lua
+
+
+echo "Checking party membership versus connection-state separation..."
+grep -Fq 'function Group.PartyRosterKeys()' Group.lua
+grep -Fq 'pcall(UnitInParty, unit)' Group.lua
+grep -Fq 'groupRosterByKey = {}' Core.lua
+grep -Fq 'function Group.InMyGroupOnline(key)' Group.lua
+grep -Fq 'SF.Events.Listen("UNIT_CONNECTION")' Events.lua
+grep -Fq 'if event == "UNIT_CONNECTION" then' Events.lua
+grep -Fq 'Group.InMyGroupOnline' Detection.lua
+grep -Fq 'if Group.InMyGroup(key) then' Detection.lua

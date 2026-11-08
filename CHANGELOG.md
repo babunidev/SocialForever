@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Separated confirmed party-roster membership from online presence. Disconnected members remain in the party-review snapshot while their online Nearby presence can expire normally.
+- Added Forever's `UNIT_CONNECTION` event to refresh connection state without treating an offline/online transition as a party departure.
+- Party unit tokens must pass `UnitInParty` before they can enter group history or a group-rating snapshot, excluding pending or declined invitations.
+- Added mock regression coverage for disconnect/reconnect, a non-member invite candidate, and a confirmed leave/removal. Live Forever verification remains required.
+
 ## 0.4.9-beta — 2026-11-05
 
 - Battleground familiarity now counts each encountered player only once per match, independent of respawns, graveyards, subzones and reloads. A persisted character-specific match token allows a later battleground match to count again after a confirmed exit; normal-world subzone counting stays unchanged. Mock regression added; live Forever validation pending.

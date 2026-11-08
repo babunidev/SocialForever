@@ -37,3 +37,12 @@ Forever intentionally protects Combat Log text from addon parsing, so SocialFore
 Each entry in `S.sightings` may carry a bounded `origins` array describing the concrete evidence observed during that current Nearby appearance. Origin codes are additive and deduplicated; examples include target, mouseover, nameplate, group member, crafting, Damage Meter fighting, helpful aura, trade, duel and resurrection. `Detection.Publish` copies those origins into the current Nearby display entry and includes them in its display signature so a new reason can repaint the tooltip/list state.
 
 This provenance is deliberately ephemeral. It is not stored in `SocialForeverDB`, does not affect familiarity, sorting, marks or flags, and disappears when the current sighting expires. Historical place memory remains separate.
+
+
+## Party roster membership versus connection state
+
+`Group.PartyRosterKeys` builds the party-review snapshot from existing party unit tokens confirmed by Forever's `UnitInParty` API. It deliberately does not filter by `UnitIsConnected`: the Forever unit-frame source keeps an offline group unit visible through `UnitExists` and renders its offline state separately.
+
+`Group.RebuildGroupMembers` maintains two maps. `groupRosterByKey` / `groupRosterByNorm` represent actual group membership, including offline members; `groupByKey` / `groupByNorm` represent connected group units for Nearby presence. `Group.InMyGroup` answers membership questions such as invite blocking, while `Group.InMyGroupOnline` is used by detection and presence expiry.
+
+`UNIT_CONNECTION` refreshes those maps when a member disconnects or reconnects. The member remains in `S.lastMembers` until the party roster actually removes them; only that confirmed membership change can produce the individual group-review prompt. Pending or declined invites are excluded by the `UnitInParty` check. Automated mocks cover these state transitions; live Forever verification is still required.
