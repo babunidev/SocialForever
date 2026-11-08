@@ -8,6 +8,10 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 
 ## Verification backlog (proposed)
 
+- [x] Use Forever's complete first-name + surname identity without appending realm/ruleset suffixes; normalize inbound sender transport suffixes without saving or displaying them.
+- [x] Treat only readable newly added helpful auras as fresh Nearby evidence; full, empty, updated-only, removed-only, missing and secret payloads no longer trigger a scan of all active buffs.
+- [ ] Live-test that a newly applied helpful buff adds its caster, while reloads, full aura updates, unrelated aura changes and old active buffs do not resurrect previous casters. Also verify the actual sender strings used by Forever's addon-message event.
+
 - [x] Separate actual party-roster membership from online connection state; disconnected members remain in the review snapshot but are not kept Nearby.
 - [x] Refresh connection-state maps on Forever's `UNIT_CONNECTION` event without treating it as a departure.
 - [x] Require `UnitInParty` confirmation before a party unit enters group history or a rating snapshot, excluding pending/declined invitations.

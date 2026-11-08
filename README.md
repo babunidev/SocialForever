@@ -8,6 +8,8 @@ While you quest, the same players often cross your path again and again. Social 
 
 Over time, strangers can become familiar names.
 
+Character names are kept and displayed as their complete first-and-second names. Social Forever does not append realm names.
+
 Built by **Babunigaming** for **World of Warcraft: Forever** (Interface 16001).  
 Current version: **0.4.9-beta**
 

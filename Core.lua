@@ -463,76 +463,65 @@ function Util.Trim(text)
     return (text:gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
-function Util.NormRealm(realm)
-    realm = Util.PlainString(realm)
-    if not realm then
-        return nil
-    end
-    realm = realm:gsub("%s+", "")
-    if realm == "" then
-        return nil
-    end
-    return realm
-end
-
-function Util.MyRealm()
-    if type(GetNormalizedRealmName) == "function" then
-        local realm = Util.NormRealm(GetNormalizedRealmName())
-        if realm then
-            return realm
+function Util.MakeKey(name, surname)
+    name = Util.PlainString(name)
+    if not name then return nil end
+    name = Util.Trim(name)
+    surname = Util.PlainString(surname)
+    if surname then
+        surname = Util.Trim(surname)
+        if surname ~= "" then
+            local lastPart = name:match("([^%s%-]+)$")
+            if not lastPart or lastPart:lower() ~= surname:lower() then
+                name = name .. " " .. surname
+            end
         end
     end
-    return Util.NormRealm(GetRealmName())
-end
-
-function Util.MakeKey(name, realm)
-    name = Util.PlainString(name)
-    if not name then
-        return nil
-    end
-    -- Forever two-word names arrive with a space or a hyphen. One form only.
+    -- Forever's second UnitName return is the surname, not a realm.
     name = name:gsub("%s+", "-")
-    if #name < 2 or #name > 24 then
-        return nil
-    end
-    if name:find("[%c|%%%[%]]") then
-        return nil
-    end
-    local theirs = Util.NormRealm(realm)
-    local mine = Util.MyRealm()
-    if theirs and mine and theirs:lower() ~= mine:lower() then
-        return name .. "-" .. theirs
-    end
+    if #name < 2 or #name > 24 then return nil end
+    if name:find("[%c|%%%[%]]") then return nil end
     return name
 end
 
+-- Inbound sender fields may carry the local transport qualifier after the
+-- complete name. Strip it only when two name parts precede it; never persist
+-- or display the qualifier as part of a character identity.
+function Util.SenderKey(sender)
+    sender = Util.PlainString(sender)
+    if not sender then return nil end
+    local realmToken
+    if type(GetNormalizedRealmName) == "function" then
+        local ok, value = pcall(GetNormalizedRealmName)
+        realmToken = ok and Util.PlainString(value) or nil
+    end
+    if realmToken then
+        local suffix = "-" .. realmToken
+        if #sender > #suffix and sender:lower():sub(-#suffix) == suffix:lower() then
+            local base = sender:sub(1, #sender - #suffix)
+            if base:find("[%s%-]") then sender = base end
+        end
+    end
+    return Util.MakeKey(sender)
+end
+
 function Util.SafeKey(key)
-    if type(key) ~= "string" then
-        return nil
-    end
+    if type(key) ~= "string" then return nil end
     key = key:gsub("%s+", "-")
-    if #key < 2 or #key > 50 then
-        return nil
-    end
-    if key:find("[%c|%%%[%]]") then
-        return nil
-    end
+    if #key < 2 or #key > 50 then return nil end
+    if key:find("[%c|%%%[%]]") then return nil end
     return key
 end
 
 function Util.SameKey(a, b)
-    if type(a) ~= "string" or type(b) ~= "string" then
-        return false
-    end
+    if type(a) ~= "string" or type(b) ~= "string" then return false end
     return a:gsub("[%s%-]+", ""):lower() == b:gsub("[%s%-]+", ""):lower()
 end
 
 function Util.MyKey()
-    local ok, name, realm = pcall(UnitName, "player")
-    if not ok then
-        return nil
-    end
-    return Util.MakeKey(name, realm)
+    local ok, name, surname = pcall(UnitName, "player")
+    if not ok then return nil end
+    return Util.MakeKey(name, surname)
 end
 
 function Util.IsMe(key)
@@ -698,11 +687,11 @@ function Util.Interact(unit, index)
 end
 
 function Util.UnitIdentity(unit)
-    local ok, name, realm = pcall(UnitName, unit)
+    local ok, name, surname = pcall(UnitName, unit)
     if not ok then
         return nil
     end
-    local key = Util.MakeKey(name, realm)
+    local key = Util.MakeKey(name, surname)
     if not key then
         return nil
     end

@@ -43,6 +43,12 @@ These decisions are evidenced by recorded development changes. Where an original
 - **0.4.8-beta hotfix timing:** Live Forever testing exposed two protected-action failures in 0.4.7-beta: secure list-row layout changes during combat and a combat-time `CheckInteractDistance` call. Babuni directed immediate release preparation once both fixes and their automated regression checks passed. Final live retesting of the corrected paths is still pending and must not be described as completed.
 
 
+## Forever names and buff evidence — 2026-11-08
+
+- **Names are two-part identities:** Forever's first and second `UnitName` returns are the character's first name and surname. The addon combines both and never appends a realm/ruleset suffix to a saved or displayed player identity.
+- **Transport suffixes are not identity:** an internal local qualifier may be removed from an inbound sender field when it follows a complete name. It is never saved or shown. A realm-shaped `GetPlayerInfoByGUID` return is not treated as a surname; ambiguous GUID-only names are skipped.
+- **A buff encounter must be new:** only a readable aura in `UNIT_AURA.addedAuras` can create helpful-buff Nearby evidence. Empty, full, updated-only, removed-only, missing or secret payloads do not trigger a scan of current auras.
+
 ## Party review — 2026-11-08
 
 - **Membership is not connection state:** a player who disconnects but remains on the party roster is still a group member. Their online Nearby presence may expire, but the group-review snapshot must retain them.

@@ -660,35 +660,19 @@ end
 
 function Detection.NoteNamed(sender, bucket, ttl, origin)
     sender = Util.PlainString(sender)
-    if not sender then
-        return
-    end
-    local name, realm = strsplit("-", sender, 2)
-    Detection.Remember(Util.MakeKey(name, realm), bucket, nil, ttl, nil, nil, nil, nil, "interaction", origin)
+    if not sender then return end
+    Detection.Remember(Util.SenderKey(sender), bucket, nil, ttl, nil, nil, nil, nil, "interaction", origin)
     Detection.Publish()
 end
 
 function Detection.NoteChat(sender, guid)
     guid = Util.PlainString(guid)
-    if guid and guid:sub(1, 6) ~= "Player" then
-        return
-    end
+    if guid and guid:sub(1, 6) ~= "Player" then return end
     Detection.NoteNamed(sender, 2, C.CHAT_TTL, "chat")
 end
 
 function Detection.KeyFromSender(sender)
-    sender = Util.PlainString(sender)
-    if not sender or sender == "" then
-        return nil
-    end
-    local namePart, realm = strsplit("-", sender, 2)
-    if namePart and namePart:find("%s") then
-        local first, second = namePart:match("^(%S+)%s+(%S+)$")
-        if first and second then
-            namePart = first .. "-" .. second
-        end
-    end
-    return Util.MakeKey(namePart, realm)
+    return Util.SenderKey(sender)
 end
 
 function Detection.IsGeneralChannel(channelString, channelBase)
@@ -774,27 +758,18 @@ end
 
 function Detection.KeyFromGuid(guid)
     guid = Util.PlainString(guid)
-    if not guid or guid == "" then
-        return nil
-    end
-    if guid:sub(1, 6) ~= "Player" then
-        return nil
-    end
-    if type(GetPlayerInfoByGUID) ~= "function" then
-        return nil
-    end
-    local ok, className, classFile, raceName, raceFile, _, name, realm = pcall(GetPlayerInfoByGUID, guid)
-    if not ok then
-        return nil
-    end
-    name = Util.PlainString(name)
-    realm = Util.PlainString(realm)
+    if not guid or guid == "" or guid:sub(1, 6) ~= "Player" then return nil end
+    if type(GetPlayerInfoByGUID) ~= "function" then return nil end
+    local ok, className, classFile, raceName, raceFile, _, fullName = pcall(GetPlayerInfoByGUID, guid)
+    if not ok then return nil end
+    fullName = Util.PlainString(fullName)
+    -- The documented GUID tuple has a realm-shaped field. Do not reinterpret
+    -- it as a Forever surname; accept only a full pair in the name field.
+    if not fullName or not fullName:find("[%s%-]") then return nil end
     classFile = Util.PlainString(classFile) or Util.PlainString(className)
     raceFile = Util.NormRaceFile(raceFile) or Util.NormRaceFile(raceName)
-    local key = Util.MakeKey(name, realm)
-    if not key or Util.IsMe(key) then
-        return nil
-    end
+    local key = Util.MakeKey(fullName)
+    if not key or Util.IsMe(key) then return nil end
     return key, classFile, raceFile
 end
 
@@ -1159,10 +1134,14 @@ function Detection.NoteHelpfulAuraCaster(aura)
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
             if casterGuid then
-                -- A freshly added helpful aura is current interaction evidence.
-                -- Its caster need not still have a resolvable unit token.
-                key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
-                faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
+                -- Prefer a live unit identity, which supplies Forever's
+                -- first name and surname separately. A GUID-only fallback is
+                -- accepted only if its name field is already a complete pair.
+                key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
+                if not key then
+                    key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
+                    faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
+                end
             end
         end
     end
@@ -1176,69 +1155,18 @@ function Detection.NoteHelpfulAuraCaster(aura)
     return false
 end
 
--- When UNIT_AURA updateInfo is missing or sealed in combat, walk helpful auras.
-function Detection.ScanPlayerHelpfulCasters()
-    local found = false
-    if C_UnitAuras and type(C_UnitAuras.GetAuraDataByIndex) == "function" then
-        for i = 1, 40 do
-            local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-            if not ok or not aura then
-                break
-            end
-            if Detection.NoteHelpfulAuraCaster(aura) then
-                found = true
-            end
-        end
-        return found
-    end
-    if type(UnitAura) ~= "function" then
-        return false
-    end
-    for i = 1, 40 do
-        local ok, name, _, _, _, _, _, sourceUnit = pcall(UnitAura, "player", i, "HELPFUL")
-        if not ok or not name then
-            break
-        end
-        sourceUnit = Util.PlainString(sourceUnit)
-        if sourceUnit then
-            local selfOk, isSelf = pcall(UnitIsUnit, sourceUnit, "player")
-            if not (selfOk and Util.PlainBool(isSelf) == true) then
-                local playerOk, isPlayer = pcall(UnitIsPlayer, sourceUnit)
-                if playerOk and Util.PlainBool(isPlayer) == true then
-                    local key, classFile, raceFile, faction = Util.UnitIdentity(sourceUnit)
-                    if key and Detection.UnitConnectedPlain(sourceUnit) ~= false and not Util.IsMe(key) then
-                        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
-                        found = true
-                    end
-                end
-            end
-        end
-    end
-    return found
-end
-
 function Detection.OnPlayerAura(unit, updateInfo)
     unit = Util.PlainString(unit) or unit
-    if unit ~= "player" then
-        return
-    end
+    if unit ~= "player" then return end
+    -- Full/current aura state is not a newly applied buff. Missing, secret,
+    -- empty and non-added payloads are not fresh encounter evidence.
+    if type(updateInfo) ~= "table" or Util.Secret(updateInfo) then return end
+    if Util.Secret(updateInfo.isFullUpdate) or Util.PlainBool(updateInfo.isFullUpdate) == true then return end
+    local added = updateInfo.addedAuras
+    if type(added) ~= "table" or Util.Secret(added) then return end
     local found = false
-    local added = nil
-    if type(updateInfo) == "table" and not Util.Secret(updateInfo) then
-        added = updateInfo.addedAuras
-        if type(added) == "table" and Util.Secret(added) then
-            added = nil
-        end
-    end
-    if type(added) == "table" and #added > 0 then
-        for i = 1, #added do
-            if Detection.NoteHelpfulAuraCaster(added[i]) then
-                found = true
-            end
-        end
-    else
-        -- Classic-style, empty or sealed payload: inspect helpful auras.
-        found = Detection.ScanPlayerHelpfulCasters()
+    for i = 1, #added do
+        if Detection.NoteHelpfulAuraCaster(added[i]) then found = true end
     end
     if found then
         if UI.InvalidateListSort then UI.InvalidateListSort() end

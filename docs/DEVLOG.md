@@ -2,6 +2,14 @@
 
 **Human creative:** Babuni
 
+## 2026-11-08 — Full names and fresh encounters
+
+Forever gives every character a first name and a surname. The old code treated the second `UnitName` return as a realm, which meant the same character could be keyed differently depending on the surname and the client's internal server label. For SocialForever, I want the full name to remain one identity everywhere: both parts together, with no realm suffix.
+
+The buff report exposed a second source of false familiarity. An aura update with no readable newly added entries could cause the addon to scan every active helpful aura, making an old caster look like a fresh Nearby encounter. The detection path now accepts only readable `addedAuras` entries; full updates and empty or unavailable deltas are not new evidence. Ambiguous GUID-only names are skipped instead of borrowing a realm-shaped value and displaying it as a surname.
+
+AI contributed the code review, implementation, regression tests and documentation. Automated tests cover the name tuple, sender normalization, ambiguous GUID results and aura-update types. The changes have not yet been tested in the live Forever client.
+
 ## 2026-11-08 — A disconnect is not a departure
 
 A group review occasionally appeared at the wrong moment: someone had lost connection, but had not actually left the party. I wanted the prompt to reflect a real group experience rather than a temporary network interruption. The source review found that the party snapshot filtered out disconnected unit tokens, then interpreted their absence as a departure.

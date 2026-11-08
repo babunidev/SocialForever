@@ -94,3 +94,23 @@ grep -Fq 'SF.Events.Listen("UNIT_CONNECTION")' Events.lua
 grep -Fq 'if event == "UNIT_CONNECTION" then' Events.lua
 grep -Fq 'Group.InMyGroupOnline' Detection.lua
 grep -Fq 'if Group.InMyGroup(key) then' Detection.lua
+
+echo "Checking Forever two-part names and no realm identity..."
+grep -Fq 'function Util.MakeKey(name, surname)' Core.lua
+grep -Fq 'local key = Util.MakeKey(name, surname)' Core.lua
+grep -Fq 'function Util.SenderKey(sender)' Core.lua
+grep -Fq 'Util.SenderKey(sender)' Sharing.lua
+grep -Fq 'local name = key:gsub("-", " ")' UI.lua
+if grep -nE 'Util\.(MyRealm|NormRealm)|GetRealmName\(' Core.lua Detection.lua UI.lua Sharing.lua; then
+  echo "Legacy realm identity/display handling remains" >&2
+  exit 1
+fi
+
+echo "Checking newly added aura evidence only..."
+grep -Fq 'local added = updateInfo.addedAuras' Detection.lua
+grep -Fq 'Util.PlainBool(updateInfo.isFullUpdate) == true' Detection.lua
+if grep -Fq 'ScanPlayerHelpfulCasters' Detection.lua; then
+  echo "Legacy full helpful-aura scan remains" >&2
+  exit 1
+fi
+

@@ -8,7 +8,7 @@ These are code/file observations. Read current README and CHANGELOG for detailed
 
 ## Architecture and behavior boundaries — audit #32
 
-`SocialForever.toc` declares Interface **16001**, version **0.4.8-beta**, account-wide `SocialForeverDB`, and load order `Core.lua → Memory.lua → Group.lua → Detection.lua → Sharing.lua → UI.lua → Events.lua`. The 0.3.0 development entry records the split from a large monolithic Lua file without intending a player-facing behavior change.
+`SocialForever.toc` declares Interface **16001**, version **0.4.9-beta**, account-wide `SocialForeverDB`, and load order `Core.lua → Memory.lua → Group.lua → Detection.lua → Sharing.lua → UI.lua → Events.lua`. The 0.3.0 development entry records the split from a large monolithic Lua file without intending a player-facing behavior change.
 
 `Core.lua` exposes the shared `SocialForever` namespace and constants, including a 50-yard nearby threshold, 180-second sighting TTL, three-second sort interval and 1200-second recognition cooldown. `Detection.lua` gathers varied partial clues while `Memory.lua` maintains records and derives familiarity. `UI.lua` presents a user-stable, target-pinned list. `Sharing.lua` has conservative whisper eligibility for Forever's two-part player names; the v0.4.4 wire format keeps an empty legacy flag slot and sends only marks. `Group.lua` and `Events.lua` connect grouping and runtime events.
 
@@ -38,6 +38,16 @@ Each entry in `S.sightings` may carry a bounded `origins` array describing the c
 
 This provenance is deliberately ephemeral. It is not stored in `SocialForeverDB`, does not affect familiarity, sorting, marks or flags, and disappears when the current sighting expires. Historical place memory remains separate.
 
+
+## Forever two-part player identity
+
+Forever characters have a first name and a surname, not a character name plus a realm. `UnitName(unit)` supplies those two name parts separately; `Util.MakeKey` combines them into one normalized internal key (`First-Surname`), while `UI.SpokenName` and `UI.SlashName` render the complete name with a space. Realm/ruleset labels are never appended to player keys or displayed names.
+
+Inbound sender fields pass through `Util.SenderKey`. If the client adds its local transport qualifier after a complete two-part name, that trailing qualifier is stripped before the identity is normalized. It is not persisted or displayed. The realm-shaped field in `GetPlayerInfoByGUID` is not used as a surname; a GUID-only name is accepted only when the name field itself already contains both parts. Otherwise the addon skips the ambiguous identity.
+
+## Helpful-aura evidence
+
+`Detection.OnPlayerAura` accepts only readable entries in `updateInfo.addedAuras` for the player. A full aura update, missing or secret payload, empty delta, updated aura or removed aura does not establish a newly applied buff. The former fallback that scanned all active helpful auras has been removed, preventing an existing buff from repeatedly creating a fresh Nearby sighting. The aura's caster is still subject to the normal identity and player checks.
 
 ## Party roster membership versus connection state
 

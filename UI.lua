@@ -214,21 +214,10 @@ function UI.SetCombatDisplayOnly(row, displayOnly)
 end
 
 function UI.SlashName(key)
-    if type(key) ~= "string" or key == "" then
-        return nil
-    end
-    local name = key
-    local mine = Util.MyRealm()
-    if mine and #key > #mine + 1 and key:lower():sub(-(#mine + 1)) == "-" .. mine:lower() then
-        local base = key:sub(1, #key - #mine - 1)
-        name = base:gsub("-", " ") .. "-" .. key:sub(#key - #mine + 1)
-    else
-        name = key:gsub("-", " ")
-    end
+    if type(key) ~= "string" or key == "" then return nil end
+    local name = key:gsub("-", " ")
     name = name:gsub("^%s+", ""):gsub("%s+$", "")
-    if name == "" then
-        return nil
-    end
+    if name == "" then return nil end
     return name
 end
 

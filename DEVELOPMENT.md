@@ -4,6 +4,14 @@ Social Forever, by Babunigaming. Newest step first.
 
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
+## Unreleased — full Forever names and fresh buff evidence
+
+- Forever's `UnitName` returns a first name and a surname. The previous normalization treated the second value as a realm and compared it with the local realm token, so the same two-part name could be keyed inconsistently. `Util.MakeKey` now joins both name values; list and invite display use **First Surname** without a realm/ruleset suffix.
+- Chat and addon-message sender strings are normalized as full names. A trailing local transport qualifier is removed only when a complete two-part name precedes it; it is never saved or displayed as part of the character identity.
+- `GetPlayerInfoByGUID` has a realm-shaped field in its documented return tuple. That field is not treated as a Forever surname. A GUID-only lookup is accepted only when the name field already contains both name parts; otherwise the addon skips the ambiguous identity rather than creating a partial or realm-qualified player.
+- Helpful-buff detection now processes only readable `UNIT_AURA.addedAuras` entries. Missing, secret, empty, full-update, updated-only and removed-only payloads are not fresh evidence. The old fallback that scanned every active helpful aura has been removed.
+- Added mock regression tests for two-part names, sender suffixes, ambiguous GUID lookups and aura update types. Live Forever verification is still required, especially for newly applied buffs and sender values in the running client.
+
 ## Unreleased — party membership versus connection state
 
 - A group-rating prompt could appear when a party member disconnected. The source review traced this to `Group.PartyKeys`: it discarded unit tokens as soon as `UnitIsConnected` became false, so the next roster comparison mistook an offline member for somebody who had left.

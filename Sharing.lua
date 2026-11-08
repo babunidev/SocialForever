@@ -15,23 +15,9 @@ local Sharing = SF.Sharing
 local UI = SF.UI
 
 function Sharing.CanWhisperTarget(target)
-    if type(target) ~= "string" or target == "" or Util.Secret(target) then
-        return false
-    end
-    if target:find("%s") then
-        return false
-    end
-    local mine = Util.MyRealm()
-    local base = target
-    if mine and #target > #mine + 1 and target:lower():sub(-(#mine + 1)) == "-" .. mine:lower() then
-        base = target:sub(1, #(target) - #mine - 1)
-    end
-    -- Forever two-word names are stored as First-Second. Whispering that
-    -- form makes the client look up "First Second" and print that nobody
-    -- by that name is playing, even when they are standing next to you.
-    if base:find("-") or base:find("%s") then
-        return false
-    end
+    if type(target) ~= "string" or target == "" or Util.Secret(target) then return false end
+    -- This conservative gate still permits only simple one-part targets.
+    if target:find("[-%s]") then return false end
     return true
 end
 
@@ -271,8 +257,7 @@ function Sharing.OnAddon(prefix, msg, channel, sender)
     if prefix ~= C.PREFIX or channel ~= "WHISPER" or type(msg) ~= "string" then
         return
     end
-    local name, realm = strsplit("-", sender or "", 2)
-    local senderKey = Util.MakeKey(name, realm)
+    local senderKey = Util.SenderKey(sender)
     if not senderKey or Util.IsMe(senderKey) then
         return
     end

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected Forever character identity handling: `UnitName`'s second return is the surname, not a realm. Player keys now combine both name parts, the interface displays **First Surname**, and realm/ruleset suffixes are never added to saved or displayed identities. Ambiguous GUID-only lookups are skipped rather than using a realm-shaped return as a surname.
+- Helpful-buff discovery now accepts only readable entries in `UNIT_AURA.addedAuras`. Missing, secret, empty, full-update, updated-only and removed-only payloads no longer trigger a scan of all active helpful auras, so an old buff caster cannot be recreated as a fresh Nearby sighting.
+- Added regression coverage for two-part Forever names, sender suffix normalization, ambiguous GUID names, and newly added aura handling. Automated checks remain separate from live Forever testing.
+
 - Separated confirmed party-roster membership from online presence. Disconnected members remain in the party-review snapshot while their online Nearby presence can expire normally.
 - Added Forever's `UNIT_CONNECTION` event to refresh connection state without treating an offline/online transition as a party departure.
 - Party unit tokens must pass `UnitInParty` before they can enter group history or a group-rating snapshot, excluding pending or declined invitations.
