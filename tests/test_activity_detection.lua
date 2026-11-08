@@ -20,12 +20,12 @@ function GetSubZoneText() return "Goldshire" end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
- if unit=="player" then return "Localplayer","ForeverRealm" end
+ if unit=="player" then return "Localplayer" end
 end
 function UnitExists() return false end
 function GetPlayerInfoByGUID(guid)
  if guid=="Player-GUID-Crafter" then
-  return "Mage","MAGE","Human","Human",2,"Crafter","ForeverRealm"
+  return "Mage","MAGE","Human","Human",2,"Crafter Smith","ForeverRealm"
  end
 end
 
@@ -60,7 +60,7 @@ assertFalse(Detection.NoteCraftEvent("You have learned how to create a new item:
 assertEqual(S.sightings.You,nil,"unrelated system message created bogus player")
 
 assertTrue(Detection.NoteCraftEvent("opaque trade-skill payload","", "Player-GUID-Crafter",false),"trade-skill GUID fallback failed")
-assertTrue(S.sightings.Crafter~=nil,"GUID-backed craft event did not create Nearby sighting")
+assertTrue(S.sightings["Crafter-Smith"]~=nil,"GUID-backed craft event did not create Nearby sighting")
 
 assertFalse(Detection.NoteCraftEvent("You create [Copper Bar].","Localplayer",nil,false),"local player's craft became Nearby")
 assertEqual(S.sightings.Localplayer,nil,"local player was stored as Nearby")

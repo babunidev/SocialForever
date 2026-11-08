@@ -1,7 +1,7 @@
 function wipe(t) for k in pairs(t) do t[k]=nil end end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
-function UnitName(unit) if unit=="player" then return "Localplayer","ForeverRealm" end end
+function UnitName(unit) if unit=="player" then return "Localplayer" end end
 function InCombatLockdown() return false end
 
 local unattendedCalls=0

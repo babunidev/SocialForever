@@ -13,7 +13,7 @@ function strsplit(sep,text,limit)
 end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
-function UnitName(unit) if unit=="player" then return "Localplayer","ForeverRealm" end end
+function UnitName(unit) if unit=="player" then return "Localplayer" end end
 function GetServerTime() return 123456 end
 function GetTime() return 1000 end
 

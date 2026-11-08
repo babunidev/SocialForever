@@ -19,8 +19,8 @@ function GetSubZoneText() return "Goldshire" end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
-    if unit == "player" then return "Localplayer", "ForeverRealm" end
-    if unit == "mouseover" then return "Hovered", "ForeverRealm" end
+    if unit == "player" then return "Localplayer" end
+    if unit == "mouseover" then return "Hovered" end
 end
 function UnitExists(unit) return unit == "mouseover" end
 function UnitIsPlayer(unit) return unit == "mouseover" end
@@ -36,7 +36,7 @@ function UnitRace() return "Human", "Human" end
 function UnitFactionGroup() return "Alliance" end
 function GetPlayerInfoByGUID(guid)
     if guid == "Player-123-Caster" then
-        return "Priest", "PRIEST", "Human", "Human", 2, "Caster", "ForeverRealm"
+        return "Priest", "PRIEST", "Human", "Human", 2, "Caster Brightvale", "ForeverRealm"
     end
 end
 C_UnitAuras = {
@@ -62,11 +62,11 @@ assert(publishes[#publishes] and publishes[#publishes].skipMove, "mouseover shou
 
 local aura = {isHelpful=true, auraInstanceID=17}
 SF.Detection.OnPlayerAura("player", {addedAuras={aura}})
-assert(SF.State.nearby.Caster, "fresh aura caster GUID should work without a live unit token")
-assert(SF.State.P.recentBuffKey == "Caster", "newly identified buff caster should receive priority")
+assert(SF.State.nearby["Caster-Brightvale"], "fresh aura caster GUID should work without a live unit token")
+assert(SF.State.P.recentBuffKey == "Caster-Brightvale", "newly identified buff caster should receive priority")
 assert(publishes[#publishes] and publishes[#publishes].skipMove, "aura caster should paint without a movement hold")
-assert(SF.State.sightings.Caster.origins[1] == "helpful_aura", "caster origin missing")
+assert(SF.State.sightings["Caster-Brightvale"].origins[1] == "helpful_aura", "caster origin missing")
 
 SF.Detection.OnPlayerAura("player", {addedAuras={}})
-assert(SF.State.nearby.Caster, "empty aura delta must not remove confirmed caster")
+assert(SF.State.nearby["Caster-Brightvale"], "empty aura delta must not remove confirmed caster")
 print("PASS: immediate mouseover and fresh helpful-aura GUID discovery")

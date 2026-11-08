@@ -10,7 +10,7 @@ function IsInGroup() return inRaid end
 function UnitExists(unit) if unit=="player" then return true end return units[unit]~=nil end
 function UnitIsConnected(unit) if unit=="player" then return true end local d=units[unit]; return d and d.connected~=false or false end
 function UnitIsPlayer(unit) return unit=="player" or units[unit]~=nil end
-function UnitName(unit) if unit=="player" then return "Localplayer","ForeverRealm" end local d=units[unit]; if d then return d.name,"ForeverRealm" end end
+function UnitName(unit) if unit=="player" then return "Localplayer" end local d=units[unit]; if d then return d.name end end
 function UnitClass(unit) if unit=="player" then return "Paladin","PALADIN" end if units[unit] then return "Warrior","WARRIOR" end end
 function UnitRace(unit) if unit=="player" then return "Human","Human" end if units[unit] then return "Human","Human" end end
 function UnitFactionGroup(unit) if unit=="player" or units[unit] then return "Alliance" end end

@@ -45,7 +45,7 @@ end
 
 function UnitName(unit)
     if unit == "player" then
-        return "Localplayer", "ForeverRealm"
+        return "Localplayer"
     end
 end
 

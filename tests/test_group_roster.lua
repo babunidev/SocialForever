@@ -24,9 +24,9 @@ function UnitIsConnected(unit)
     return data ~= nil and data.connected == true
 end
 function UnitName(unit)
-    if unit == "player" then return "Localplayer", "ForeverRealm" end
+    if unit == "player" then return "Localplayer" end
     local data = units[unit]
-    if data then return data.name, "ForeverRealm" end
+    if data then return data.name end
 end
 function UnitClass(unit)
     if unit == "player" then return "Paladin", "PALADIN" end

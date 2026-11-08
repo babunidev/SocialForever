@@ -8,8 +8,8 @@ function GetSubZoneText() return "Northshire Valley" end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
- if unit=="player" then return "Localplayer","ForeverRealm" end
- if unit=="target" and targetName then return targetName,"ForeverRealm" end
+ if unit=="player" then return "Localplayer" end
+ if unit=="target" and targetName then return targetName end
 end
 function InCombatLockdown() return false end
 C_Timer={After=function(_,cb) cb() end}

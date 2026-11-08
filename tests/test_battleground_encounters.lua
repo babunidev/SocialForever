@@ -22,7 +22,7 @@ function GetZoneText() return zone end
 function GetSubZoneText() return sub end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
-function UnitName(unit) if unit == "player" then return "Localplayer", "ForeverRealm" end end
+function UnitName(unit) if unit == "player" then return "Localplayer" end end
 function GetInstanceInfo()
     if bg then return bg, "pvp", 0, "", 20, 0, false, 489 end
     return "Eastern Kingdoms", "none", 0, "", 0, 0, false, 0

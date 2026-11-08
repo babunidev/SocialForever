@@ -24,8 +24,8 @@ function UnitIsUnit() return false end
 function UnitName(unit)
  calls.UnitName=calls.UnitName+1
  local n=unit:match("^raid(%d+)$")
- if n then return "Raidperson"..n,"ForeverRealm" end
- if unit=="player" then return "Localplayer","ForeverRealm" end
+ if n then return "Raidperson"..n end
+ if unit=="player" then return "Localplayer" end
 end
 function UnitClass(unit) if unit:match("^raid%d+$") then return "Warrior","WARRIOR" end end
 function UnitRace(unit) if unit:match("^raid%d+$") then return "Human","Human" end end

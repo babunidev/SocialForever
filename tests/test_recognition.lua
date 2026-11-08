@@ -4,7 +4,7 @@ function GetServerTime() return now end
 function GetRealmName() return "ForeverRealm" end
 function GetNormalizedRealmName() return "ForeverRealm" end
 function UnitName(unit)
- if unit=="player" then return "Localplayer","ForeverRealm" end
+ if unit=="player" then return "Localplayer" end
  if unit=="target" then return "Blue","Person" end
 end
 function UnitIsPlayer(unit) return unit=="target" end
