@@ -1,6 +1,6 @@
 # Social Forever
 
-**Author:** Babuni.dev
+**Creative:** Babuni
 
 **Social Forever remembers the people you meet while playing World of Warcraft: Forever.**
 
@@ -267,7 +267,6 @@ Then reload the game:
 /reload
 ```
 
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
@@ -284,7 +283,7 @@ The version-by-version development history is in [DEVELOPMENT.md](DEVELOPMENT.md
 
 The journal distinguishes source-based reconstruction, human creative direction, AI assistance, and independently verified behavior.
 
-## Documentation audit #32 — 27 October 2026
+## Documentation review — 27 October 2026
 
 The original [development log](DEVELOPMENT.md) and [changelog](CHANGELOG.md) remain the primary account of releases and corrections. The supporting [design](docs/DESIGN.md), [content/provenance](docs/CONTENT.md), [architecture](docs/ARCHITECTURE.md), [decisions](docs/DECISIONS.md), [development journal](docs/DEVLOG.md), and [AI collaboration](docs/AI_COLLABORATION.md) documents interpret them for the portfolio without inventing missing history.
 
