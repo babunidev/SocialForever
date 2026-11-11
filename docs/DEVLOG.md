@@ -148,4 +148,4 @@ The meeting is counted once. After that they leave on the same nearby timer as e
 
 The local fixes had piled up since 0.4.9-beta: one list in a fight, name clicks, both names on every row, not listing myself, and buffs that no longer pin someone for the whole spell. Babuni asked for that build to be tagged and published.
 
-**Creative direction:** Babuni — tag and publish the current local build. **AI contribution:** Prepared `v0.4.10-beta` from the Forever install. **Verification:** Automated checks passed before the tag. Live Forever checks on the roadmap were not rerun for this publication.
+**Creative direction:** Babuni — tag and publish the current local build. **AI contribution:** Prepared `v0.4.10-beta` from the Forever install, pushed `main`, and opened the GitHub prerelease. **Verification:** Automated checks passed before the tag, and GitHub's pre-release verification passed on that push. CurseForge was still listing v0.4.9-beta immediately afterward. Live Forever checks on the roadmap were not rerun for this publication.

@@ -8,7 +8,7 @@ When a change ships, add it at the top. Keep the note about what the player can 
 ## 0.4.10-beta — 2026-11-11
 
 - Babuni asked to tag and publish the local work that had stayed unreleased after `v0.4.9-beta`. The tag is `v0.4.10-beta`. It includes one list during combat, secure name clicks, two-name display, self-exclusion, stricter presence, and the buff lifetime plus buff-caster tooltip.
-- Automated checks passed before the tag. The live Forever checks still listed on the roadmap were not rerun for this publication, so this release does not claim those in-game checks are done.
+- Automated checks passed before the tag. GitHub's pre-release verification also passed on the push. The GitHub prerelease is https://github.com/babunidev/SocialForever/releases/tag/v0.4.10-beta. CurseForge was still listing v0.4.9-beta when checked immediately after the tag. The live Forever checks still listed on the roadmap were not rerun for this publication, so this release does not claim those in-game checks are done.
 
 ## Unreleased — buff lifetime and buff tooltip (2026-11-11)
 
