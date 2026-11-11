@@ -34,16 +34,23 @@ fi
 echo "Checking periodic sorting ticker..."
 grep -Fq 'C_Timer.NewTicker(C.SORT_EVERY, UI.RefreshSortOrder)' Events.lua
 
-echo "Checking combat-lockdown overlay and post-combat repaint..."
-grep -Fq 'function UI.RefreshCombatList()' UI.lua
-grep -Fq 'UI.RefreshCombatList()' UI.lua
+echo "Checking one list during combat..."
+grep -Fq 'local row = CreateFrame("Button", nil, list)' UI.lua
+if grep -Fq 'function UI.RefreshCombatList()' UI.lua || grep -Fq 'S.main.combatCover' UI.lua || grep -Fq 'UI.EnsureCombatShield' UI.lua; then
+  echo "Combat overlay list is still present" >&2
+  exit 1
+fi
 grep -Fq 'S.listDirty = true' UI.lua
-grep -Fq 'if S.listDirty and UI.RefreshList then' Events.lua
+grep -Fq 'RepaintAfterCombat' Events.lua
 grep -Fq 'UI.RefreshList({ force = true, skipMove = true })' Events.lua
-
-echo "Checking protected-row combat shield..."
-grep -Fq 'RegisterStateDriver(shield, "visibility", "[combat] show; hide")' UI.lua
-grep -Fq 'UI.EnsureCombatShield(row)' UI.lua
+grep -Fq 'function UI.TryTarget(key)' UI.lua
+grep -Fq 'UI.TryTarget(self.key)' UI.lua
+grep -Fq "Targeting players isn't allowed in combat." UI.lua
+grep -Fq 'RegisterStateDriver(button, "visibility", driver)' UI.lua
+if grep -Fq 'TargetUnit(' UI.lua; then
+  echo "Insecure TargetUnit call remains in UI.lua" >&2
+  exit 1
+fi
 
 echo "Checking deliberate combat invite path..."
 grep -Fq 'local invite = C_PartyInfo and C_PartyInfo.InviteUnit' UI.lua

@@ -30,19 +30,17 @@ end
 local function assertTrue(v,m) if not v then error(m,2) end end
 local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": expected "..tostring(e)..", got "..tostring(a),2) end end
 
+-- Same-mob prompts were removed from Settings and remain forced off.
+assertEqual(Group.SameMobAskOn(),false,"same-mob ask must stay forced off")
 local ok=Detection.EvaluateSameMobGrouping(42)
-assertTrue(ok==true,"same-mob candidate not handled")
+assertTrue(ok==true,"same-mob evaluation should short-circuit while disabled")
 assertEqual(unattendedCalls,0,"same-mob path called unattended invite API")
-assertEqual(promptCalls,1,"same-mob candidate did not open prompt")
-assertEqual(#S.sameMobQueue,1,"same-mob queue not populated")
-assertEqual(S.sameMobQueue[1].key,"Candidate-Person","wrong same-mob candidate queued")
-
-SF.db.sameMobAsk=false
-promptCalls=0
-wipe(S.sameMobQueue)
-ok=Detection.EvaluateSameMobGrouping(43)
-assertTrue(ok==true,"disabled same-mob prompt did not short-circuit")
 assertEqual(promptCalls,0,"disabled same-mob option opened prompt")
-assertEqual(unattendedCalls,0,"disabled same-mob option called invite API")
+assertEqual(#S.sameMobQueue,0,"same-mob queue populated while disabled")
 
-print("PASS: same-mob grouping remains prompt-only and user-controlled")
+SF.db.sameMobAsk=true
+Group.SetSameMobAsk(true)
+assertEqual(Group.SameMobAskOn(),false,"SetSameMobAsk must not re-enable prompts")
+assertEqual(SF.db.sameMobAsk,false,"SetSameMobAsk must force saved option off")
+
+print("PASS: same-mob grouping stays disabled and prompt-free")

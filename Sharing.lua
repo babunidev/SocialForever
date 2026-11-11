@@ -271,8 +271,8 @@ function Sharing.OnAddon(prefix, msg, channel, sender)
     if prefix ~= C.PREFIX or channel ~= "WHISPER" or type(msg) ~= "string" then
         return
     end
-    local name, realm = strsplit("-", sender or "", 2)
-    local senderKey = Util.MakeKey(name, realm)
+    local senderKey = (Detection.KeyFromSender and Detection.KeyFromSender(sender))
+        or Util.MakeKey(sender)
     if not senderKey or Util.IsMe(senderKey) then
         return
     end

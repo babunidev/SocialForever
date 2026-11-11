@@ -8,13 +8,13 @@ It remembers the players you actually encounter while questing and exploring, ke
 
 - Recently encountered players in a small movable Nearby list.
 - Click a name to target that player.
-- Deliberate, secure Invite buttons; Social Forever never sends invitations automatically.
+- Deliberate Invite button on the list, including during combat; Social Forever never sends invitations automatically.
 - Account-wide encounter memory, including where and how often you have met someone.
 - White, blue and purple familiarity colors for recurring players.
-- Green, Yellow and Red personal marks.
+- Green, Yellow and Red personal marks as a left-side letter (familiarity color stays on the name).
 - Private flags, custom flags and Kill on Sight reminders.
 - Party ratings after a group ends.
-- Optional same-mob grouping prompt that only offers a clickable Invite action.
+- Guild on the player tooltip when Social Forever has seen that player on a unit.
 - General-channel roster and yell support for the separate In this zone list.
 - Nearby users can exchange Green, Yellow and Red marks through addon messages.
 
@@ -26,4 +26,4 @@ Flags, Kill on Sight, encounter counts, group history and declined-invite counts
 
 Built for World of Warcraft: Forever 1.60.1 / Interface 16001.
 
-Version 0.4.8-beta fixes two live Forever combat restrictions affecting Social Forever's secure list and range fallback. Automated Lua syntax, mock behavior, privacy and package-integrity checks pass. A focused live Forever retest also completed without either previously reported BugGrabber protected-action error recurring.
+Version 0.4.10-beta keeps one Nearby list in and out of combat, lists a player who buffs you for the same nearby time as other meetings, and can name that caster on your buff tooltip. Automated checks pass. The newest live Forever checks are still open.

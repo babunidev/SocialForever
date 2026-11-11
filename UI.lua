@@ -18,11 +18,52 @@ function UI.SpokenName(key)
     if type(key) ~= "string" then
         return key
     end
-    return (key:gsub("-", " "))
+    -- Never show realm tokens. Buff/GUID keys used to leak Forever-internal
+    -- realm IDs into the list and tooltip after a simple hyphen→space swap.
+    local bare = Util.NameOnlyKey and Util.NameOnlyKey(key) or key
+    if type(bare) ~= "string" then
+        bare = key
+    end
+    return (bare:gsub("-", " "))
 end
 
 function UI.ListName(key)
     return UI.SpokenName(key) or ""
+end
+
+function UI.ShowBuffCaster()
+    return not (SF.db and SF.db.showBuffCaster == false)
+end
+
+function UI.AppendBuffCaster(tooltip, unit, index, filter)
+    if not UI.ShowBuffCaster() or not tooltip or not tooltip.AddLine or not Detection.BuffCasterKey then
+        return
+    end
+    local key = Detection.BuffCasterKey(unit, index, filter)
+    if not key then
+        return
+    end
+    local name = UI.ListName(key)
+    if type(name) ~= "string" or name == "" then
+        return
+    end
+    tooltip:AddLine("From: " .. name, 0.65, 0.85, 1, true)
+    if tooltip.Show then
+        tooltip:Show()
+    end
+end
+
+function UI.InstallBuffTooltip()
+    if UI.buffTooltipInstalled then
+        return
+    end
+    UI.buffTooltipInstalled = true
+    if type(hooksecurefunc) ~= "function" or not GameTooltip or type(GameTooltip.SetUnitAura) ~= "function" then
+        return
+    end
+    hooksecurefunc(GameTooltip, "SetUnitAura", function(tooltip, unit, index, filter)
+        UI.AppendBuffCaster(tooltip, unit, index, filter)
+    end)
 end
 
 function UI.EntryIdentity(entry)
@@ -58,6 +99,19 @@ function UI.EntryIdentity(entry)
         level = math.floor(level)
     end
     return classFile, raceFile, level, faction
+end
+
+function UI.EntryGuild(entry, key)
+    key = key or (entry and entry.key)
+    local guild = entry and Util.PlainString(entry.guild) or nil
+    if guild then
+        return guild
+    end
+    if type(key) ~= "string" then
+        return nil
+    end
+    local rec = SF.db and SF.db.players and SF.db.players[key]
+    return type(rec) == "table" and Util.PlainString(rec.guild) or nil
 end
 
 function UI.PaintRowIdentity(row, entry)
@@ -165,65 +219,124 @@ function UI.ApplyMacro(button, macro, anyClick)
     return true
 end
 
-function UI.ApplyTarget(row, key)
-    if UI.ApplyMacro(row, UI.TargetMacro(key), false) then
-        row.secureKey = key
+-- The visible row stays an ordinary button. A separate secure button in the
+-- same slot runs /target from the hardware click. Addon code must never call
+-- the protected targeting API: Forever reports that as ADDON_ACTION_FORBIDDEN
+-- even when the character is not in combat.
+function UI.NoteCombatTarget()
+    local now = GetTime() or 0
+    if S.P.combatTargetTold and (now - S.P.combatTargetTold) < 2 then
+        return
+    end
+    S.P.combatTargetTold = now
+    local frame = DEFAULT_CHAT_FRAME or ChatFrame1
+    if frame and frame.AddMessage then
+        frame:AddMessage("Targeting players isn't allowed in combat.", 1, 0.82, 0.45)
     end
 end
 
--- Secure rows keep their pre-combat target macro. A state-driven shield
--- covers every visible secure row during combat so a visually replaced overlay
--- entry can never click through to a stale target action.
-function UI.EnsureCombatShield(row)
-    if not row then
-        return nil
+function UI.TryTarget(key)
+    if not key then
+        return false
     end
-    if row.combatShield then
-        return row.combatShield
+    if type(InCombatLockdown) == "function" and InCombatLockdown() then
+        UI.NoteCombatTarget()
     end
-    local shield = CreateFrame("Button", nil, row, "SecureActionButtonTemplate")
-    shield:SetAllPoints(row)
-    shield:SetFrameLevel((row:GetFrameLevel() or 1) + 25)
-    shield:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    shield:SetAttribute("type", "")
-    shield:Hide()
-    if type(RegisterStateDriver) == "function" then
-        RegisterStateDriver(shield, "visibility", "[combat] show; hide")
-        shield.combatDriven = true
-    end
-    row.combatShield = shield
-    return shield
+    return false
 end
 
-function UI.SetCombatDisplayOnly(row, displayOnly)
-    if not row then
+function UI.SetTargetDriver(button, visible)
+    if not button or (type(InCombatLockdown) == "function" and InCombatLockdown()) then
         return
     end
-    local shield = UI.EnsureCombatShield(row)
-    if not shield or shield.combatDriven then
-        return
+    -- Drop the driver before Show/Hide. A visibility driver ignores the current
+    -- state until combat changes, so a button Hidden at creation stayed dead
+    -- after reload and sometimes after the fight ended.
+    local driver = visible and "[combat] hide; show" or "hide"
+    if type(UnregisterStateDriver) == "function" then
+        UnregisterStateDriver(button, "visibility")
     end
-    if InCombatLockdown() then
-        return
-    end
-    if displayOnly then
-        shield:Show()
+    if visible then
+        button:Show()
     else
-        shield:Hide()
+        button:Hide()
     end
+    if type(RegisterStateDriver) == "function" then
+        RegisterStateDriver(button, "visibility", driver)
+        button.visibilityDriver = driver
+    end
+end
+
+function UI.PlaceTargetClick(button, index, rowH, width, key)
+    if not button or (type(InCombatLockdown) == "function" and InCombatLockdown()) then
+        return
+    end
+    button:SetHeight(rowH)
+    button:ClearAllPoints()
+    button:SetPoint("TOPLEFT", S.main.list, "TOPLEFT", 0, -((index - 1) * rowH))
+    button:SetWidth(width or 80)
+    if button.owner and button.owner.GetFrameLevel and button.SetFrameLevel then
+        button:SetFrameLevel((button.owner:GetFrameLevel() or 1) + 2)
+    end
+    if button.EnableMouse then
+        button:EnableMouse(true)
+    end
+    button.key = key
+    if key then
+        UI.ApplyMacro(button, UI.TargetMacro(key), false)
+        UI.SetTargetDriver(button, true)
+    else
+        UI.ApplyMacro(button, nil, false)
+        UI.SetTargetDriver(button, false)
+    end
+end
+
+function UI.ConfirmTarget(key)
+    if not key or not S.sightings[key] then
+        return
+    end
+    if type(InCombatLockdown) == "function" and InCombatLockdown() then
+        return
+    end
+    C_Timer.After(0.2, function()
+        if type(InCombatLockdown) == "function" and InCombatLockdown() then
+            return
+        end
+        local id = Util.UnitIdentity("target")
+        if not id then
+            local existsOk, exists = pcall(UnitExists, "target")
+            if existsOk and Util.PlainBool(exists) == true then
+                return
+            end
+        end
+        local function same(a, b)
+            if type(a) ~= "string" or type(b) ~= "string" then
+                return false
+            end
+            return a:gsub("[%s%-]+", ""):lower() == b:gsub("[%s%-]+", ""):lower()
+        end
+        if same(key, id) then
+            return
+        end
+        if not S.sightings[key] then
+            return
+        end
+        S.sightings[key] = nil
+        S.inviteState[key] = nil
+        if Detection and Detection.Publish then
+            Detection.Publish()
+        end
+    end)
 end
 
 function UI.SlashName(key)
     if type(key) ~= "string" or key == "" then
         return nil
     end
-    local name = key
-    local mine = Util.MyRealm()
-    if mine and #key > #mine + 1 and key:lower():sub(-(#mine + 1)) == "-" .. mine:lower() then
-        local base = key:sub(1, #key - #mine - 1)
-        name = base:gsub("-", " ") .. "-" .. key:sub(#key - #mine + 1)
-    else
-        name = key:gsub("-", " ")
+    -- Invites use the character name only — never a realm suffix.
+    local name = UI.SpokenName(key)
+    if type(name) ~= "string" then
+        return nil
     end
     name = name:gsub("^%s+", ""):gsub("%s+$", "")
     if name == "" then
@@ -242,7 +355,8 @@ end
 
 function UI.DirectInvite(key)
     key = Util.SafeKey(key)
-    if not key or Group.InMyGroup(key) or Memory.IsBlocked(key) or Memory.FlaggedKos(key) then
+    if not key or Group.InMyGroup(key) or Memory.IsBlocked(key) or Memory.FlaggedKos(key)
+        or Util.IsOtherFaction(key, S.nearby and S.nearby[key]) then
         return false
     end
     local name = UI.SlashName(key)
@@ -491,20 +605,25 @@ function UI.OriginText(seen)
     if type(seen) ~= "table" or type(seen.origins) ~= "table" then
         return nil
     end
-    local labels = {}
-    local used = {}
+    -- The tooltip needs one useful reason, not the entire collection of
+    -- sighting sources. Keep all origins internally for detection diagnostics.
+    local fallback
+    local hovered = false
     for i = 1, #seen.origins do
         local code = seen.origins[i]
-        local label = type(code) == "string" and C.ORIGIN_LABELS[code] or nil
-        if label and not used[label] then
-            labels[#labels + 1] = label
-            used[label] = true
+        if code == "helpful_aura" then
+            return C.ORIGIN_LABELS.helpful_aura
+        end
+        if code == "mouseover" or code == "target" or code == "soft_target" then
+            hovered = true
+        elseif type(code) == "string" and C.ORIGIN_LABELS[code] then
+            fallback = C.ORIGIN_LABELS[code]
         end
     end
-    if #labels == 0 then
-        return nil
+    if hovered then
+        return "Mouseover"
     end
-    return table.concat(labels, ", ")
+    return fallback
 end
 
 function UI.ShowTip(owner, key)
@@ -512,22 +631,19 @@ function UI.ShowTip(owner, key)
         return
     end
     GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
-    local color = Memory.GeneralColor(key)
-    local rgb = color and C.COLOR_RGB[color]
-    local shown = UI.SpokenName(key)
-    if rgb then
-        GameTooltip:SetText(shown, rgb[1], rgb[2], rgb[3])
-    elseif Memory.FlaggedKos(key) then
-        GameTooltip:SetText(shown, 1, 0.45, 0.35)
-    else
-        local r, g, b = Memory.NameRGB(key, S.sightings[key] or S.zoneSeen[key] or (S.inZone and S.inZone[key]))
-        GameTooltip:SetText(shown, r, g, b)
-    end
     local tipEntry = (S.nearby and S.nearby[key])
         or (S.inZone and S.inZone[key])
         or (S.sightings and S.sightings[key])
         or (S.zoneSeen and S.zoneSeen[key])
         or { key = key }
+    local shown = UI.SpokenName(key)
+    -- Name color stays familiarity (or KOS). Marks are shown on the list letter, not by recoloring the name.
+    if Memory.FlaggedKos(key) then
+        GameTooltip:SetText(shown, 1, 0.45, 0.35)
+    else
+        local r, g, b = Memory.NameRGB(key, tipEntry)
+        GameTooltip:SetText(shown, r, g, b)
+    end
     local classFile, raceFile, level = UI.EntryIdentity(tipEntry)
     local className = UI.ClassLabel(classFile)
     local raceName = UI.RaceLabel(raceFile)
@@ -544,6 +660,10 @@ function UI.ShowTip(owner, key)
             parts[#parts + 1] = className
         end
         GameTooltip:AddLine(table.concat(parts, " "), cr, cg, cb, true)
+    end
+    local guild = UI.EntryGuild(tipEntry, key)
+    if guild then
+        GameTooltip:AddLine("<" .. guild .. ">", 0.25, 0.85, 0.35, true)
     end
     if Memory.FlaggedKos(key) then
         GameTooltip:AddLine("Kill on sight", 1, 0.35, 0.3, true)
@@ -589,7 +709,7 @@ function UI.ShowTip(owner, key)
         end
     end
     local general, good, okay, bad = Memory.Tally(key)
-    -- Skip empty "no mark" lines — name color already shows the mark.
+    -- Skip empty "no mark" lines — the left-side letter already shows the mark.
     if general then
         local tint = C.COLOR_RGB[general]
         GameTooltip:AddLine(
@@ -716,25 +836,42 @@ function UI.BuildMain()
     UI.Chrome(S.main)
     S.main:Hide()
 
-    local drag = CreateFrame("Button", nil, S.main)
-    drag:SetPoint("TOPLEFT", 26, -4)
-    drag:SetPoint("TOPRIGHT", -48, -4)
-    drag:SetHeight(20)
-    drag:RegisterForDrag("LeftButton")
-    drag:SetScript("OnDragStart", function()
+    local function StartMainDrag()
         if InCombatLockdown() then
             return
         end
         S.main:StartMoving()
-    end)
-    drag:SetScript("OnDragStop", function()
+    end
+    local function StopMainDrag()
         S.main:StopMovingOrSizing()
         UI.SavePosition()
+    end
+    S.main:RegisterForDrag("LeftButton")
+    S.main:SetScript("OnDragStart", StartMainDrag)
+    S.main:SetScript("OnDragStop", StopMainDrag)
+
+    local close = CreateFrame("Button", nil, S.main)
+    close:SetSize(18, 18)
+    close:SetPoint("TOPLEFT", 4, -5)
+    local closeText = close:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    closeText:SetPoint("CENTER")
+    closeText:SetText("x")
+    close:SetScript("OnClick", UI.HideMain)
+    close:SetScript("OnEnter", function()
+        closeText:SetTextColor(1, 0.4, 0.4)
+        GameTooltip:SetOwner(close, "ANCHOR_BOTTOMLEFT")
+        GameTooltip:SetText("Close", 1, 0.82, 0.25)
+        GameTooltip:AddLine("Type /sf or /socialforever to show the window again.", 0.9, 0.9, 0.9, true)
+        GameTooltip:Show()
+    end)
+    close:SetScript("OnLeave", function()
+        closeText:SetTextColor(1, 1, 1)
+        GameTooltip:Hide()
     end)
 
     local settings = CreateFrame("Button", nil, S.main, "BackdropTemplate")
     settings:SetSize(18, 18)
-    settings:SetPoint("TOPRIGHT", -26, -6)
+    settings:SetPoint("LEFT", close, "RIGHT", 4, 0)
     settings:SetBackdrop(C.FLAT_BACKDROP)
     settings:SetBackdropColor(0.12, 0.12, 0.12, 0.95)
     settings:SetBackdropBorderColor(0.45, 0.38, 0.16, 0.95)
@@ -747,7 +884,7 @@ function UI.BuildMain()
         self:SetBackdropColor(0.24, 0.20, 0.08, 0.98)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Settings", 1, 0.82, 0.25)
-        GameTooltip:AddLine("Grouping, name size, background, and memory.", 0.9, 0.9, 0.9, true)
+        GameTooltip:AddLine("Name size, background, and buff caster.", 0.9, 0.9, 0.9, true)
         GameTooltip:Show()
     end)
     settings:SetScript("OnLeave", function(self)
@@ -758,7 +895,7 @@ function UI.BuildMain()
 
     local panel = CreateFrame("Frame", "SocialForeverSettings", UIParent, "BackdropTemplate")
     panel:SetFrameStrata("DIALOG")
-    panel:SetSize(176, 310)
+    panel:SetSize(176, 198)
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
     panel:Hide()
@@ -787,28 +924,20 @@ function UI.BuildMain()
     local head = MenuRow(-8, false)
     head.label:SetText("Settings")
     head.label:SetTextColor(1, 0.82, 0.25)
-    local sameHead = MenuRow(-28, false)
-    sameHead.label:SetText("Same-mob grouping")
-    sameHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local askHead = MenuRow(-46, false)
-    askHead.label:SetText("Ask before inviting")
-    askHead.label:SetTextColor(0.65, 0.65, 0.65)
-    local askOn = MenuRow(-64, true)
-    local askOff = MenuRow(-82, true)
-    local sizeHead = MenuRow(-106, false)
+    local sizeHead = MenuRow(-28, false)
     sizeHead.label:SetText("Name size")
     sizeHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local size16 = MenuRow(-124, true)
-    local size18 = MenuRow(-142, true)
-    local size20 = MenuRow(-160, true)
-    local opacityHead = MenuRow(-184, false)
+    local size16 = MenuRow(-46, true)
+    local size18 = MenuRow(-64, true)
+    local size20 = MenuRow(-82, true)
+    local opacityHead = MenuRow(-106, false)
     opacityHead.label:SetText("Background")
     opacityHead.label:SetTextColor(0.75, 0.68, 0.4)
     local opacityValue = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     opacityValue:SetPoint("RIGHT", opacityHead, "RIGHT", -4, 0)
     opacityValue:SetTextColor(0.9, 0.9, 0.9)
     local slider = CreateFrame("Slider", nil, panel, "BackdropTemplate")
-    slider:SetPoint("TOPLEFT", 18, -206)
+    slider:SetPoint("TOPLEFT", 18, -128)
     slider:SetSize(140, 16)
     slider:SetOrientation("HORIZONTAL")
     slider:SetMinMaxValues(15, 100)
@@ -850,6 +979,7 @@ function UI.BuildMain()
         end
         UI.ApplyBackground()
     end)
+    local buffToggle = MenuRow(-156, true)
 
     local function PaintSettingsChoice(button, selected, text)
         button.label:SetText((selected and "> " or "  ") .. text)
@@ -861,10 +991,7 @@ function UI.BuildMain()
     end
 
     local function PaintSettingsMenu()
-        local ask = Group.SameMobAskOn and Group.SameMobAskOn()
         local size = Util.NameSize()
-        PaintSettingsChoice(askOn, ask, "On")
-        PaintSettingsChoice(askOff, not ask, "Off")
         PaintSettingsChoice(size16, size == 16, "16")
         PaintSettingsChoice(size18, size == 18, "18")
         PaintSettingsChoice(size20, size == 20, "20")
@@ -873,6 +1000,13 @@ function UI.BuildMain()
         slider:SetValue(percent)
         slider.lock = false
         opacityValue:SetText(percent .. "%")
+        if UI.ShowBuffCaster() then
+            buffToggle.label:SetText("> Show buff caster")
+            buffToggle.label:SetTextColor(1, 0.82, 0.25)
+        else
+            buffToggle.label:SetText("  Show buff caster")
+            buffToggle.label:SetTextColor(0.9, 0.9, 0.9)
+        end
     end
 
     local function LeaveChoice(button)
@@ -880,19 +1014,9 @@ function UI.BuildMain()
             PaintSettingsMenu()
         end)
     end
-    LeaveChoice(askOn)
-    LeaveChoice(askOff)
     LeaveChoice(size16)
     LeaveChoice(size18)
     LeaveChoice(size20)
-    askOn:SetScript("OnClick", function()
-        if Group.SetSameMobAsk then Group.SetSameMobAsk(true) end
-        PaintSettingsMenu()
-    end)
-    askOff:SetScript("OnClick", function()
-        if Group.SetSameMobAsk then Group.SetSameMobAsk(false) end
-        PaintSettingsMenu()
-    end)
     local function PickSize(size)
         return function()
             if not SF.db then
@@ -908,190 +1032,15 @@ function UI.BuildMain()
     size16:SetScript("OnClick", PickSize(16))
     size18:SetScript("OnClick", PickSize(18))
     size20:SetScript("OnClick", PickSize(20))
-
-    local memoryHead = MenuRow(-234, false)
-    memoryHead.label:SetText("Memory")
-    memoryHead.label:SetTextColor(0.75, 0.68, 0.4)
-    local resetOne = MenuRow(-252, true)
-    resetOne.label:SetText("  Reset one player…")
-    resetOne.label:SetTextColor(0.9, 0.9, 0.9)
-    local resetAll = MenuRow(-270, true)
-    resetAll.label:SetText("  Reset all remembered…")
-    resetAll.label:SetTextColor(0.95, 0.55, 0.45)
-    LeaveChoice(resetOne)
-    LeaveChoice(resetAll)
-
-    local function BuildMemoryDialog()
-        if S.memoryDialog then
-            return S.memoryDialog
+    buffToggle:SetScript("OnClick", function()
+        if not SF.db then
+            return
         end
-        local dlg = CreateFrame("Frame", "SocialForeverMemoryDialog", UIParent, "BackdropTemplate")
-        dlg:SetFrameStrata("FULLSCREEN_DIALOG")
-        dlg:SetSize(280, 132)
-        dlg:SetClampedToScreen(true)
-        dlg:EnableMouse(true)
-        dlg:Hide()
-        UI.Chrome(dlg)
-        S.memoryDialog = dlg
-
-        local title = dlg:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        title:SetPoint("TOPLEFT", 12, -10)
-        title:SetPoint("RIGHT", -12, 0)
-        title:SetJustifyH("LEFT")
-        title:SetTextColor(1, 0.82, 0.25)
-        dlg.title = title
-
-        local body = dlg:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        body:SetPoint("TOPLEFT", 12, -32)
-        body:SetPoint("RIGHT", -12, 0)
-        body:SetJustifyH("LEFT")
-        body:SetWordWrap(true)
-        body:SetTextColor(0.9, 0.9, 0.85)
-        dlg.body = body
-
-        local box = CreateFrame("EditBox", nil, dlg, "BackdropTemplate")
-        box:SetPoint("TOPLEFT", 12, -62)
-        box:SetSize(256, 22)
-        box:SetAutoFocus(false)
-        box:SetFontObject(GameFontHighlight)
-        box:SetTextInsets(6, 6, 0, 0)
-        box:SetBackdrop(C.FLAT_BACKDROP)
-        box:SetBackdropColor(0.08, 0.08, 0.08, 1)
-        box:SetBackdropBorderColor(0.45, 0.38, 0.16, 0.95)
-        box:SetScript("OnEscapePressed", function(self)
-            self:ClearFocus()
-            dlg:Hide()
-        end)
-        box:SetScript("OnEnterPressed", function()
-            if dlg.Confirm then
-                dlg:Confirm()
-            end
-        end)
-        dlg.box = box
-
-        local ok = UI.FlatButton(dlg, "Confirm", 88, 20)
-        ok:SetPoint("BOTTOMLEFT", 16, 12)
-        local cancel = UI.FlatButton(dlg, "Cancel", 88, 20)
-        cancel:SetPoint("LEFT", ok, "RIGHT", 10, 0)
-        cancel:SetScript("OnClick", function()
-            dlg:Hide()
-        end)
-        dlg.ok = ok
-
-        function dlg:OpenResetOne()
-            self.mode = "one"
-            self.pendingKey = nil
-            self.title:SetText("Reset one player")
-            self.body:SetText("Type their name, then confirm. This forgets their history.")
-            self.box:Show()
-            self.box:SetText("")
-            self:ClearAllPoints()
-            if S.settingsMenu and S.settingsMenu:IsShown() then
-                self:SetPoint("TOPRIGHT", S.settingsMenu, "TOPLEFT", -8, 0)
-            else
-                self:SetPoint("CENTER")
-            end
-            self:Show()
-            self:Raise()
-            self.box:SetFocus()
-        end
-
-        function dlg:OpenResetAll()
-            self.mode = "all"
-            self.pendingKey = nil
-            self.title:SetText("Reset all remembered")
-            self.body:SetText("Forget every remembered player? Window settings stay.")
-            self.box:Hide()
-            self.box:ClearFocus()
-            self:ClearAllPoints()
-            if S.settingsMenu and S.settingsMenu:IsShown() then
-                self:SetPoint("TOPRIGHT", S.settingsMenu, "TOPLEFT", -8, 0)
-            else
-                self:SetPoint("CENTER")
-            end
-            self:Show()
-            self:Raise()
-        end
-
-        function dlg:Confirm()
-            if self.mode == "all" then
-                if Memory.ResetAllPlayers then
-                    Memory.ResetAllPlayers()
-                end
-                self:Hide()
-                if S.settingsMenu then
-                    S.settingsMenu:Hide()
-                end
-                return
-            end
-            if self.mode == "one-confirm" and self.pendingKey then
-                if Memory.ResetPlayer then
-                    Memory.ResetPlayer(self.pendingKey)
-                end
-                self.pendingKey = nil
-                self:Hide()
-                return
-            end
-            local typed = Util.Trim(self.box:GetText() or "")
-            if typed == "" then
-                return
-            end
-            local key = UI.MatchKnownKey and UI.MatchKnownKey(typed) or Util.SafeKey(typed:gsub(" ", "-"))
-            if not key then
-                return
-            end
-            local known = SF.db and SF.db.players and SF.db.players[key]
-            if type(known) ~= "table" then
-                self.body:SetText("No remembered player named that.")
-                return
-            end
-            self.mode = "one-confirm"
-            self.pendingKey = key
-            self.box:Hide()
-            self.box:ClearFocus()
-            local spoken = UI.SpokenName and UI.SpokenName(key) or key
-            self.body:SetText("Forget " .. spoken .. " and all their Social Forever history?")
-        end
-
-        ok:SetScript("OnClick", function()
-            dlg:Confirm()
-        end)
-
-        tinsert(UISpecialFrames, "SocialForeverMemoryDialog")
-        return dlg
-    end
-
-    resetOne:SetScript("OnClick", function()
-        BuildMemoryDialog():OpenResetOne()
-    end)
-    resetAll:SetScript("OnClick", function()
-        BuildMemoryDialog():OpenResetAll()
-    end)
-    resetOne:SetScript("OnEnter", function(self)
-        self.label:SetTextColor(1, 0.95, 0.55)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Reset one player", 1, 0.82, 0.25)
-        GameTooltip:AddLine("Forget one character's nearby count, places, marks, flags, and recognition cooldown.", 0.9, 0.9, 0.9, true)
-        GameTooltip:Show()
-    end)
-    resetOne:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+        SF.db.showBuffCaster = not UI.ShowBuffCaster()
         PaintSettingsMenu()
-        resetOne.label:SetText("  Reset one player…")
-        resetOne.label:SetTextColor(0.9, 0.9, 0.9)
     end)
-    resetAll:SetScript("OnEnter", function(self)
-        self.label:SetTextColor(1, 0.7, 0.55)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Reset all remembered", 1, 0.55, 0.4)
-        GameTooltip:AddLine("Clears every remembered player. Does not change window or grouping settings.", 0.9, 0.9, 0.9, true)
-        GameTooltip:Show()
-    end)
-    resetAll:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+    buffToggle:SetScript("OnLeave", function()
         PaintSettingsMenu()
-        resetAll.label:SetText("  Reset all remembered…")
-        resetAll.label:SetTextColor(0.95, 0.55, 0.45)
     end)
 
     panel:SetScript("OnShow", function(self)
@@ -1123,28 +1072,9 @@ function UI.BuildMain()
         end
         GameTooltip:Hide()
         panel:ClearAllPoints()
-        panel:SetPoint("TOPRIGHT", settings, "BOTTOMRIGHT", 0, -2)
+        panel:SetPoint("TOPLEFT", settings, "BOTTOMLEFT", 0, -2)
         PaintSettingsMenu()
         panel:Show()
-    end)
-
-    local close = CreateFrame("Button", nil, S.main)
-    close:SetSize(18, 18)
-    close:SetPoint("TOPLEFT", 6, -5)
-    local closeText = close:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    closeText:SetPoint("CENTER")
-    closeText:SetText("x")
-    close:SetScript("OnClick", UI.HideMain)
-    close:SetScript("OnEnter", function()
-        closeText:SetTextColor(1, 0.4, 0.4)
-        GameTooltip:SetOwner(close, "ANCHOR_BOTTOMLEFT")
-        GameTooltip:SetText("Close", 1, 0.82, 0.25)
-        GameTooltip:AddLine("Type /sf or /socialforever to show the window again.", 0.9, 0.9, 0.9, true)
-        GameTooltip:Show()
-    end)
-    close:SetScript("OnLeave", function()
-        closeText:SetTextColor(1, 1, 1)
-        GameTooltip:Hide()
     end)
 
     local function MakeTab(id)
@@ -1160,6 +1090,9 @@ function UI.BuildMain()
         label:SetWordWrap(false)
         tab.label = label
         tab.tabId = id
+        tab:RegisterForDrag("LeftButton")
+        tab:SetScript("OnDragStart", StartMainDrag)
+        tab:SetScript("OnDragStop", StopMainDrag)
         tab:SetScript("OnClick", function(self)
             UI.SetListTab(self.tabId)
         end)
@@ -1174,12 +1107,13 @@ function UI.BuildMain()
         return tab
     end
 
-    local tabNearby = MakeTab("nearby")
-    tabNearby:SetPoint("TOPLEFT", 8, -26)
-    tabNearby:SetPoint("TOPRIGHT", S.main, "TOP", -2, -26)
+    -- Top row: close, settings, region (zone), nearby on the right.
     local tabZone = MakeTab("zone")
-    tabZone:SetPoint("TOPLEFT", S.main, "TOP", 2, -26)
-    tabZone:SetPoint("TOPRIGHT", S.main, "TOPRIGHT", -16, -26)
+    tabZone:SetPoint("TOPLEFT", settings, "TOPRIGHT", 6, 1)
+    tabZone:SetPoint("TOPRIGHT", S.main, "TOP", -2, -5)
+    local tabNearby = MakeTab("nearby")
+    tabNearby:SetPoint("TOPLEFT", S.main, "TOP", 2, -5)
+    tabNearby:SetPoint("TOPRIGHT", S.main, "TOPRIGHT", -6, -5)
     S.main.tabNearby = tabNearby
     S.main.tabZone = tabZone
     -- Keep a title handle for older empty-state code paths.
@@ -1187,13 +1121,13 @@ function UI.BuildMain()
     UI.PaintListTabs(0, 0)
 
     local line = S.main:CreateTexture(nil, "ARTWORK")
-    line:SetPoint("TOPLEFT", 10, -48)
-    line:SetPoint("TOPRIGHT", -10, -48)
+    line:SetPoint("TOPLEFT", 10, -28)
+    line:SetPoint("TOPRIGHT", -10, -28)
     line:SetHeight(1)
     line:SetColorTexture(0.6, 0.5, 0.2, 0.7)
 
     local list = CreateFrame("Frame", nil, S.main)
-    list:SetPoint("TOPLEFT", 8, -52)
+    list:SetPoint("TOPLEFT", 8, -32)
     list:SetPoint("BOTTOMRIGHT", -16, 18)
     -- Do not EnableMouse on the empty list chrome: that blocks world mouseover
     -- through the frame and was freezing the UI after stray OnEnter hits.
@@ -1206,7 +1140,7 @@ function UI.BuildMain()
 
     local bar = CreateFrame("Slider", nil, S.main, "BackdropTemplate")
     bar:SetOrientation("VERTICAL")
-    bar:SetPoint("TOPRIGHT", -7, -54)
+    bar:SetPoint("TOPRIGHT", -7, -34)
     bar:SetPoint("BOTTOMRIGHT", -7, 20)
     bar:SetWidth(8)
     bar:SetMinMaxValues(0, 1)
@@ -1222,7 +1156,7 @@ function UI.BuildMain()
     thumb:SetSize(8, 28)
     bar:SetThumbTexture(thumb)
     bar:SetScript("OnValueChanged", function(self, value)
-        if self.lock or InCombatLockdown() then
+        if self.lock then
             return
         end
         local nextOffset = math.floor((tonumber(value) or 0) + 0.5)
@@ -1263,9 +1197,6 @@ function UI.BuildMain()
     end
 
     local function ScrollBy(delta)
-        if InCombatLockdown() then
-            return
-        end
         local maxOffset = math.max(0, (S.main.entryCount or 0) - VisibleSlots())
         local nextOffset = (S.main.scrollOffset or 0) - delta
         if nextOffset < 0 then
@@ -1291,11 +1222,10 @@ function UI.BuildMain()
 
     S.main.rows = {}
     for i = 1, C.MAX_ROWS do
-        local row = CreateFrame("Button", nil, list, "SecureActionButtonTemplate")
+        local row = CreateFrame("Button", nil, list)
         row:SetSize(200, C.ROW_HEIGHT)
         row:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -((i - 1) * C.ROW_HEIGHT))
-        row:RegisterForClicks("LeftButtonDown", "RightButtonDown")
-        row:SetAttribute("useOnKeyDown", true)
+        row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         row:EnableMouseWheel(true)
         row:SetScript("OnMouseWheel", function(_, delta)
             GameTooltip:Hide()
@@ -1309,23 +1239,16 @@ function UI.BuildMain()
         mark:SetJustifyH("CENTER")
         row.mark = mark
 
-        local invite = UI.FlatButton(list, "Invite", 74, 18, true)
+        local invite = UI.FlatButton(list, "Invite", 74, 18, false)
         invite.owner = row
         invite:SetPoint("LEFT", row, "RIGHT", 4, 0)
         invite:SetFrameLevel(row:GetFrameLevel() + 5)
-        invite:RegisterForClicks("LeftButtonDown")
-        invite:SetAttribute("useOnKeyDown", true)
+        invite:RegisterForClicks("LeftButtonUp")
         invite.Paint = UI.PaintInvite
-        invite:SetScript("PostClick", function(self)
-            local key = self.key
-            if not key or InCombatLockdown() or Group.InMyGroup(key) or Memory.IsBlocked(key) or Memory.FlaggedKos(key) then
-                return
+        invite:SetScript("OnClick", function(self)
+            if self.key and UI.DirectInvite(self.key) then
+                UI.PaintInvite(self)
             end
-            if not UI.InviteArmed(self, key) then
-                return
-            end
-            S.inviteState[key] = "invited"
-            UI.PaintInvite(self)
         end)
         invite:SetScript("OnEnter", function(self)
             UI.NoteListEnter()
@@ -1458,150 +1381,75 @@ function UI.BuildMain()
                 end
             end)
         end)
-        row:SetScript("PostClick", function(self, button)
+        row:SetScript("OnClick", function(self, button)
             if button == "RightButton" and self.key then
                 GameTooltip:Hide()
                 UI.OpenMenu(self.key)
                 return
             end
-            if button ~= "LeftButton" or not self.key or not S.sightings[self.key] then
+            if button == "LeftButton" then
+                UI.TryTarget(self.key)
+            end
+        end)
+
+        -- Secure /target click, same slot as the row. The client hides it in
+        -- combat, so the ordinary row receives the click and can explain why.
+        local targetClick = CreateFrame("Button", nil, list, "SecureActionButtonTemplate")
+        targetClick.owner = row
+        targetClick:SetSize(200, C.ROW_HEIGHT)
+        targetClick:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -((i - 1) * C.ROW_HEIGHT))
+        targetClick:SetFrameLevel(row:GetFrameLevel() + 2)
+        targetClick:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+        targetClick:SetAttribute("useOnKeyDown", true)
+        targetClick:EnableMouseWheel(true)
+        targetClick:SetScript("OnMouseWheel", function(_, delta)
+            GameTooltip:Hide()
+            ScrollBy(delta)
+        end)
+        targetClick:SetScript("OnEnter", function(self)
+            local owner = self.owner
+            if not owner then
                 return
             end
-            local key = self.key
-            C_Timer.After(0.2, function()
-                local id = Util.UnitIdentity("target")
-                if not id then
-                    local existsOk, exists = pcall(UnitExists, "target")
-                    if existsOk and Util.PlainBool(exists) == true then
-                        return
-                    end
-                end
-                local function same(a, b)
-                    if type(a) ~= "string" or type(b) ~= "string" then
-                        return false
-                    end
-                    return a:gsub("[%s%-]+", ""):lower() == b:gsub("[%s%-]+", ""):lower()
-                end
-                if same(key, id) then
-                    return
-                end
-                if not S.sightings[key] then
-                    return
-                end
-                S.sightings[key] = nil
-                S.inviteState[key] = nil
-                Detection.Publish()
-            end)
-        end)
-
-        UI.EnsureCombatShield(row)
-        S.main.rows[i] = row
-    end
-
-    -- Combat presentation is deliberately separate from the protected target
-    -- rows above. Normal frames can be repainted immediately in combat without
-    -- moving, showing, hiding, or rebinding SecureActionButtonTemplate frames.
-    local combatCover = CreateFrame("Frame", nil, list, "BackdropTemplate")
-    combatCover:SetAllPoints(list)
-    combatCover:SetFrameLevel((list:GetFrameLevel() or 1) + 40)
-    combatCover:SetBackdrop(C.FLAT_BACKDROP)
-    combatCover:SetBackdropColor(0.04, 0.04, 0.04, 1)
-    combatCover:SetBackdropBorderColor(0.04, 0.04, 0.04, 0)
-    combatCover:EnableMouse(false)
-    combatCover:Hide()
-    S.main.combatCover = combatCover
-
-    local combatEmpty = combatCover:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    combatEmpty:SetPoint("TOPLEFT", combatCover, "TOPLEFT", 6, -4)
-    combatEmpty:SetPoint("BOTTOMRIGHT", combatCover, "BOTTOMRIGHT", -4, 4)
-    combatEmpty:SetJustifyH("CENTER")
-    combatEmpty:SetJustifyV("MIDDLE")
-    combatEmpty:SetTextColor(0.7, 0.7, 0.7)
-    combatEmpty:SetText(C.EMPTY_NEARBY)
-    combatEmpty:Hide()
-    combatCover.empty = combatEmpty
-
-    S.main.combatRows = {}
-    for i = 1, C.MAX_ROWS do
-        local combatRow = CreateFrame("Button", nil, list, "BackdropTemplate")
-        combatRow:SetHeight(C.ROW_HEIGHT)
-        combatRow:SetPoint("TOPLEFT", list, "TOPLEFT", 0, -((i - 1) * C.ROW_HEIGHT))
-        combatRow:SetPoint("TOPRIGHT", list, "TOPRIGHT", 0, -((i - 1) * C.ROW_HEIGHT))
-        combatRow:SetFrameLevel(combatCover:GetFrameLevel() + 2)
-        combatRow:SetBackdrop(C.FLAT_BACKDROP)
-        combatRow:SetBackdropColor(0.04, 0.04, 0.04, 1)
-        combatRow:SetBackdropBorderColor(0.04, 0.04, 0.04, 0)
-        combatRow:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-        combatRow:Hide()
-
-        local combatMark = combatRow:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        combatMark:SetPoint("LEFT", 6, 0)
-        combatMark:SetWidth(16)
-        combatMark:SetJustifyH("CENTER")
-        combatRow.mark = combatMark
-
-        local combatInvite = UI.FlatButton(combatRow, "Invite", 74, 18, false)
-        combatInvite:SetPoint("RIGHT", combatRow, "RIGHT", -2, 0)
-        combatInvite:RegisterForClicks("LeftButtonUp")
-        combatInvite.Paint = UI.PaintInvite
-        combatInvite:SetScript("OnClick", function(self)
-            if self.key and UI.DirectInvite(self.key) then
-                UI.PaintInvite(self)
-            end
-        end)
-        combatInvite:SetScript("OnEnter", function(self)
             UI.NoteListEnter()
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Invite", 0.35, 1, 0.45)
-            local macro = self.key and UI.InviteMacro(self.key)
-            if macro then
-                GameTooltip:AddLine(macro, 0.75, 0.75, 0.75, true)
-            end
-            GameTooltip:AddLine("Available during combat for this detected player.", 0.65, 0.65, 0.6, true)
-            GameTooltip:Show()
-        end)
-        combatInvite:SetScript("OnLeave", function(self)
-            GameTooltip:Hide()
-            UI.PaintInvite(self)
-            UI.NoteListLeave()
-        end)
-        combatRow.invite = combatInvite
-
-        local combatName = combatRow:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        combatName:SetPoint("LEFT", combatMark, "RIGHT", 8, 0)
-        combatName:SetPoint("RIGHT", combatInvite, "LEFT", -6, 0)
-        combatName:SetJustifyH("LEFT")
-        combatName:SetWordWrap(false)
-        combatRow.name = combatName
-
-        local combatHighlight = combatRow:CreateTexture(nil, "BACKGROUND")
-        combatHighlight:SetAllPoints()
-        combatHighlight:SetColorTexture(1, 1, 1, 0.06)
-        combatHighlight:Hide()
-        combatRow.highlight = combatHighlight
-
-        combatRow:SetScript("OnEnter", function(self)
-            UI.NoteListEnter()
-            if not self.key then
+            if not owner.key then
                 return
             end
             S.tipToken = S.tipToken + 1
-            self.highlight:Show()
-            UI.ShowTip(self, self.key)
+            owner.highlight:Show()
+            UI.ShowTip(owner, owner.key)
         end)
-        combatRow:SetScript("OnLeave", function(self)
-            self.highlight:Hide()
+        targetClick:SetScript("OnLeave", function(self)
+            local owner = self.owner
+            if not owner then
+                return
+            end
+            owner.highlight:Hide()
             UI.NoteListLeave()
-            GameTooltip:Hide()
+            local token = S.tipToken
+            C_Timer.After(0, function()
+                if token ~= S.tipToken then
+                    return
+                end
+                if not owner:IsMouseOver() and not self:IsMouseOver() then
+                    GameTooltip:Hide()
+                end
+            end)
         end)
-        combatRow:SetScript("OnClick", function(self, button)
+        targetClick:SetScript("PostClick", function(self, button)
             if button == "RightButton" and self.key then
                 GameTooltip:Hide()
                 UI.OpenMenu(self.key)
+                return
+            end
+            if button == "LeftButton" then
+                UI.ConfirmTarget(self.key)
             end
         end)
+        targetClick:Hide()
+        row.targetClick = targetClick
 
-        S.main.combatRows[i] = combatRow
+        S.main.rows[i] = row
     end
 
     local grip = CreateFrame("Button", nil, S.main)
@@ -1642,6 +1490,7 @@ function UI.BuildMain()
     end)
 
     S.main:SetScript("OnUpdate", nil)
+    UI.InstallBuffTooltip()
 end
 
 function UI.AnimActive()
@@ -1665,16 +1514,7 @@ function UI.KickAnimUpdate()
 end
 
 function UI.OnMainAnimUpdate()
-    -- List rows are SecureActionButtonTemplate frames. Their geometry and
-    -- visibility cannot be changed during combat lockdown, so pause the
-    -- animation and apply the accumulated state after PLAYER_REGEN_ENABLED.
-    if InCombatLockdown() then
-        S.listDirty = true
-        if S.main and S.main.SetScript then
-            S.main:SetScript("OnUpdate", nil)
-        end
-        return
-    end
+    -- Rows are ordinary buttons, so fade and hide can keep running in combat.
     if not S.main.rows or S.main.fadingPaint then
         if not UI.AnimActive() then
             S.main:SetScript("OnUpdate", nil)
@@ -1740,7 +1580,7 @@ function UI.IsListHovered()
                 if row.invite and row.invite:IsShown() and row.invite:IsMouseOver() then
                     return true
                 end
-                if row.combatShield and row.combatShield:IsShown() and row.combatShield:IsMouseOver() then
+                if row.targetClick and row.targetClick:IsShown() and row.targetClick:IsMouseOver() then
                     return true
                 end
             end
@@ -1814,8 +1654,7 @@ function UI.PaintTargetHighlightsOnly()
     end
 end
 
--- Update mark letter/colors (and invite block state) for one player without
--- reordering rows. Safe while the list is frozen or in combat for font colors.
+-- Update mark letter/colors and the invite label for one player without reordering rows.
 function UI.PaintRowAppearance(key)
     key = Util.SafeKey(key)
     if not key or not S.main or not S.main.rows then
@@ -1832,19 +1671,22 @@ function UI.PaintRowAppearance(key)
     if not color and kos then
         letter = "K"
     end
-    local mr, mg, mb, nr, ng, nb
+    local mr, mg, mb
     if color then
         local rgb = C.COLOR_RGB[color]
         mr, mg, mb = rgb[1], rgb[2], rgb[3]
-        nr, ng, nb = mr, mg, mb
     elseif kos then
         mr, mg, mb = 1, 0.3, 0.25
-        nr, ng, nb = 1, 0.45, 0.35
     else
         mr, mg, mb = 0.45, 0.45, 0.45
+    end
+    -- Marks color the left letter only; the name keeps familiarity (or KOS) tint.
+    local nr, ng, nb
+    if kos then
+        nr, ng, nb = 1, 0.45, 0.35
+    else
         nr, ng, nb = Memory.NameRGB(key, entry, Memory.MaxFamiliarity())
     end
-    local locked = InCombatLockdown()
     for i = 1, #S.main.rows do
         local row = S.main.rows[i]
         if row:IsShown() and row.key and Util.SameKey(row.key, key) then
@@ -1856,9 +1698,6 @@ function UI.PaintRowAppearance(key)
                 row.name:SetTextColor(nr, ng, nb)
             end
             if row.invite then
-                if not locked then
-                    UI.ApplyInvite(row.invite, key)
-                end
                 UI.PaintInvite(row.invite)
             end
         end
@@ -2168,157 +2007,6 @@ function UI.HoldLeavingRows(ordered, now)
     return merged
 end
 
-function UI.HideCombatOverlay()
-    if not S.main then
-        return
-    end
-    if S.main.combatCover then
-        S.main.combatCover:Hide()
-        if S.main.combatCover.empty then
-            S.main.combatCover.empty:Hide()
-        end
-    end
-    if S.main.combatRows then
-        for i = 1, #S.main.combatRows do
-            S.main.combatRows[i]:Hide()
-        end
-    end
-    S.main.combatOrdered = nil
-end
-
-function UI.CombatOrderedEntries(source)
-    source = type(source) == "table" and source or {}
-    local previous = S.main and S.main.combatOrdered or nil
-    if type(previous) ~= "table" or #previous == 0 then
-        previous = S.displayOrdered
-    end
-    local stable, used = {}, {}
-    if type(previous) == "table" then
-        for i = 1, #previous do
-            local key = previous[i] and previous[i].key
-            if key and source[key] and not used[key] then
-                stable[#stable + 1] = source[key]
-                used[key] = true
-            end
-        end
-    end
-
-    local newcomers = {}
-    for key, entry in pairs(source) do
-        if key and not used[key] then
-            newcomers[#newcomers + 1] = entry
-        end
-    end
-    table.sort(newcomers, function(a, b)
-        local aa, bb = tonumber(a.at) or 0, tonumber(b.at) or 0
-        if aa ~= bb then
-            return aa > bb
-        end
-        return tostring(a.key) < tostring(b.key)
-    end)
-
-    local ordered = {}
-    for i = 1, #newcomers do
-        ordered[#ordered + 1] = newcomers[i]
-    end
-    for i = 1, #stable do
-        ordered[#ordered + 1] = stable[i]
-    end
-    return ordered
-end
-
-function UI.RefreshCombatList()
-    if not S.main or not SF.db or not S.main.combatCover or not S.main.combatRows then
-        S.listDirty = true
-        return
-    end
-
-    local tab = UI.GetListTab()
-    local source = tab == "zone" and S.inZone or S.nearby
-    local ordered = UI.CombatOrderedEntries(source)
-    S.main.combatOrdered = ordered
-
-    local rowH = Util.RowHeight()
-    local view = S.main.list and S.main.list:GetHeight() or nil
-    local visible = C.VISIBLE_ROWS
-    if view and view >= rowH then
-        visible = math.max(1, math.floor((view / rowH) + 0.001))
-    end
-    visible = math.min(visible, C.MAX_ROWS, #S.main.combatRows)
-
-    S.main.combatCover:Show()
-    local maxSeen = Memory.MaxFamiliarity()
-    for i = 1, #S.main.combatRows do
-        local row = S.main.combatRows[i]
-        if i <= visible then
-            row:SetHeight(rowH)
-            row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", S.main.list, "TOPLEFT", 0, -((i - 1) * rowH))
-            row:SetPoint("TOPRIGHT", S.main.list, "TOPRIGHT", 0, -((i - 1) * rowH))
-        end
-
-        local entry = i <= visible and ordered[i] or nil
-        if entry and entry.key then
-            row.key = entry.key
-            row.invite.key = entry.key
-            local color = Memory.GeneralColor(entry.key)
-            local kos = Memory.FlaggedKos(entry.key)
-            local letter = color == "green" and "G" or color == "yellow" and "Y" or color == "red" and "R" or "-"
-            if not color and kos then
-                letter = "K"
-            end
-            row.mark:SetText(letter)
-            if color then
-                local rgb = C.COLOR_RGB[color]
-                row.mark:SetTextColor(rgb[1], rgb[2], rgb[3])
-                row.name:SetTextColor(rgb[1], rgb[2], rgb[3])
-            elseif kos then
-                row.mark:SetTextColor(1, 0.3, 0.25)
-                row.name:SetTextColor(1, 0.45, 0.35)
-            else
-                local nr, ng, nb = Memory.NameRGB(entry.key, entry, maxSeen)
-                row.mark:SetTextColor(0.45, 0.45, 0.45)
-                row.name:SetTextColor(nr, ng, nb)
-            end
-            row.name:SetText(UI.ListName(entry.key))
-            UI.PaintInvite(row.invite)
-            row:Show()
-            local inviteAvailable = C_PartyInfo and type(C_PartyInfo.InviteUnit) == "function"
-            if not inviteAvailable or Group.InMyGroup(entry.key) or Memory.IsBlocked(entry.key) or Memory.FlaggedKos(entry.key) then
-                row.invite:Hide()
-            else
-                row.invite:Show()
-            end
-        else
-            row.key = nil
-            row.invite.key = nil
-            row:Hide()
-        end
-    end
-
-    local count = 0
-    for _ in pairs(source or {}) do
-        count = count + 1
-    end
-    if tab == "zone" then
-        UI.PaintListTabs(nil, count)
-    else
-        UI.PaintListTabs(count, nil)
-    end
-
-    if S.main.combatCover.empty then
-        if #ordered == 0 then
-            S.main.combatCover.empty:SetText(tab == "zone" and (C.EMPTY_ZONE or "No one else listed in this zone yet.") or (C.EMPTY_NEARBY or "No one nearby"))
-            S.main.combatCover.empty:Show()
-        else
-            S.main.combatCover.empty:Hide()
-        end
-    end
-
-    -- Secure target rows underneath remain untouched until combat ends.
-    S.listDirty = true
-end
-
 function UI.RefreshList(opts)
     if type(opts) ~= "table" then
         opts = nil
@@ -2326,16 +2014,6 @@ function UI.RefreshList(opts)
     local force = opts and opts.force
     local scrollOnly = opts and opts.scrollOnly
     local skipMove = opts and opts.skipMove
-
-    -- Secure target rows remain frozen in combat. Paint a separate normal-frame
-    -- overlay so newly detected mouseovers/targets can appear immediately and
-    -- expose a deliberate Invite action without mutating protected frames.
-    if InCombatLockdown() then
-        UI.RefreshCombatList()
-        return
-    end
-
-    UI.HideCombatOverlay()
 
     if not force and not scrollOnly then
         UI.EnsureListFreezeHonest()
@@ -2382,6 +2060,13 @@ function UI.RefreshList(opts)
         local here = useYards and Memory.CurrentArea() or nil
         local now = GetTime()
         table.sort(list, function(a, b)
+            -- A recent helpful caster takes priority during the short interaction
+            -- window; target pinning is applied afterward and stays authoritative.
+            if useYards and S.P.recentBuffKey and (now - (S.P.recentBuffAt or 0)) < 12 then
+                local buffA = Util.SameKey(a.key, S.P.recentBuffKey)
+                local buffB = Util.SameKey(b.key, S.P.recentBuffKey)
+                if buffA ~= buffB then return buffA end
+            end
             local function zoneRank(entry)
                 if not hereZone or not entry.zone then
                     return 1
@@ -2696,7 +2381,6 @@ function UI.RefreshList(opts)
         offset = 0
         S.main.scrollOffset = 0
     end
-    local locked = InCombatLockdown()
     local targetKey = Util.UnitIdentity("target")
     local function IsTarget(key)
         if not key or not targetKey then
@@ -2727,11 +2411,6 @@ function UI.RefreshList(opts)
             row:SetWidth(viewWidth)
             row.key = nil
             row.invite.key = nil
-            if not locked then
-                UI.ApplyInvite(row.invite, nil)
-                UI.ApplyTarget(row, nil)
-            end
-            UI.SetCombatDisplayOnly(row, locked)
             row.highlight:Hide()
             row.mark:SetText("")
             row.name:SetText(entry.header)
@@ -2747,6 +2426,7 @@ function UI.RefreshList(opts)
             row:PaintTarget(false)
             row:Show()
             row:SetAlpha(1)
+            UI.PlaceTargetClick(row.targetClick, i, rowH, viewWidth, nil)
         elseif i <= visible and entry then
             row:SetHeight(rowH)
             row:ClearAllPoints()
@@ -2754,18 +2434,6 @@ function UI.RefreshList(opts)
             row:SetWidth(viewWidth)
             row.key = entry.key
             row.invite.key = entry.key
-            -- Macros can only be rewritten out of combat. If this row's secure
-            -- target still matches, clicks stay live; otherwise show the name
-            -- and block clicks so we never target the wrong person.
-            local secureOk = (not locked) or Util.SameKey(row.secureKey, entry.key)
-            local inviteOk = (not locked) or Util.SameKey(row.invite.secureKey, entry.key)
-            if not locked then
-                UI.ApplyInvite(row.invite, entry.key)
-                UI.ApplyTarget(row, entry.key)
-                secureOk = true
-                inviteOk = UI.InviteArmed(row.invite, entry.key)
-            end
-            UI.SetCombatDisplayOnly(row, locked and not secureOk)
             local color = Memory.GeneralColor(entry.key)
             local letter = color == "green" and "G" or color == "yellow" and "Y" or color == "red" and "R" or "-"
             if not color and Memory.FlaggedKos(entry.key) then
@@ -2775,24 +2443,30 @@ function UI.RefreshList(opts)
             if color then
                 local rgb = C.COLOR_RGB[color]
                 row.mark:SetTextColor(rgb[1], rgb[2], rgb[3])
-                row.name:SetTextColor(rgb[1], rgb[2], rgb[3])
             elseif Memory.FlaggedKos(entry.key) then
                 row.mark:SetTextColor(1, 0.3, 0.25)
+            else
+                row.mark:SetTextColor(0.45, 0.45, 0.45)
+            end
+            if Memory.FlaggedKos(entry.key) then
                 row.name:SetTextColor(1, 0.45, 0.35)
             else
                 local r, g, b = Memory.NameRGB(entry.key, entry, maxSeen)
-                row.mark:SetTextColor(0.45, 0.45, 0.45)
                 row.name:SetTextColor(r, g, b)
             end
             row.name:SetText(UI.ListName(entry.key))
             UI.PaintRowIdentity(row, entry)
             local grouped = Group.InMyGroup(entry.key)
             local blocked = Memory.IsBlocked(entry.key) or Memory.FlaggedKos(entry.key)
-            local showInvite = (not grouped) and (not blocked) and inviteOk
+                or Util.IsOtherFaction(entry.key, entry)
+            local inviteAvailable = C_PartyInfo and type(C_PartyInfo.InviteUnit) == "function"
+            local showInvite = inviteAvailable and (not grouped) and (not blocked)
+            local rowWidth = viewWidth
             if grouped or not showInvite then
                 row:SetWidth(viewWidth)
             else
-                row:SetWidth(math.max(80, viewWidth - 78))
+                rowWidth = math.max(80, viewWidth - 78)
+                row:SetWidth(rowWidth)
                 row.invite:ClearAllPoints()
                 row.invite:SetPoint("LEFT", row, "RIGHT", 4, 0)
             end
@@ -2803,8 +2477,8 @@ function UI.RefreshList(opts)
                 row:SetAlpha(0)
                 row.invite:SetAlpha(0)
                 row.invite:Hide()
-                UI.SetCombatDisplayOnly(row, false)
                 row:Hide()
+                UI.PlaceTargetClick(row.targetClick, i, rowH, rowWidth, nil)
             else
                 row:SetAlpha(alpha)
                 row:Show()
@@ -2816,21 +2490,18 @@ function UI.RefreshList(opts)
                     row.invite:Hide()
                     row.invite:SetAlpha(0)
                 end
+                UI.PlaceTargetClick(row.targetClick, i, rowH, rowWidth, entry.key)
             end
         else
             row.key = nil
             row.invite.key = nil
-            if not locked then
-                UI.ApplyInvite(row.invite, nil)
-                UI.ApplyTarget(row, nil)
-            end
-            UI.SetCombatDisplayOnly(row, false)
             UI.PaintRowIdentity(row, nil)
             row.invite:SetAlpha(0)
             row.invite:Hide()
             row:SetAlpha(0)
             row:PaintTarget(false)
             row:Hide()
+            UI.PlaceTargetClick(row.targetClick, i, rowH, viewWidth, nil)
         end
     end
 

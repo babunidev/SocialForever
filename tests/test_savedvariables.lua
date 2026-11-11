@@ -26,7 +26,7 @@ assertTrue(type(db.remote)=="table","remote missing")
 assertTrue(type(db.customFlags)=="table","customFlags missing")
 assertTrue(type(db.ignored)=="table","ignored missing")
 assertEqual(db.listTab,"nearby","default list tab wrong")
-assertEqual(db.sameMobAsk,false,"same-mob prompt should default off")
+assertEqual(db.sameMobAsk,nil,"same-mob prompt option should be discarded")
 
 db = init({
     players={["Test-Person"]={nearbyTimes=4,color="green",flags={["Really friendly"]=true}}},
@@ -38,7 +38,7 @@ assertEqual(db.players["Test-Person"].nearbyTimes,4,"familiarity changed")
 assertEqual(db.players["Test-Person"].color,"green","mark changed")
 assertTrue(db.players["Test-Person"].flags["Really friendly"] == true,"personal flag lost")
 assertEqual(db.listTab,"zone","list tab not preserved")
-assertEqual(db.sameMobAsk,true,"same-mob prompt not preserved")
+assertEqual(db.sameMobAsk,nil,"legacy same-mob prompt option should be discarded")
 assertEqual(db.remote["Test-Person"]["Other-Person"].flags,nil,"legacy remote flags not removed")
 
 db = init({players={},remote={},customFlags={},ignored={},autoInviteFriends=true,migratedIgnoreFlags=true})
@@ -59,7 +59,7 @@ assertTrue(type(db.ignored)=="table","ignored not repaired")
 assertEqual(db.partyId,nil,"partyId not cleared")
 assertEqual(db.partyCounted,nil,"partyCounted not cleared")
 assertEqual(db.listTab,"nearby","listTab not repaired")
-assertEqual(db.sameMobAsk,false,"sameMobAsk not repaired")
+assertEqual(db.sameMobAsk,nil,"sameMobAsk not discarded")
 assertEqual(db.autoInviteFriends,nil,"obsolete friend field not cleared")
 assertEqual(db.sameMobAutoInvite,nil,"obsolete same-mob field not cleared")
 

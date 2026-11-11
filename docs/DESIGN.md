@@ -13,11 +13,11 @@ The [development log](../DEVELOPMENT.md) records the 0.4.1 separation into **Nea
 
 ## Personal memory and signals
 
-A player's name and tooltip can reflect individual Green/Yellow/Red marks, general marks, remembered places, repeat-encounter bands, private flags, declined invites and Kill on Sight. The 0.4.6-beta revision deliberately removes empty tooltip lines rather than displaying meaningless categories. The 0.4.5-beta familiar-thought message is a quiet, muted chat observation, not a sound or public emote. It triggers from genuine Nearby appearance or targeting, not merely being listed in Zone.
+A player's tooltip can reflect individual Green/Yellow/Red marks, general marks, remembered places, repeat-encounter bands, private flags, declined invites, Kill on Sight and guild when known. Unreleased local work (2026-11-10) keeps familiarity color on the **name** and puts Green/Yellow/Red only on the left-side mark letter, so marks do not overwrite “how often I’ve seen them.” Kill on Sight may still tint the name. The 0.4.6-beta revision deliberately removes empty tooltip lines rather than displaying meaningless categories. The 0.4.5-beta familiar-thought message is a quiet, muted chat observation, not a sound or public emote. It triggers from genuine Nearby appearance or targeting, not merely being listed in Zone.
 
 ## Interaction safety
 
-The 0.4.2-beta entry documents why invite confirmation must reflect an actual secure send path rather than a successful API call wrapper. Automatic invitations are now removed entirely: same-mob grouping may offer an opt-in prompt, but the invitation itself always requires the player's secure click. Interaction freezing should protect intentional selection while not hiding newly detected players indefinitely.
+The 0.4.2-beta entry documents why invite confirmation must reflect an actual secure send path rather than a successful API call wrapper. Automatic invitations are removed entirely. Same-mob grouping prompts were later removed from Settings and forced off in unreleased local work; invitations remain deliberate secure clicks from the list. Interaction freezing should protect intentional selection while not hiding newly detected players indefinitely.
 
 ## Open accessibility and runtime checks
 

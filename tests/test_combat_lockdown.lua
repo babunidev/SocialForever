@@ -1,10 +1,12 @@
 local combat = true
-local touchedSecureRow = false
-local stoppedAnimation = false
 local interactCalls = 0
 local invitedName = nil
 local paintedName = nil
-local overlayShown = false
+local inviteShown = nil
+local rowShown = nil
+local rowResized = false
+local targetCalls = 0
+local stoppedAnimation = false
 
 function wipe(t)
     for k in pairs(t) do t[k] = nil end
@@ -17,6 +19,11 @@ end
 function CheckInteractDistance()
     interactCalls = interactCalls + 1
     error("CheckInteractDistance must not be called in combat")
+end
+
+function TargetUnit()
+    targetCalls = targetCalls + 1
+    error("TargetUnit must not be called in combat")
 end
 
 function GetTime()
@@ -49,10 +56,30 @@ function UnitName(unit)
     end
 end
 
+function UnitFactionGroup(unit)
+    if unit == "player" then
+        return "Alliance"
+    end
+end
+
 C_PartyInfo = {
     InviteUnit = function(name)
         invitedName = name
     end,
+}
+
+C_Timer = { After = function() end }
+
+GameFontHighlight = {
+    GetFont = function()
+        return "Fonts\\FRIZQT__.TTF", 16, ""
+    end,
+}
+
+GameTooltip = {
+    IsShown = function() return false end,
+    GetOwner = function() return nil end,
+    Hide = function() end,
 }
 
 SocialForeverDB = {
@@ -75,56 +102,121 @@ local S = SF.State
 local UI = SF.UI
 local Util = SF.Util
 SF.Util.InitDB()
+Util.InvalidateMeCache()
+
+local chat = {}
+DEFAULT_CHAT_FRAME = {
+    AddMessage = function(_, text)
+        chat[#chat + 1] = text
+    end,
+}
 
 assert(Util.Interact("target", 2) == nil, "combat interaction fallback should be nil")
 assert(interactCalls == 0, "CheckInteractDistance was invoked during combat")
+assert(UI.RefreshCombatList == nil, "combat overlay painter should be gone")
+assert(UI.TryTarget("Combatmouse") == false, "name click should not target during combat")
+assert(targetCalls == 0, "TargetUnit was invoked during combat")
+assert(chat[1] == "Targeting players isn't allowed in combat.", "combat name click did not explain itself in chat")
+combat = false
+assert(UI.TryTarget("Combatmouse") == false, "name click must not call the protected targeting API out of combat")
+assert(targetCalls == 0, "TargetUnit was invoked out of combat")
+combat = true
 
 local function noop() end
-local inviteLabel = { SetText = noop, SetTextColor = noop }
+local function fontString(capture)
+    return {
+        SetText = function(_, text)
+            if capture then
+                paintedName = text
+            end
+        end,
+        SetTextColor = noop,
+        SetFont = noop,
+        SetWidth = noop,
+        SetPoint = noop,
+        SetFontObject = noop,
+        Hide = noop,
+        Show = noop,
+        ClearAllPoints = noop,
+        SetSize = noop,
+        SetTexture = noop,
+        SetVertexColor = noop,
+    }
+end
+
 local invite = {
-    label = inviteLabel,
+    label = { SetText = noop, SetTextColor = noop },
     SetBackdropColor = noop,
     SetBackdropBorderColor = noop,
-    Show = noop,
-    Hide = noop,
-}
-local combatRow = {
-    invite = invite,
-    mark = { SetText = noop, SetTextColor = noop },
-    name = {
-        SetText = function(_, text) paintedName = text end,
-        SetTextColor = noop,
-    },
-    SetHeight = noop,
+    SetAlpha = noop,
     ClearAllPoints = noop,
     SetPoint = noop,
-    Show = function() overlayShown = true end,
-    Hide = noop,
-}
-local empty = { SetText = noop, Show = noop, Hide = noop }
-local cover = {
-    empty = empty,
-    Show = function() overlayShown = true end,
-    Hide = noop,
+    IsShown = function() return inviteShown == true end,
+    IsMouseOver = function() return false end,
+    Show = function() inviteShown = true end,
+    Hide = function() inviteShown = false end,
 }
 
+local row = {
+    invite = invite,
+    mark = fontString(false),
+    name = fontString(true),
+    levelText = fontString(false),
+    identity = fontString(false),
+    highlight = { Show = noop, Hide = noop },
+    SetHeight = function() rowResized = true end,
+    SetWidth = noop,
+    SetAlpha = noop,
+    ClearAllPoints = noop,
+    SetPoint = noop,
+    PaintTarget = noop,
+    Show = function() rowShown = true end,
+    Hide = function() rowShown = false end,
+    IsShown = function() return rowShown == true end,
+    IsMouseOver = function() return false end,
+}
+
+local function makeTab()
+    return {
+        label = { SetText = noop, SetTextColor = noop },
+        SetBackdropColor = noop,
+        SetBackdropBorderColor = noop,
+    }
+end
+
+local onUpdate
 S.main = {
-    -- This represents the protected target row underneath the combat overlay.
-    rows = {
-        {
-            SetHeight = function()
-                touchedSecureRow = true
-                error("protected row geometry touched during combat")
-            end,
-        },
+    rows = { row },
+    list = {
+        GetHeight = function() return SF.Const.ROW_HEIGHT end,
+        GetWidth = function() return 250 end,
     },
-    combatCover = cover,
-    combatRows = { combatRow },
-    list = { GetHeight = function() return SF.Const.ROW_HEIGHT end },
+    empty = { SetText = noop, Show = noop, Hide = noop },
+    bar = {
+        lock = false,
+        Show = noop,
+        Hide = noop,
+        SetMinMaxValues = noop,
+        SetValue = noop,
+        IsShown = function() return false end,
+        IsMouseOver = function() return false end,
+    },
+    tabNearby = makeTab(),
+    tabZone = makeTab(),
+    scrollOffset = 0,
     fadingPaint = false,
+    IsShown = function() return true end,
+    GetScript = function(_, name)
+        if name == "OnUpdate" then
+            return onUpdate
+        end
+    end,
     SetScript = function(_, name, fn)
-        if name == "OnUpdate" and fn == nil then
-            stoppedAnimation = true
+        if name == "OnUpdate" then
+            onUpdate = fn
+            if fn == nil then
+                stoppedAnimation = true
+            end
         end
     end,
 }
@@ -137,24 +229,70 @@ S.nearby = {
         origins = { "mouseover" },
     },
 }
+S.inZone = {}
 S.displayOrdered = {}
 S.listDirty = false
 
 UI.RefreshList()
-assert(overlayShown == true, "combat overlay did not paint")
-assert(paintedName == "Combatmouse", "combat mouseover was not painted immediately")
-assert(touchedSecureRow == false, "combat refresh touched protected target-row geometry")
-assert(S.listDirty == true, "combat refresh should still request a full post-combat repaint")
+assert(rowShown == true, "combat refresh did not keep the same row visible")
+assert(rowResized == true, "combat refresh did not update the same row")
+assert(paintedName == "Combatmouse", "combat mouseover was not painted on the same list")
+assert(inviteShown == true, "combat invite button was hidden for an invitable player")
+assert(S.main.combatCover == nil, "combat refresh built a second list cover")
+assert(S.listDirty ~= true, "combat refresh should paint in place instead of deferring a second list")
 
 assert(UI.DirectInvite("Combatmouse") == true, "direct combat invite path failed")
 assert(invitedName == "Combatmouse", "combat invite used the wrong player name")
 assert(S.inviteState.Combatmouse == "invited", "combat invite state was not recorded")
-assert(touchedSecureRow == false, "combat invite refresh touched protected target-row geometry")
+assert(paintedName == "Combatmouse", "combat invite refresh left the same list")
 
-S.listDirty = false
+wipe(S.fadeInAt)
+wipe(S.fadeOutAt)
+S.moveWave = nil
 UI.OnMainAnimUpdate()
-assert(S.listDirty == true, "combat animation should mark list dirty")
-assert(stoppedAnimation == true, "combat animation should stop its OnUpdate")
-assert(touchedSecureRow == false, "combat animation touched protected row")
+assert(stoppedAnimation == true, "idle combat animation should stop its OnUpdate")
+assert(rowShown == true, "idle combat animation hid the list row")
 
-print("PASS: combat overlay paints newcomers, direct invite works, protected rows stay untouched")
+inviteShown = nil
+S.nearby = {
+    ["Orc-Raider"] = {
+        key = "Orc-Raider", bucket = 3, at = 100, ttl = SF.Const.SEEN_TTL,
+        faction = "Horde", origins = { "mouseover" },
+    },
+}
+invitedName = nil
+UI.RefreshList()
+assert(inviteShown == false, "other-faction player must not get an invite button")
+assert(UI.DirectInvite("Orc-Raider") == false, "other-faction direct invite must be refused")
+assert(invitedName == nil, "other-faction invite reached InviteUnit")
+assert(paintedName == "Orc Raider", "other-faction name was not painted on the same list")
+
+local order = {}
+function UnregisterStateDriver(_, state)
+    order[#order + 1] = "unregister:" .. tostring(state)
+end
+function RegisterStateDriver(_, state, driver)
+    order[#order + 1] = "register:" .. tostring(state) .. ":" .. tostring(driver)
+end
+combat = false
+local shown = 0
+local fake = {
+    visibilityDriver = "[combat] hide; show",
+    Show = function()
+        shown = shown + 1
+        order[#order + 1] = "show"
+    end,
+    Hide = function()
+        order[#order + 1] = "hide"
+    end,
+}
+UI.SetTargetDriver(fake, true)
+assert(shown == 1, "target click stayed hidden when already out of combat")
+assert(order[#order] == "register:visibility:[combat] hide; show", "target click driver was not armed after showing")
+UI.SetTargetDriver(fake, true)
+assert(shown == 2, "arming the same target click again skipped Show")
+combat = true
+UI.SetTargetDriver(fake, true)
+assert(shown == 2, "combat was allowed to change target click visibility")
+
+print("PASS: one list paints during combat, direct invite works, name click does not target, no other-faction invite")

@@ -2,6 +2,34 @@
 
 ## Unreleased
 
+## 0.4.10-beta — 2026-11-11
+
+- Someone who buffs you is listed once, for the same nearby lifetime as other encounters. A long buff no longer keeps them on the list.
+- Settings include **Show buff caster**. When it is on, your own buff tooltip gains a **From:** line with the caster's name. Turn it off in the gear menu. If Forever hides the caster, the line is left off.
+- The Nearby and zone lists stay one list when a fight starts. Entering combat no longer swaps in a second overlay. The Invite button stays in its usual place and still sends during combat.
+- Clicking a name out of combat targets them. Clicking a name during combat does not target, and chat says: Targeting players isn't allowed in combat.
+- Fixed name clicks staying dead after a reload or after a fight.
+- Fixed a live error, `ADDON_ACTION_FORBIDDEN` on `TargetUnit()`, which fired even when the character was not in a fight. The list no longer calls that protected function.
+- Other-faction players (the muted red names) no longer show an Invite button, including during combat.
+- Fixed players showing with only their first name (for example “Neera” instead of “Neera Faded”) and the chat spam “No player named 'Alexandra' is currently playing.” Every listed player shows both names again. Internal realm tokens stay hidden.
+- You no longer appear on your own Nearby list, and you cannot gain “Been nearby” for yourself.
+- Unknown-range sightings no longer stay up forever. When a nameplate disappears, that player lingers for a short grace (about 15 seconds, or 20 seconds for chat, buff, and other interaction-only sightings) before leaving.
+- Fixed a stall that could peg CPU by walking every remembered player on each presence check.
+- Settings are **Name size**, **Background**, and **Show buff caster**. Same-mob prompts and Memory reset were removed from Settings.
+- The top row is close, settings, region, then Nearby.
+- Player tooltips can show guild as `<Guild>` when it has been seen on that player. The compact tooltip stayed.
+- Green, Yellow, and Red marks color only the letter on the left. Names keep their familiarity color.
+
+## 0.4.9-beta — 2026-11-05
+
+- Battleground familiarity now counts each encountered player only once per match, independent of respawns, graveyards, subzones and reloads. A persisted character-specific match token allows a later battleground match to count again after a confirmed exit; normal-world subzone counting stays unchanged. Mock regression added; live Forever validation pending.
+
+- Simplified Nearby tooltip provenance to one reason: targeting and hovering display **Mouseover**, while a detected helpful buff displays **Buff**. The complete ephemeral origin set remains available internally.
+
+- Restored event-driven instant mouseover presentation without waiting for the half-second scan or a moving-row transition.
+- Helpful aura caster GUIDs from freshly added buffs no longer require a currently targetable unit token; recent identified buff casters receive temporary top-list priority, beneath the currently targeted player.
+- Empty aura deltas fall back to scanning readable helpful auras. These paths require live Forever verification, especially with secret aura values in combat.
+
 - Restored immediate Nearby presentation during combat without mutating protected target rows. Mouseover/target/nameplate and other usable detections now paint into a separate normal-frame combat overlay as soon as SocialForever receives them.
 - Added a deliberate combat-time Invite action for overlay entries using `C_PartyInfo.InviteUnit` with the already-normalized player name. The existing protected target rows remain frozen underneath and are fully repainted after combat.
 - Newly remapped combat entries intentionally do not expose the stale secure row target action; click-to-target is re-armed only after combat ends. Live Forever verification of the new combat overlay/invite path is still required.
@@ -9,7 +37,7 @@
 - Target recognition now promotes the target through the normal Nearby detection path before printing the thought.
 - Delayed recognition re-checks that the player is still Nearby before firing, preventing stale messages after somebody has already disappeared.
 - Recognition that becomes ready during combat is deferred until combat ends and the secure Nearby rows can repaint.
-- Added current-sighting provenance to Nearby tooltips. A player can show multiple observed reasons such as **Your target**, **Hovered / mouseover**, **Visible nameplate**, **Crafting**, **Fighting**, **Buff / helpful aura**, **Trade**, **Duel**, or **Resurrection**.
+- Added current-sighting provenance to Nearby tooltips. The tooltip now shows one concise reason rather than every observed origin; the underlying current-sighting record may retain multiple origins.
 - Detection reasons are ephemeral current-sighting evidence, not permanent reputation/history data. Historical locations remain separate under **Seen before in**.
 - Improved nearby crafting detection: SocialForever now accepts real craft announcements from both `CHAT_MSG_TRADESKILLS` and craft-shaped `CHAT_MSG_SYSTEM` messages.
 - Craft messages use Blizzard's localized `TRADESKILL_LOG_THIRDPERSON` / created-item templates when available, with the event sender/GUID preferred over text parsing for player identity.

@@ -97,11 +97,31 @@ function Detection.UnitOrigin(unit)
     return nil
 end
 
-function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source, origin)
+function Detection.DropSighting(key)
+    key = Util.SafeKey(key) or key
+    if type(key) ~= "string" then
+        return false
+    end
+    local dropped = S.sightings[key] ~= nil
+    S.sightings[key] = nil
+    S.inviteState[key] = nil
+    -- Also drop NameOnly alias forms so polluted GUID keys cannot linger.
+    local bare = Util.NameOnlyKey and Util.NameOnlyKey(key)
+    if bare and bare ~= key then
+        if S.sightings[bare] then
+            dropped = true
+        end
+        S.sightings[bare] = nil
+        S.inviteState[bare] = nil
+    end
+    return dropped
+end
+
+function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile, faction, source, origin, guild)
     key = Util.SafeKey(key)
     if not key or Util.IsMe(key) or Detection.IsVisibleMobName(key) then
         if key then
-            S.sightings[key] = nil
+            Detection.DropSighting(key)
         end
         return
     end
@@ -112,6 +132,7 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
     classFile = Util.PlainString(classFile) or (prev and prev.class)
     raceFile = Util.NormRaceFile(raceFile) or (prev and prev.race)
     faction = Util.NormFaction(faction) or (prev and prev.faction)
+    guild = Util.PlainString(guild) or (prev and prev.guild)
     if not faction and raceFile then
         faction = C.FACTION_BY_RACE[raceFile]
     end
@@ -130,7 +151,7 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
             level = math.floor(level)
         end
     end
-    if classFile or raceFile or faction then
+    if classFile or raceFile or faction or guild then
         local rec = Memory.EnsurePlayer(key)
         if classFile then
             rec.class = classFile
@@ -141,6 +162,13 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
         if faction then
             rec.faction = faction
         end
+        if guild then
+            rec.guild = guild
+        end
+    end
+    if not guild then
+        local rec = SF.db and SF.db.players and SF.db.players[key]
+        guild = type(rec) == "table" and Util.PlainString(rec.guild) or nil
     end
     local area = Memory.NoteNearbyPlace(key, not prev) or (prev and prev.area)
     local zone = Memory.CurrentZone() or (prev and prev.zone)
@@ -154,6 +182,7 @@ function Detection.Remember(key, bucket, classFile, ttl, yards, level, raceFile,
         class = classFile or (prev and prev.class),
         race = raceFile or (prev and prev.race),
         faction = faction or (prev and prev.faction),
+        guild = guild or (prev and prev.guild),
         yards = yards,
         level = level,
         area = area,
@@ -251,7 +280,7 @@ function Detection.PurgeOtherZones()
     end
 end
 
-function Detection.Publish()
+function Detection.Publish(immediate)
     Detection.DropOfflineGroupSightings()
     Detection.PurgeOtherZones()
     Detection.PurgeOtherSubzones()
@@ -262,15 +291,14 @@ function Detection.Publish()
     local function AddFound(key, seen)
         found[key] = {
             key = key, bucket = seen.bucket or 3, class = seen.class, race = seen.race,
-            faction = seen.faction, yards = seen.yards, level = seen.level,
+            faction = seen.faction, guild = seen.guild, yards = seen.yards, level = seen.level,
             area = seen.area, zone = seen.zone, at = seen.at, ttl = seen.ttl,
             origins = seen.origins,
         }
     end
     for key, seen in pairs(S.sightings) do
         if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
-            S.sightings[key] = nil
-            S.inviteState[key] = nil
+            Detection.DropSighting(key)
         elseif Group.InMyGroup and Group.InMyGroup(key) and not inRaid then
             seen.at = now
             seen.lastConfirmedAt = now
@@ -283,11 +311,9 @@ function Detection.Publish()
         elseif seen.unconfirmedSince
             and (now - seen.unconfirmedSince) >= (seen.trackable and S.P.staleTrackable or S.P.staleInteraction)
         then
-            S.sightings[key] = nil
-            S.inviteState[key] = nil
+            Detection.DropSighting(key)
         elseif now - (seen.at or 0) > (seen.ttl or C.SEEN_TTL) then
-            S.sightings[key] = nil
-            S.inviteState[key] = nil
+            Detection.DropSighting(key)
         else
             AddFound(key, seen)
             Sharing.MaybeHello(key)
@@ -298,17 +324,20 @@ function Detection.Publish()
         if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneSeen[key] = nil
         elseif not found[key] then
-            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL}
+            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,guild=seen.guild,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL}
         end
     end
     for key, seen in pairs(S.zoneRoster) do
         if Util.IsMe(key) or now - (seen.at or 0) > C.ZONE_TTL or Detection.IsVisibleMobName(key) then
             S.zoneRoster[key] = nil
         elseif not found[key] and not zoneFound[key] then
-            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL,roster=true}
+            zoneFound[key] = {key=key,class=seen.class,race=seen.race,faction=seen.faction,guild=seen.guild,zone=seen.zone,at=seen.at,ttl=C.ZONE_TTL,roster=true}
         end
     end
     local targetKey = Util.UnitIdentity("target")
+    if targetKey and Util.IsMe(targetKey) then
+        targetKey = nil
+    end
     local sig = Detection.DisplayMapSig(found) .. "\29" .. Detection.DisplayMapSig(zoneFound)
         .. "\28" .. (targetKey or "") .. "\27" .. (S.P.zoneRosterFull and "+" or "")
     local changed = sig ~= S.P.publishSig
@@ -321,9 +350,9 @@ function Detection.Publish()
             if type(previousNearby) ~= "table" or not previousNearby[key] then Memory.NoteNearbyRecognition(key) end
         end
     end
-    if changed and UI.RefreshList then
+    if (changed or immediate) and UI.RefreshList then
         if UI.EnsureListFreezeHonest then UI.EnsureListFreezeHonest() end
-        UI.RefreshList()
+        UI.RefreshList(immediate and { skipMove = true } or nil)
     end
 end
 
@@ -384,7 +413,7 @@ end
 -- still has a live, connected unit token for that player.
 function Detection.LiveIdentityFromGuid(guid)
     guid = Util.PlainString(guid)
-    if not guid or guid == "" then
+    if not guid or guid == "" or Util.IsMyGuid(guid) then
         return nil
     end
     if type(UnitTokenFromGUID) ~= "function" then
@@ -395,6 +424,10 @@ function Detection.LiveIdentityFromGuid(guid)
     if not unit then
         return nil
     end
+    local selfOk, isSelf = pcall(UnitIsUnit, unit, "player")
+    if selfOk and Util.PlainBool(isSelf) == true then
+        return nil
+    end
     if Detection.UnitConnectedPlain(unit) == false then
         return nil
     end
@@ -402,7 +435,11 @@ function Detection.LiveIdentityFromGuid(guid)
     if not playerOk or Util.PlainBool(isPlayer) ~= true then
         return nil
     end
-    return Util.UnitIdentity(unit)
+    local key, classFile, raceFile, faction = Util.UnitIdentity(unit)
+    if not key or Util.IsMe(key) then
+        return nil
+    end
+    return key, classFile, raceFile, faction
 end
 
 function Detection.DropOfflineGroupSightings()
@@ -443,6 +480,17 @@ function Detection.UnitLevelPlain(unit)
         return nil
     end
     return math.floor(level)
+end
+
+function Detection.UnitGuildPlain(unit)
+    if type(GetGuildInfo) ~= "function" then
+        return nil
+    end
+    local ok, guild = pcall(GetGuildInfo, unit)
+    if not ok then
+        return nil
+    end
+    return Util.PlainString(guild)
 end
 
 function Detection.ConsiderUnit(unit, loose, origin)
@@ -491,11 +539,20 @@ function Detection.ConsiderUnit(unit, loose, origin)
     end
     Detection.Remember(
         key, bucket, classFile, C.UNIT_TTL, yards, Detection.UnitLevelPlain(unit),
-        raceFile, faction, "trackable", origin or Detection.UnitOrigin(unit)
+        raceFile, faction, "trackable", origin or Detection.UnitOrigin(unit),
+        Detection.UnitGuildPlain(unit)
     )
 end
 
+-- Event-driven mouseovers should not wait for the periodic multi-unit scan.
+function Detection.OnMouseoverChanged()
+    pcall(Detection.ConsiderUnit, "mouseover", true, "mouseover")
+    Detection.Publish(true)
+end
+
 function Detection.Scan()
+    -- Keep match boundaries up to date even when no players are detected.
+    if Memory.SyncBattlegroundSession then Memory.SyncBattlegroundSession() end
     for i = 1, #C.LOOK_UNITS do
         pcall(Detection.ConsiderUnit, C.LOOK_UNITS[i], true)
     end
@@ -577,7 +634,25 @@ function Detection.UnitStillNearby(unit)
     return nil, nil
 end
 
+function Detection.LiveUnitForKey(live, key)
+    if type(live) ~= "table" or type(key) ~= "string" then
+        return nil
+    end
+    local unit = live[key] or live[Detection.NormPresenceKey(key)]
+    if unit then
+        return unit
+    end
+    local bare = Util.NameOnlyKey and Util.NameOnlyKey(key)
+    if bare and bare ~= key then
+        return live[bare] or live[Detection.NormPresenceKey(bare)]
+    end
+    return nil
+end
+
 function Detection.ValidatePresence()
+    -- Keep runtime grace values aligned with constants (tests may tweak either).
+    S.P.staleTrackable = C.STALE_TRACKABLE or S.P.staleTrackable or 15
+    S.P.staleInteraction = C.STALE_INTERACTION or S.P.staleInteraction or 20
     local any = false
     for _ in pairs(S.sightings) do any = true break end
     if not any then return end
@@ -590,48 +665,51 @@ function Detection.ValidatePresence()
         if not seen.unconfirmedSince then seen.unconfirmedSince = now end
         local grace = seen.trackable and S.P.staleTrackable or S.P.staleInteraction
         if (now - seen.unconfirmedSince) >= grace then
-            S.sightings[key] = nil
-            S.inviteState[key] = nil
+            Detection.DropSighting(key)
             dirty = true
         end
     end
     for key, seen in pairs(S.sightings) do
-        local grouped = Group.InMyGroup and Group.InMyGroup(key)
-        local unit = live[key] or live[Detection.NormPresenceKey(key)]
-        if grouped and not inRaid then
-            seen.lastConfirmedAt = now
-            seen.unconfirmedSince = nil
-            if unit then
+        if Util.IsMe(key) or Detection.IsVisibleMobName(key) then
+            Detection.DropSighting(key)
+            dirty = true
+        else
+            local grouped = Group.InMyGroup and Group.InMyGroup(key)
+            local unit = Detection.LiveUnitForKey(live, key)
+            if grouped and not inRaid then
+                seen.lastConfirmedAt = now
+                seen.unconfirmedSince = nil
+                if unit then
+                    local okNear, yards = Detection.UnitStillNearby(unit)
+                    if yards then seen.yards = yards end
+                    if okNear == true then seen.at = now end
+                end
+            elseif unit then
                 local okNear, yards = Detection.UnitStillNearby(unit)
                 if yards then seen.yards = yards end
-                if okNear == true then seen.at = now end
-            end
-        elseif unit then
-            local okNear, yards = Detection.UnitStillNearby(unit)
-            if yards then seen.yards = yards end
-            if okNear == false then
-                S.sightings[key] = nil
-                S.inviteState[key] = nil
-                dirty = true
-            elseif okNear == true then
-                seen.lastConfirmedAt = now
-                seen.unconfirmedSince = nil
-                seen.at = now
-            elseif grouped and inRaid then
-                staleOrDrop(key, seen)
+                if okNear == false then
+                    Detection.DropSighting(key)
+                    dirty = true
+                elseif okNear == true then
+                    seen.lastConfirmedAt = now
+                    seen.unconfirmedSince = nil
+                    seen.at = now
+                else
+                    -- Unit token exists but range/visibility is unknown: do not
+                    -- refresh forever. Count it as unconfirmed presence.
+                    staleOrDrop(key, seen)
+                end
             else
-                seen.lastConfirmedAt = now
-                seen.unconfirmedSince = nil
-                seen.at = now
+                staleOrDrop(key, seen)
             end
-        else
-            staleOrDrop(key, seen)
         end
     end
     if dirty then Detection.Publish() end
 end
 
-function Detection.MarkPresenceStale(key, accelerate)
+-- Starts the stale grace; ValidatePresence drops after the grace unless a live
+-- unit confirms the player again (which clears unconfirmedSince).
+function Detection.MarkPresenceStale(key)
     key = Util.SafeKey(key)
     local seen = key and S.sightings[key]
     if not seen or (Group.InMyGroup and Group.InMyGroup(key)) then
@@ -640,13 +718,6 @@ function Detection.MarkPresenceStale(key, accelerate)
     local now = GetTime()
     if not seen.unconfirmedSince then
         seen.unconfirmedSince = now
-    elseif accelerate then
-        -- Nameplate lost: do not wait a full fresh grace if already stale.
-        local grace = seen.trackable and S.P.staleTrackable or S.P.staleInteraction
-        local elapsed = now - seen.unconfirmedSince
-        if elapsed < (grace * 0.5) then
-            seen.unconfirmedSince = now - (grace * 0.5)
-        end
     end
 end
 
@@ -655,8 +726,9 @@ function Detection.NoteNamed(sender, bucket, ttl, origin)
     if not sender then
         return
     end
-    local name, realm = strsplit("-", sender, 2)
-    Detection.Remember(Util.MakeKey(name, realm), bucket, nil, ttl, nil, nil, nil, nil, "interaction", origin)
+    -- Do not strsplit on the first hyphen: Forever two-word names are
+    -- "First-Second". KeyFromSender / MakeKey strip realm tokens safely.
+    Detection.Remember(Detection.KeyFromSender(sender) or Util.MakeKey(sender), bucket, nil, ttl, nil, nil, nil, nil, "interaction", origin)
     Detection.Publish()
 end
 
@@ -673,14 +745,9 @@ function Detection.KeyFromSender(sender)
     if not sender or sender == "" then
         return nil
     end
-    local namePart, realm = strsplit("-", sender, 2)
-    if namePart and namePart:find("%s") then
-        local first, second = namePart:match("^(%S+)%s+(%S+)$")
-        if first and second then
-            namePart = first .. "-" .. second
-        end
-    end
-    return Util.MakeKey(namePart, realm)
+    -- "First-Second", "First Second" and "First-Second-RealmToken" all reduce to
+    -- the two-word key; MakeKey strips trailing realm tokens only.
+    return Util.MakeKey(sender)
 end
 
 function Detection.IsGeneralChannel(channelString, channelBase)
@@ -766,7 +833,7 @@ end
 
 function Detection.KeyFromGuid(guid)
     guid = Util.PlainString(guid)
-    if not guid or guid == "" then
+    if not guid or guid == "" or Util.IsMyGuid(guid) then
         return nil
     end
     if guid:sub(1, 6) ~= "Player" then
@@ -1112,11 +1179,65 @@ function Detection.OnNameplateRemoved(unit)
     local key = S.P.nameplateByUnit[unit]
     S.P.nameplateByUnit[unit] = nil
     if not key then
-        local id = Util.UnitIdentity(unit)
-        key = id
+        key = Util.UnitIdentity(unit)
     end
-    if key then
-        Detection.MarkPresenceStale(key, true)
+    if key and not Util.IsMe(key) then
+        Detection.MarkPresenceStale(key)
+    end
+end
+
+function Detection.BuffStamp(aura, key)
+    local id = type(aura) == "table" and Util.PlainNumber(aura.auraInstanceID) or nil
+    if id then
+        return "id:" .. id, id
+    end
+    if type(key) == "string" and key ~= "" then
+        return "key:" .. key, nil
+    end
+    return nil, nil
+end
+
+-- A buff is one meeting. Later aura updates for the same buff must not restart
+-- the timer, or the caster stays listed for as long as the buff remains.
+function Detection.RememberBuffCaster(key, classFile, raceFile, faction, aura)
+    if not key or Util.IsMe(key) then
+        return false, nil
+    end
+    local stamp, auraId = Detection.BuffStamp(aura, key)
+    S.P.activeBuffStamps = S.P.activeBuffStamps or {}
+    if stamp and S.P.activeBuffStamps[stamp] then
+        return false, stamp
+    end
+    if stamp then
+        S.P.activeBuffStamps[stamp] = true
+    end
+    if auraId then
+        S.P.buffCasterByAura = S.P.buffCasterByAura or {}
+        S.P.buffCasterByAura[auraId] = key
+    end
+    Detection.Remember(key, 1, classFile, C.SEEN_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
+    S.P.recentBuffKey = key
+    S.P.recentBuffAt = GetTime()
+    return true, stamp
+end
+
+function Detection.PruneBuffStamps(seenStamps)
+    local active = S.P.activeBuffStamps
+    if type(active) == "table" then
+        for stamp in pairs(active) do
+            if not seenStamps[stamp] then
+                active[stamp] = nil
+            end
+        end
+    end
+    local cache = S.P.buffCasterByAura
+    if type(cache) ~= "table" then
+        return
+    end
+    for id in pairs(cache) do
+        if not seenStamps["id:" .. id] then
+            cache[id] = nil
+        end
     end
 end
 
@@ -1135,13 +1256,14 @@ function Detection.NoteHelpfulAuraCaster(aura)
     local source = Util.PlainString(aura.sourceUnit)
     if source then
         local selfOk, isSelf = pcall(UnitIsUnit, source, "player")
-        if not (selfOk and Util.PlainBool(isSelf) == true) then
-            local playerOk, isPlayer = pcall(UnitIsPlayer, source)
-            if playerOk and Util.PlainBool(isPlayer) == true then
-                key, classFile, raceFile, faction = Util.UnitIdentity(source)
-                if key and Detection.UnitConnectedPlain(source) == false then
-                    key, classFile, raceFile, faction = nil, nil, nil, nil
-                end
+        if selfOk and Util.PlainBool(isSelf) == true then
+            return false
+        end
+        local playerOk, isPlayer = pcall(UnitIsPlayer, source)
+        if playerOk and Util.PlainBool(isPlayer) == true then
+            key, classFile, raceFile, faction = Util.UnitIdentity(source)
+            if key and (Util.IsMe(key) or Detection.UnitConnectedPlain(source) == false) then
+                key, classFile, raceFile, faction = nil, nil, nil, nil
             end
         end
     end
@@ -1150,55 +1272,140 @@ function Detection.NoteHelpfulAuraCaster(aura)
         if instanceId then
             local ok, casterGuid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
             casterGuid = ok and Util.PlainString(casterGuid) or nil
-            if casterGuid then
-                key, classFile, raceFile, faction = Detection.LiveIdentityFromGuid(casterGuid)
+            if casterGuid and not Util.IsMyGuid(casterGuid) then
+                -- A freshly added helpful aura is current interaction evidence.
+                -- Its caster need not still have a resolvable unit token.
+                key, classFile, raceFile = Detection.KeyFromGuid(casterGuid)
+                faction = raceFile and C.FACTION_BY_RACE[Util.NormRaceFile(raceFile)] or nil
             end
         end
     end
     if key and not Util.IsMe(key) then
-        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
-        return true
+        return Detection.RememberBuffCaster(key, classFile, raceFile, faction, aura)
     end
-    return false
+    return false, nil
+end
+
+function Detection.BuffCasterKey(unit, index, filter)
+    unit = Util.PlainString(unit)
+    if unit ~= "player" then
+        return nil
+    end
+    if Util.PlainString(filter) == "HARMFUL" then
+        return nil
+    end
+    local id = Util.PlainNumber(index)
+    if id and type(S.P.buffCasterByAura) == "table" then
+        local cached = S.P.buffCasterByAura[id]
+        if type(cached) == "string" and not Util.IsMe(cached) then
+            return cached
+        end
+    end
+    local aura
+    if id and C_UnitAuras and type(C_UnitAuras.GetAuraDataByAuraInstanceID) == "function" then
+        local ok, data = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID, "player", id)
+        if ok and type(data) == "table" and not Util.Secret(data) then
+            aura = data
+        end
+    end
+    if not aura and id and C_UnitAuras and type(C_UnitAuras.GetAuraDataByIndex) == "function" then
+        local ok, data = pcall(C_UnitAuras.GetAuraDataByIndex, "player", id, "HELPFUL")
+        if ok and type(data) == "table" and not Util.Secret(data) then
+            aura = data
+        end
+    end
+    if not aura and id and type(UnitAura) == "function" then
+        local ok, name, _, _, _, _, _, sourceUnit = pcall(UnitAura, "player", id, "HELPFUL")
+        name = ok and Util.PlainString(name) or nil
+        if name then
+            aura = { isHelpful = true, sourceUnit = Util.PlainString(sourceUnit) }
+        end
+    end
+    if type(aura) ~= "table" then
+        return nil
+    end
+    local source = Util.PlainString(aura.sourceUnit)
+    if source then
+        local selfOk, isSelf = pcall(UnitIsUnit, source, "player")
+        if selfOk and Util.PlainBool(isSelf) == true then
+            return nil
+        end
+        local playerOk, isPlayer = pcall(UnitIsPlayer, source)
+        if playerOk and Util.PlainBool(isPlayer) == true then
+            local key = Util.UnitIdentity(source)
+            if type(key) == "string" and not Util.IsMe(key) then
+                return key
+            end
+        end
+    end
+    local instanceId = Util.PlainNumber(aura.auraInstanceID) or id
+    if instanceId and C_UnitAuras and type(C_UnitAuras.GetAuraCasterGUID) == "function" then
+        local ok, guid = pcall(C_UnitAuras.GetAuraCasterGUID, "player", instanceId)
+        guid = ok and Util.PlainString(guid) or nil
+        if guid and not Util.IsMyGuid(guid) then
+            local key = Detection.KeyFromGuid(guid)
+            if type(key) == "string" and not Util.IsMe(key) then
+                return key
+            end
+        end
+    end
+    return nil
 end
 
 -- When UNIT_AURA updateInfo is missing or sealed in combat, walk helpful auras.
 function Detection.ScanPlayerHelpfulCasters()
     local found = false
+    local seenStamps = {}
+    local function Take(aura)
+        if type(aura) ~= "table" or Util.Secret(aura) then
+            return
+        end
+        local noted, stamp = Detection.NoteHelpfulAuraCaster(aura)
+        if stamp then
+            seenStamps[stamp] = true
+        end
+        if noted then
+            found = true
+        end
+    end
     if C_UnitAuras and type(C_UnitAuras.GetAuraDataByIndex) == "function" then
+        local sealed = false
         for i = 1, 40 do
             local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-            if not ok or not aura then
+            if not ok then
+                sealed = true
                 break
             end
-            if Detection.NoteHelpfulAuraCaster(aura) then
-                found = true
+            if not aura then
+                break
             end
+            Take(aura)
+        end
+        if not sealed then
+            Detection.PruneBuffStamps(seenStamps)
         end
         return found
     end
     if type(UnitAura) ~= "function" then
         return false
     end
+    local sealed = false
     for i = 1, 40 do
         local ok, name, _, _, _, _, _, sourceUnit = pcall(UnitAura, "player", i, "HELPFUL")
-        if not ok or not name then
+        if not ok then
+            sealed = true
+            break
+        end
+        if not name then
             break
         end
         sourceUnit = Util.PlainString(sourceUnit)
         if sourceUnit then
-            local selfOk, isSelf = pcall(UnitIsUnit, sourceUnit, "player")
-            if not (selfOk and Util.PlainBool(isSelf) == true) then
-                local playerOk, isPlayer = pcall(UnitIsPlayer, sourceUnit)
-                if playerOk and Util.PlainBool(isPlayer) == true then
-                    local key, classFile, raceFile, faction = Util.UnitIdentity(sourceUnit)
-                    if key and Detection.UnitConnectedPlain(sourceUnit) ~= false and not Util.IsMe(key) then
-                        Detection.Remember(key, 1, classFile, C.UNIT_TTL, nil, nil, raceFile, faction, "interaction", "helpful_aura")
-                        found = true
-                    end
-                end
-            end
+            Take({ isHelpful = true, sourceUnit = sourceUnit })
         end
+    end
+    if not sealed then
+        Detection.PruneBuffStamps(seenStamps)
     end
     return found
 end
@@ -1216,18 +1423,35 @@ function Detection.OnPlayerAura(unit, updateInfo)
             added = nil
         end
     end
-    if type(added) == "table" then
+    if type(added) == "table" and #added > 0 then
         for i = 1, #added do
             if Detection.NoteHelpfulAuraCaster(added[i]) then
                 found = true
             end
         end
     else
-        -- Classic-style UNIT_AURA (no updateInfo) or sealed combat payload.
+        -- Classic-style, empty or sealed payload: inspect helpful auras.
         found = Detection.ScanPlayerHelpfulCasters()
     end
+    if type(updateInfo) == "table" and not Util.Secret(updateInfo) then
+        local removed = updateInfo.removedAuraInstanceIDs
+        if type(removed) == "table" and not Util.Secret(removed) then
+            for i = 1, #removed do
+                local id = Util.PlainNumber(removed[i])
+                if id then
+                    if S.P.activeBuffStamps then
+                        S.P.activeBuffStamps["id:" .. id] = nil
+                    end
+                    if S.P.buffCasterByAura then
+                        S.P.buffCasterByAura[id] = nil
+                    end
+                end
+            end
+        end
+    end
     if found then
-        Detection.Publish()
+        if UI.InvalidateListSort then UI.InvalidateListSort() end
+        Detection.Publish(true)
     end
 end
 

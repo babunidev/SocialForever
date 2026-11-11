@@ -12,7 +12,8 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 - [x] Add a deliberate combat-time Invite path for newly detected overlay entries.
 - [ ] Live-test mouseover discovery while already in combat: entry should appear immediately with **Nearby because: Hovered / mouseover**.
 - [ ] Live-test inviting that newly detected player before combat ends and confirm no `ADDON_ACTION_BLOCKED` event occurs.
-- [ ] Confirm the combat overlay disappears cleanly after combat and the normal secure target rows are repainted/re-armed.
+- [ ] Live-test that entering combat keeps the same Nearby rows, a new mouseover appears on that list, and Invite sends during the fight with no `ADDON_ACTION_BLOCKED`.
+- [ ] Live-test that clicking a name during combat does not target or error, and that the same click targets again after the fight.
 - [x] Keep familiar-player recognition synchronized with the actual Nearby list.
 - [ ] Live-test recognition from a deliberate target, delayed Nearby recognition, disappearance before the timer fires, and recognition queued across combat lockdown.
 - [x] Add current-sighting provenance to Nearby tooltip entries without persisting it as reputation data.
@@ -28,6 +29,23 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 - [ ] Continue broader live verification of combat list behavior, new sightings, post-combat repaint details, Nearby/Zone separation, invites, sharing and persistence.
 - [x] Prepare 0.4.8-beta as the urgent combat hotfix candidate after automated verification passed.
 - [ ] Publish and verify 0.4.8-beta on GitHub and CurseForge.
+
+## Unreleased local work (2026-11-10)
+
+- [x] Slim Settings to Name size and Background; remove same-mob and Memory reset from Settings UI.
+- [x] Reorder main header: close, settings, region, Nearby.
+- [x] Show guild on player tooltips when known from a unit; keep compact tooltip after rejecting the centered experiment.
+- [x] Color Green/Yellow/Red marks on the left letter only; keep familiarity color on the name.
+- [x] Restore AGENTS.md and docs into the Forever AddOns working tree; document main-only local-first workflow.
+- [ ] Live-check guild on tooltip after mouseover/target for guilded and unguilded players.
+- [ ] Decide whether Memory reset stays available through another path or remains removed.
+- [x] Keep one Nearby/Zone list in combat: same rows, Invite still on that list, no combat overlay.
+- [x] Give buff casters the same nearby lifetime as other encounters, and stop aura updates from restarting that timer.
+- [x] Add a settings toggle that writes the known buff caster on the player's own buff tooltip.
+- [ ] Live-test the one list in Forever: enter combat, confirm the rows do not swap, a new mouseover appears, Invite sends, and a name click does not error.
+- [ ] Live-test that a buff caster leaves on the normal nearby timer, and that the buff tooltip shows From: their name when the caster is known. Turn the line off in Settings and confirm it stays off.
+- [x] Tag and publish `v0.4.10-beta` after Babuni asked on 2026-11-11. Automated checks passed. Live Forever checks below stay open.
+- [ ] Push/tag later versions only when Babuni explicitly asks.
 
 ## Future ideas (not implemented)
 
@@ -46,8 +64,8 @@ No unapproved features were added as milestones.
 - [x] Reconcile current 0.4.6-beta behavior with the release history and seven-module architecture.
 - [ ] Verify Nearby versus General Zone separation in-game, including aura, say, shared-mob and token-expiry evidence.
 - [ ] Exercise target pinning, freeze/unfreeze, ordering and performance during crowded/combat situations.
-- [ ] Test secure Invite behavior, opt-in same-mob prompts and invitation decline detection on the Forever client.
-- [ ] Verify SavedVariables persistence for recognition cooldown, place history, user flags and account-wide reset without data loss.
+- [ ] Test secure Invite behavior and invitation decline detection on the Forever client.
+- [ ] Verify SavedVariables persistence for recognition cooldown, place history and user flags without data loss.
 - [ ] Confirm that sharing sends marks but never flags or private judgments, including compatibility with older addon clients.
 - [ ] Review accessibility and privacy-safe screenshots before portfolio publication.
 

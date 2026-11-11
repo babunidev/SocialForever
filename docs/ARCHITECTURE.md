@@ -16,11 +16,11 @@ The [0.4.2 release entry](../DEVELOPMENT.md) records that a nominally successful
 
 ## Secure list-row boundary
 
-The ordinary player rows use `SecureActionButtonTemplate` for deliberate click-to-target behavior. Their geometry, visibility and secure target attributes are combat-locked and are never rearranged or rebound by insecure addon code while `InCombatLockdown()` is true.
+Player rows are ordinary buttons. The same rows are shown, hidden, resized and repainted during combat, so entering a fight does not swap in a second list. Invite on those rows is the same normal button in and out of combat. A deliberate click calls `C_PartyInfo.InviteUnit` with the plain stored player name. That call is allowed on Forever during combat; the button is hidden when the player cannot be invited, including other-faction players.
 
-Combat presentation is separated from that protected layer. `UI.RefreshCombatList` renders current Nearby/Zone entries into normal overlay rows above the frozen secure rows. These overlay rows can be shown, hidden and repainted immediately as combat-time detection changes, including a fresh mouseover. Their Invite button is a normal deliberate-click control that calls `C_PartyInfo.InviteUnit` with the plain stored player name; it does not rewrite secure attributes. Overlay rows do not provide click-to-target because arbitrary new names cannot be safely rebound to the underlying secure target action during combat.
+Name-click targeting does not call the protected targeting API from addon code. Forever raises `ADDON_ACTION_FORBIDDEN` for that call even outside combat. Each row has a secure `/target` button in the same slot, shown outside combat and hidden by a `[combat] hide; show` state driver during a fight. The visible row stays ordinary, so the list can still update. A left click that reaches the row during combat prints `Targeting players isn't allowed in combat.` The same-mob prompt, when shown, still uses its own secure Invite button. That prompt is forced off in current settings.
 
-When combat ends, `PLAYER_REGEN_ENABLED` runs the full protected-row repaint and the overlay is hidden. Detection and SavedVariables updates continue throughout combat.
+When combat ends, `PLAYER_REGEN_ENABLED` always repaints and re-shows the secure `/target` buttons once lockdown has lifted. A visibility driver alone can leave those buttons hidden after reload or after a fight, because it waits for the next combat transition. Recognition that was waiting can print then. Detection and SavedVariables updates continue throughout combat.
 
 ## Protected range-query boundary
 

@@ -45,7 +45,8 @@ assertEqual(S.sightings.Nearbyone.origins[2],"fighting","fighting origin mismatc
 now=now+1
 Detection.Remember("Nearbyone",2,nil,SF.Const.SEEN_TTL,nil,nil,nil,nil,"interaction","target")
 assertEqual(#S.sightings.Nearbyone.origins,2,"duplicate origin was not deduplicated")
-assertEqual(UI.OriginText(S.sightings.Nearbyone),"Your target, Fighting","tooltip origin labels mismatch")
+-- Target/mouseover/soft-target collapse to one tooltip reason: Mouseover.
+assertEqual(UI.OriginText(S.sightings.Nearbyone),"Mouseover","tooltip origin labels mismatch")
 assertEqual(SF.db.players.Nearbyone.origins,nil,"current-sighting provenance leaked into SavedVariables")
 assertEqual(SF.Const.ORIGIN_LABELS.mouseover,"Hovered / mouseover","mouseover label mismatch")
 

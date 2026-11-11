@@ -17,7 +17,6 @@ local UI = SF.UI
 SF.UI.BuildMain()
 SF.UI.BuildMenu()
 SF.UI.BuildPopup()
-SF.UI.BuildSameMobPopup()
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
@@ -82,6 +81,12 @@ events:SetScript("OnEvent", function(_, event, ...)
             C_ChatInfo.RegisterAddonMessagePrefix(C.PREFIX)
         end
         S.sendReady = true
+        if Util.InvalidateMeCache then
+            Util.InvalidateMeCache()
+        end
+        if Util.PurgeSelfRecords then
+            Util.PurgeSelfRecords()
+        end
         UI.PositionMain()
         UI.ApplyBackground()
         if S.main.settings and S.main.settings.Paint then
@@ -114,6 +119,9 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "PLAYER_ENTERING_WORLD" then
         S.armed = false
+        if Util.InvalidateMeCache then
+            Util.InvalidateMeCache()
+        end
         Detection.ClearSightings()
         S.nearby = {}
         UI.RefreshList()
@@ -197,8 +205,11 @@ events:SetScript("OnEvent", function(_, event, ...)
         end
         return
     end
-    if event == "UPDATE_MOUSEOVER_UNIT"
-        or event == "PLAYER_FOCUS_CHANGED"
+    if event == "UPDATE_MOUSEOVER_UNIT" then
+        Detection.OnMouseoverChanged()
+        return
+    end
+    if event == "PLAYER_FOCUS_CHANGED"
         or event == "PLAYER_SOFT_ENEMY_CHANGED"
         or event == "PLAYER_SOFT_FRIEND_CHANGED"
         or event == "PLAYER_SOFT_INTERACT_CHANGED"
@@ -226,10 +237,23 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "PLAYER_REGEN_ENABLED" then
         Detection.Scan()
-        if S.listDirty and UI.RefreshList then
+        -- The name-click buttons are secure and stay untouched during the fight.
+        -- Always arm and show them again once combat lockdown has actually lifted.
+        local function RepaintAfterCombat(retry)
+            if type(InCombatLockdown) == "function" and InCombatLockdown() then
+                if not retry and C_Timer and C_Timer.After then
+                    C_Timer.After(0, function()
+                        RepaintAfterCombat(true)
+                    end)
+                end
+                return
+            end
             S.listDirty = false
-            UI.RefreshList({ force = true, skipMove = true })
+            if UI.RefreshList then
+                UI.RefreshList({ force = true, skipMove = true })
+            end
         end
+        RepaintAfterCombat(false)
         if Memory.FlushRecognitionAfterCombat then
             Memory.FlushRecognitionAfterCombat()
         end

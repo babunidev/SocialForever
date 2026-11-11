@@ -71,3 +71,81 @@ The rule is now simple: recognition is downstream of detection. A deliberate tar
 Freezing the protected rows solved the blocked-action errors, but live play made the cost obvious: hovering somebody during a fight could detect them underneath without actually showing them until combat ended. That defeated one of the useful moments for SocialForever, because the point is often to notice somebody helping nearby and invite them while the fight is still happening.
 
 The protected target rows now stay exactly where Forever requires them to stay, while a separate ordinary overlay carries the live combat presentation. A new mouseover can appear there immediately and gets a deliberate Invite button. The old secure target action is intentionally not borrowed for a different name during combat; after combat the normal rows repaint and targeting works again. AI implemented the separation and regression checks. The actual invite and overlay behavior still need to be exercised in the live client before they count as verified.
+
+## 2026-11-10 — Hot paths must stay cheap
+
+A self-exclusion scrub that walked every remembered player was mistakenly hooked into Publish and presence checks. With Scan already on a half-second timer, that pegged CPU in Forever. The scrub is login-only again, player identity is cached, and `AGENTS.md` now forbids that class of hot-path work. Docs and the Cursor always-apply rule were updated so agents keep documenting each step and do not put account-wide walks on timers.
+
+## 2026-11-10 — Stop listing myself; keep the list honest
+
+Buff sightings and GUID identity were still able to put me on my own Nearby list and even raise my familiarity count. At the same time, people who only appeared through a buff could linger long after they were gone, and nameplate loss was treated as a soft grace instead of a clean exit.
+
+The rule is simple again: I am never a Nearby entry, and absence should clear the row. Player GUID and unit checks now reject self on every identity path, leftover self memory is purged, nameplate removal drops a person immediately when nothing else still proves them, and buff/presence timers are much shorter. AI implemented the guards, presence cleanup and regression tests; a live `/reload` pass is still needed to confirm the feel in Forever.
+
+## 2026-11-10 — Local Forever folder, main-only, quieter chrome
+
+Work continued in the live Forever AddOns install rather than a branch-heavy GitHub workflow. Extra remote branches and draft PRs were cleared so everything stays on `main`, with push and tags reserved for when I say the local build is ready.
+
+Settings were cut down to what still matters day to day: name size and background. Same-mob prompts and memory-reset menu entries left the Settings panel; the top bar became close, settings, region, then Nearby. A richer centered tooltip with underlines looked interesting for a moment and then wrong in play, so the compact tooltip came back, keeping the green guild line under level, race and class. Marks stay as the colored letter on the left so familiarity color on the name is not overwritten.
+
+**Creative direction:** Babuni — main-only local-first workflow, slimmer settings, header order, reject heavy tooltip layout, marks vs familiarity color. **AI contribution:** Implemented the UI and detection/guild plumbing, restored missing repository docs into the Forever AddOns tree, and updated README, CHANGELOG, DECISIONS and this journal. **Verification:** Layout and tooltip changes were exercised in the live Forever client by Babuni; guild display depends on having seen the player on a unit token. No GitHub push or release tag was made for this pass.
+
+## 2026-11-10 — Two names, always
+
+Right after the realm-token fix, the list started showing people as "Neera", "Faded" or "Kasai", and chat filled up with "No player named 'Alexandra' is currently playing." Every Forever character has a first and a second name, so a one-word row is always wrong.
+
+The realm fix had thrown away everything the game passed in the realm slot, but Forever often puts the second name exactly there. Names now keep that second word and still drop internal tokens like `CAMWOWEU4Realm10RP`. With two-word names back, the hidden sharing hello no longer whispers made-up one-word players.
+
+**Creative direction:** Babuni — two names on every row, no realm text. **AI contribution:** Found the regression it had introduced, fixed name building and chat-sender parsing, and added name tests. **Verification:** Automated tests pass in the Forever AddOns folder; live `/reload` retest pending.
+
+## 2026-11-10 — Letting people linger a moment
+
+The stricter Nearby pass fixed buffers that hung around forever, but it overshot: people vanished the instant their nameplate went away, which felt abrupt. I asked to see the old rules side by side first. Before, everyone lived three minutes on the list and had 18–25 seconds of grace; the strict build dropped them immediately with only 8–10 seconds of grace otherwise.
+
+I chose a middle ground. A lost nameplate now starts a short grace of about 15 seconds (20 for chat or interaction-only sightings), and the shorter lifetimes stay. Someone stepping out of view lingers briefly instead of blinking out.
+
+**Creative direction:** Babuni — linger a little, choose the middle option after reviewing the old rules. **AI contribution:** Compared timing against GitHub `main`, implemented the grace change and test. **Verification:** Automated tests pass in the Forever AddOns folder; live feel still to be checked after `/reload`.
+
+## 2026-11-10 — No invites across the faction line
+
+A Horde character showed up in my list with the familiar muted red name, and next to it an Invite button that could never work. Other-faction players now stay visible but lose the Invite button, including in the combat overlay.
+
+**Creative direction:** Babuni — hide invite for other-faction players. **AI contribution:** Reused the existing faction check behind the red tint, cached my faction for row painting, added a regression test. **Verification:** Automated tests pass in the Forever AddOns folder; live check pending.
+
+## 2026-11-10 — One list when the fight starts
+
+The list was swapping as soon as combat started. A second overlay covered the real rows, with its own Invite placement, and that is the part that felt wrong. The list should stay the same rows, and a fight can change who is on them.
+
+The overlay is gone. Those rows update during the fight, and Invite stays on the same button and can still send. Clicking a name to target waits until combat ends, because the game blocks that click mid-fight and a protected target button cannot follow a row that is allowed to move. Keeping two buttons stacked in one slot was considered and set aside for the same reason.
+
+**Creative direction:** Babuni — one visual list in and out of combat; invite during the fight if it can work; otherwise hide only the button. **AI contribution:** Removed the combat overlay, made the list rows ordinary buttons, and wired Invite through the existing deliberate combat invite call. **Verification:** Automated combat test passes in the Forever AddOns folder. Live check after `/reload` is still required.
+
+## 2026-11-11 — The target click was forbidden outside a fight
+
+A name click produced `ADDON_ACTION_FORBIDDEN` for `TargetUnit()`, and that happened while the character was not in combat. The game does not let the addon call that function itself.
+
+Name clicks go through a secure target button again, in the same slot as the row. During a fight the client hides that button, the row stays put, and chat says **Targeting players isn't allowed in combat.**
+
+**Creative direction:** Babuni — say in chat why a list click does nothing during a fight, and fix the error that also happened outside combat. **AI contribution:** Removed the protected call and restored a secure `/target` click that stays hidden in combat. **Verification:** Automated check covers the chat line and that the protected call is absent. Live `/reload` retest is still required.
+
+## 2026-11-11 — Name clicks stayed dead after the fight
+
+The names were still there, and the character was not in combat, but clicking them did nothing. It also happened sometimes right after a reload. The target button was hidden when it was created, and the rule that shows it again only runs when combat starts or ends. If that transition never arrived, or did not show the button, the click stayed gone.
+
+Leaving a fight now always puts the click back on every visible name. The same repair runs whenever the list paints outside combat, so a reload does not have to wait for the next fight.
+
+**Creative direction:** Babuni — after a fight, clicking people has to work again. **AI contribution:** Show the target button immediately instead of waiting for the next combat change, and repaint when combat lockdown ends. **Verification:** Automated check covers a repeated show outside combat and a blocked show during combat. Live `/reload` retest is still required.
+
+## 2026-11-11 — Buffs should not linger, and the tooltip can say who
+
+A long buff was keeping the caster on Nearby the whole time it was up. Each aura update treated that same buff as a new meeting and restarted the timer.
+
+The meeting is counted once. After that they leave on the same nearby timer as everyone else, even if the buff is still on me. The buff tooltip can also add **From:** and their name. That line is on by default, and the gear menu can turn it off. It only appears when the game still tells the addon who cast the buff.
+
+**Creative direction:** Babuni — same shelf life for buff casters, and a toggle if the buff tooltip can name them. **AI contribution:** Stopped repeat aura updates from refreshing the sighting, and hooked the player buff tooltip with a settings switch. **Verification:** Automated check covers one note per buff and the cached caster name. The live tooltip still needs a look after `/reload`.
+
+## 2026-11-11 — Publish 0.4.10-beta
+
+The local fixes had piled up since 0.4.9-beta: one list in a fight, name clicks, both names on every row, not listing myself, and buffs that no longer pin someone for the whole spell. Babuni asked for that build to be tagged and published.
+
+**Creative direction:** Babuni — tag and publish the current local build. **AI contribution:** Prepared `v0.4.10-beta` from the Forever install. **Verification:** Automated checks passed before the tag. Live Forever checks on the roadmap were not rerun for this publication.

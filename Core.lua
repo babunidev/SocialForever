@@ -30,15 +30,21 @@ C.ZONE_LIST_PLUS = 100
 C.FRAME_WIDTH = 280
 C.FRAME_HEIGHT = 220
 C.MAX_YARDS = 50
-C.SEEN_TTL = 180
+-- Nearby sightings expire unless presence is reconfirmed. A buff is one meeting
+-- and then uses SEEN_TTL; BUFF_TTL is kept so older notes still have a meaning.
+C.SEEN_TTL = 90
 C.SORT_EVERY = 3
 C.ZONE_TTL = 600
 -- After a zone change, keep other-zone names at least this long before purging.
 C.ZONE_PURGE_DELAY = 30
 -- After a subzone/area change outdoors, keep prior-area names at least this long.
 C.AREA_PURGE_DELAY = 15
-C.CHAT_TTL = C.SEEN_TTL
-C.UNIT_TTL = C.SEEN_TTL
+C.CHAT_TTL = 60
+C.UNIT_TTL = 90
+C.BUFF_TTL = 40
+-- Seconds without a live unit token before a sighting is dropped.
+C.STALE_TRACKABLE = 15
+C.STALE_INTERACTION = 20
 C.EMPTY_NEARBY = "No one nearby"
 C.EMPTY_ZONE = "No one else listed in this zone yet."
 C.EMPTY_TEXT = C.EMPTY_NEARBY
@@ -55,7 +61,7 @@ C.ORIGIN_LABELS = {
     chat = "Local chat / emote",
     crafting = "Crafting",
     fighting = "Fighting",
-    helpful_aura = "Buff / helpful aura",
+    helpful_aura = "Buff",
     resurrection = "Resurrection",
     trade = "Trade",
     duel = "Duel",
@@ -179,8 +185,8 @@ S.P = {
     zoneRosterFull = false,
     shareRotate = 1,
     nameplateByUnit = {},
-    staleTrackable = 18,
-    staleInteraction = 25,
+    staleTrackable = C.STALE_TRACKABLE,
+    staleInteraction = C.STALE_INTERACTION,
     sameMobStamp = nil,
     sameMobPromptPending = false,
     meterAttempt = 0,
@@ -473,14 +479,52 @@ function Util.NormRealm(realm)
     return realm
 end
 
-function Util.MyRealm()
-    if type(GetNormalizedRealmName) == "function" then
-        local realm = Util.NormRealm(GetNormalizedRealmName())
-        if realm then
-            return realm
-        end
+-- Forever GUID/aura paths often return internal realm tokens (for example
+-- CAMWOWEU4Realm10RP) that do not match GetNormalizedRealmName. Those must
+-- never become part of a player key or appear in the UI.
+function Util.LooksLikeRealmToken(segment)
+    segment = Util.NormRealm(segment)
+    if not segment then
+        return false
     end
-    return Util.NormRealm(GetRealmName())
+    local mine = Util.MyRealm()
+    if mine and segment:lower() == mine:lower() then
+        return true
+    end
+    if segment:find("[Rr]ealm") then
+        return true
+    end
+    -- Long alphanumeric blobs with digits are Forever/connected-realm style IDs,
+    -- not a second Forever character-name word.
+    if #segment >= 10 and segment:match("^[%w]+$") and segment:find("%d") then
+        return true
+    end
+    return false
+end
+
+-- Forever character names are one or two words. Strip any trailing realm token
+-- from a hyphenated key so buff/GUID sightings merge with ordinary unit sightings.
+function Util.NameOnlyKey(key)
+    if type(key) ~= "string" then
+        return nil
+    end
+    key = key:gsub("%s+", "-")
+    local parts = {}
+    for part in key:gmatch("[^%-]+") do
+        parts[#parts + 1] = part
+    end
+    while #parts > 1 and Util.LooksLikeRealmToken(parts[#parts]) do
+        parts[#parts] = nil
+    end
+    -- If a polluted key still has more than two name words, keep the Forever
+    -- character name only (first two segments).
+    if #parts > 2 then
+        parts = { parts[1], parts[2] }
+    end
+    if #parts == 0 then
+        return nil
+    end
+    return table.concat(parts, "-")
 end
 
 function Util.MakeKey(name, realm)
@@ -488,18 +532,22 @@ function Util.MakeKey(name, realm)
     if not name then
         return nil
     end
-    -- Forever two-word names arrive with a space or a hyphen. One form only.
-    name = name:gsub("%s+", "-")
+    -- Every Forever character has two names. They arrive as "First Second",
+    -- "First-Second", or as name="First" plus the second name in the realm slot.
+    name = Util.Trim(name):gsub("%s+", "-")
+    name = Util.NameOnlyKey(name) or name
+    if not name:find("-", 1, true) then
+        local second = Util.NormRealm(realm)
+        -- Our own realm and internal tokens (CAMWOWEU4Realm10RP) are not a second name.
+        if second and not Util.LooksLikeRealmToken(second) then
+            name = name .. "-" .. second
+        end
+    end
     if #name < 2 or #name > 24 then
         return nil
     end
     if name:find("[%c|%%%[%]]") then
         return nil
-    end
-    local theirs = Util.NormRealm(realm)
-    local mine = Util.MyRealm()
-    if theirs and mine and theirs:lower() ~= mine:lower() then
-        return name .. "-" .. theirs
     end
     return name
 end
@@ -509,6 +557,7 @@ function Util.SafeKey(key)
         return nil
     end
     key = key:gsub("%s+", "-")
+    key = Util.NameOnlyKey(key) or key
     if #key < 2 or #key > 50 then
         return nil
     end
@@ -522,19 +571,129 @@ function Util.SameKey(a, b)
     if type(a) ~= "string" or type(b) ~= "string" then
         return false
     end
+    a = Util.NameOnlyKey(a) or a
+    b = Util.NameOnlyKey(b) or b
     return a:gsub("[%s%-]+", ""):lower() == b:gsub("[%s%-]+", ""):lower()
 end
 
+-- Cheap identity cache. Hot paths (Publish/Scan/IsMe) must not call UnitName
+-- for every remembered player on every tick.
+S.P.myKey = nil
+S.P.myKeyFull = nil
+S.P.myGuid = nil
+S.P.myRealm = nil
+
+function Util.InvalidateMeCache()
+    S.P.myKey = nil
+    S.P.myKeyFull = nil
+    S.P.myGuid = nil
+    S.P.myRealm = nil
+    S.P.myFaction = nil
+end
+
+function Util.MyRealm()
+    if S.P.myRealm then
+        return S.P.myRealm
+    end
+    local realm
+    if type(GetNormalizedRealmName) == "function" then
+        realm = Util.NormRealm(GetNormalizedRealmName())
+    end
+    if not realm and type(GetRealmName) == "function" then
+        realm = Util.NormRealm(GetRealmName())
+    end
+    S.P.myRealm = realm
+    return realm
+end
+
 function Util.MyKey()
+    if S.P.myKey then
+        return S.P.myKey
+    end
     local ok, name, realm = pcall(UnitName, "player")
     if not ok then
         return nil
     end
-    return Util.MakeKey(name, realm)
+    local key = Util.MakeKey(name, realm)
+    if key then
+        S.P.myKey = key
+        -- If our own second name sits in the realm slot and equals the realm
+        -- name, MakeKey cannot join it; keep the joined form for IsMe too.
+        local second = Util.NormRealm(realm)
+        if not key:find("-", 1, true) and second then
+            S.P.myKeyFull = key .. "-" .. second
+        end
+    end
+    return key
+end
+
+function Util.MyGuid()
+    if S.P.myGuid then
+        return S.P.myGuid
+    end
+    if type(UnitGUID) ~= "function" then
+        return nil
+    end
+    local ok, guid = pcall(UnitGUID, "player")
+    if not ok then
+        return nil
+    end
+    guid = Util.PlainString(guid)
+    if guid then
+        S.P.myGuid = guid
+    end
+    return guid
+end
+
+function Util.IsMyGuid(guid)
+    guid = Util.PlainString(guid)
+    local mine = Util.MyGuid()
+    return guid ~= nil and mine ~= nil and guid == mine
 end
 
 function Util.IsMe(key)
-    return Util.SameKey(key, Util.MyKey())
+    if type(key) ~= "string" or key == "" then
+        return false
+    end
+    local mine = Util.MyKey()
+    if not mine then
+        return false
+    end
+    return Util.SameKey(key, mine) or (S.P.myKeyFull ~= nil and Util.SameKey(key, S.P.myKeyFull))
+end
+
+-- One-shot cleanup at login only. Never call from Publish/Scan/ValidatePresence:
+-- walking SavedVariables with IsMe on every tick burned CPU.
+function Util.PurgeSelfRecords()
+    local mine = Util.MyKey()
+    if not mine then
+        return
+    end
+    local function scrub(map)
+        if type(map) ~= "table" then
+            return
+        end
+        local drop = {}
+        for key in pairs(map) do
+            if Util.SameKey(key, mine) then
+                drop[#drop + 1] = key
+            end
+        end
+        for i = 1, #drop do
+            map[drop[i]] = nil
+        end
+    end
+    if SF.db then
+        scrub(SF.db.players)
+        scrub(SF.db.remote)
+        scrub(SF.db.ignored)
+    end
+    scrub(S.sightings)
+    scrub(S.nearby)
+    scrub(S.inZone)
+    scrub(S.zoneSeen)
+    scrub(S.zoneRoster)
+    scrub(S.inviteState)
 end
 
 function Util.ValidColor(color)
@@ -623,10 +782,8 @@ function Util.InitDB()
         db.listTab = "nearby"
     end
     S.listTab = db.listTab
-    if db.sameMobAsk ~= true then
-        db.sameMobAsk = false
-    end
-    -- Removed pre-release options are discarded harmlessly from older SavedVariables.
+    -- Removed options are discarded harmlessly from older SavedVariables.
+    db.sameMobAsk = nil
     db.autoInviteFriends = nil
     db.sameMobAutoInvite = nil
     if not db.migratedIgnoreFlags then
@@ -696,12 +853,20 @@ function Util.Interact(unit, index)
 end
 
 function Util.UnitIdentity(unit)
+    unit = Util.PlainString(unit) or unit
+    if type(unit) ~= "string" then
+        return nil
+    end
+    local selfOk, isSelf = pcall(UnitIsUnit, unit, "player")
+    if selfOk and Util.PlainBool(isSelf) == true then
+        return nil
+    end
     local ok, name, realm = pcall(UnitName, unit)
     if not ok then
         return nil
     end
     local key = Util.MakeKey(name, realm)
-    if not key then
+    if not key or Util.IsMe(key) then
         return nil
     end
     local classFile
@@ -776,6 +941,9 @@ function Util.NormFaction(faction)
 end
 
 function Util.MyFaction()
+    if S.P.myFaction then
+        return S.P.myFaction
+    end
     if type(UnitFactionGroup) ~= "function" then
         return nil
     end
@@ -783,7 +951,8 @@ function Util.MyFaction()
     if not ok then
         return nil
     end
-    return Util.NormFaction(faction)
+    S.P.myFaction = Util.NormFaction(faction)
+    return S.P.myFaction
 end
 
 function Util.FactionOf(key, entry)

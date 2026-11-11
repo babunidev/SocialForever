@@ -311,11 +311,14 @@ function Group.PartyHasRoom()
     return true
 end
 
+-- Same-mob grouping prompts were removed from settings; keep the gate so
+-- combat/activity harvest still runs without offering group-up popups.
 function Group.SameMobAskOn()
-    return SF.db and SF.db.sameMobAsk == true
+    return false
 end
 
-function Group.SetSameMobAsk(on)
-    if not SF.db then return end
-    SF.db.sameMobAsk = on and true or false
+function Group.SetSameMobAsk(_on)
+    if SF.db then
+        SF.db.sameMobAsk = false
+    end
 end

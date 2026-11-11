@@ -17,6 +17,8 @@ function UnitFactionGroup(unit) if unit=="player" or units[unit] then return "Al
 function UnitDistanceSquared(unit) local d=units[unit]; if not d or d.distance==nil then return nil,false end return d.distance*d.distance,true end
 function CheckInteractDistance() return false end
 function UnitIsVisible(unit) local d=units[unit]; return d and d.visible==true or false end
+function UnitIsUnit(a,b) return a==b end
+function UnitGUID(unit) if unit=="player" then return "Player-1-SELF" end if units[unit] then return "Player-1-"..units[unit].name end end
 
 SocialForever=nil
 SocialForeverDB={players={},remote={},customFlags={},ignored={},migratedIgnoreFlags=true}

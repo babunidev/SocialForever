@@ -5,6 +5,77 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## 0.4.10-beta — 2026-11-11
+
+- Babuni asked to tag and publish the local work that had stayed unreleased after `v0.4.9-beta`. The tag is `v0.4.10-beta`. It includes one list during combat, secure name clicks, two-name display, self-exclusion, stricter presence, and the buff lifetime plus buff-caster tooltip.
+- Automated checks passed before the tag. The live Forever checks still listed on the roadmap were not rerun for this publication, so this release does not claim those in-game checks are done.
+
+## Unreleased — buff lifetime and buff tooltip (2026-11-11)
+
+- Babuni noticed players who buffed them staying on Nearby for a long time. The 40s buff TTL was not the cause. Every aura update, including a full rescan when the payload is sealed, called `Remember` again and restarted `at` and the grace timer for as long as the buff remained.
+- A buff caster is now remembered once per aura. Repeat updates for that same buff do not refresh the clock. The stored lifetime is `C.SEEN_TTL` (90s), the same cap as other nearby sightings, and the normal interaction grace still applies when no live unit confirms them. `C.BUFF_TTL` remains defined but is no longer used for this path.
+- When the caster is known, the aura instance id is cached on `S.P.buffCasterByAura`. Settings → **Show buff caster** (on unless `SF.db.showBuffCaster == false`) hooks `GameTooltip:SetUnitAura` and adds `From: Name` on the player's own buff tooltip. Harmful auras are skipped. A sealed caster leaves the line off. Live Forever tooltip verification is still required.
+
+## Unreleased — one list during combat (2026-11-10)
+
+- Babuni did not want the list to swap when a fight starts. The combat overlay (`combatCover` / `combatRows` / `RefreshCombatList`) was a second visual list on top of frozen secure rows. That overlay is removed.
+- List rows are ordinary buttons again. `UI.RefreshList` paints them during combat, including show, hide, height and anchors. Each row also has a secure `/target` button anchored to the list, not to the moving row. That button is hidden in combat by a state driver, so the window cannot be dragged or resized during a fight. The list itself still scrolls and repaints.
+- Invite is the same normal button in the same place. A click calls `UI.DirectInvite` (`C_PartyInfo.InviteUnit` with the stored name), which Forever already allowed during combat. The button hides for grouped, blocked, Kill on Sight and other-faction players.
+- Name clicks use a secure `/target` button in the same slot. Addon code never calls the protected targeting API. The button is hidden in combat by a state driver. The ordinary row then receives the click and prints `Targeting players isn't allowed in combat.`
+- That button was created hidden, and the visibility driver does not show it until combat state changes. After a reload, or sometimes after a fight, the name was visible but the click never returned. `UI.SetTargetDriver` now clears the driver, shows or hides the button immediately, then registers `[combat] hide; show` again. `PLAYER_REGEN_ENABLED` always repaints once lockdown is actually over, including a one-frame retry, so every visible row gets its click back.
+- The same-mob prompt still has its own secure Invite button. That prompt stays forced off.
+- `tests/test_combat_lockdown.lua` now paints Combatmouse on the same row during a mocked lockdown, invites that name, refuses an other-faction invite, and asserts the protected targeting API is never called. A combat name click records the chat line. Live Forever retest is still required.
+- Live BugGrabber then reported `ADDON_ACTION_FORBIDDEN` for `TargetUnit()` while Babuni was not in combat. Insecure addon code cannot call that function at all. Name clicks use a secure `/target` button again, parented to the list rather than the moving row. A state driver hides that button in combat. The ordinary row receives the click and `UI.NoteCombatTarget` prints `Targeting players isn't allowed in combat.` The print is throttled to once every two seconds.
+
+## Unreleased — no invite for other-faction players (2026-11-10)
+
+- Babuni saw a Horde player (other-faction name tint) with an Invite button. Row paint hides Invite when `Util.IsOtherFaction(key, entry)` is true, the same check that drives `C.ENEMY_FACTION_RGB`. `UI.DirectInvite` refuses other-faction keys too, using the Nearby entry for faction.
+- `Util.MyFaction` is now cached in `S.P.myFaction` and cleared by `Util.InvalidateMeCache` (login / entering world), so row paint does not call `UnitFactionGroup("player")` per row. `FactionOf` stays O(1) lookups.
+- If faction is unknown (no unit faction and no race mapping) the button still shows, matching the name color. `tests/test_combat_lockdown.lua` covers the hidden button and refused invite. Live retest pending.
+
+## Unreleased — middle-ground Nearby linger (2026-11-10)
+
+- After the stricter presence pass, Babuni found people leaving Nearby too quickly. Compared with GitHub `main` (`7526e49`): before, `SEEN_TTL`/`CHAT_TTL`/`UNIT_TTL` were 180s, buffs used the 180s unit TTL, grace was 18s trackable / 25s interaction, nameplate loss only started the grace, and unknown-range unit tokens refreshed forever.
+- Babuni chose the middle ground: `C.STALE_TRACKABLE = 15`, `C.STALE_INTERACTION = 20`. `OnNameplateRemoved` now calls `MarkPresenceStale` (start grace) instead of the removed `DropIfNoLiveUnit` instant drop; a live unit seen again clears `unconfirmedSince`. Lifetimes stay at 90s / 60s chat / 40s buff, and unknown range still expires through the grace.
+- With the 5s `ValidatePresence` tick, real removal is roughly 15–20s (trackable) or 20–25s (interaction) after the last confirmation. No new tickers or table walks. `tests/test_self_exclusion.lua` asserts the player survives just under the grace and is dropped after it. Live retest pending.
+
+## Unreleased — keep Forever second names in player keys (2026-11-10)
+
+- Babuni saw one-word names in Nearby (Neera, Faded, Kasai) and chat errors “No player named 'Alexandra' is currently playing.” Every Forever character has two names.
+- Root cause: the realm-token fix made `Util.MakeKey` ignore the `realm` argument entirely. Forever unit APIs often return `UnitName` as `("Neera", "Faded")`, so the second name was dropped. One-word keys then passed the Sharing hello guard (which only skips two-word names) and whispered nonexistent players.
+- `MakeKey` now joins the realm-slot value as the second name when the name is one word and the value is neither our own realm nor a `LooksLikeRealmToken` blob (`CAMWOWEU4Realm10RP`). Trailing realm tokens are still stripped.
+- `Detection.KeyFromSender` is now just `MakeKey(sender)`; its first-hyphen split would have reduced `Neera-Faded-<token>` to `Neera`.
+- `Util.MyKey` also caches `myKeyFull` (name + realm slot) so `IsMe` still recognises self if our second name equals the realm name. Constant-time; no hot-path walks.
+- One-word records created during the broken build stay in SavedVariables as orphans; they are not deleted automatically. `tests/test_names.lua` covers the realm-slot second name and chat-sender token forms. Live Forever retest after `/reload` still needed.
+
+## Unreleased — agent instructions and hot-path performance guardrails (2026-11-10)
+
+- After the CPU peg, `AGENTS.md` gained mandatory hot-path rules and a “document every implementation step” table. `.cursor/rules/agents-md.mdc` always-applies those rules in Cursor for this project.
+- GitHub `main` still had the older shorter `AGENTS.md` at the time of this local note; local Forever tree is ahead until Babuni asks to push.
+
+## Unreleased — self exclusion and stricter presence (2026-11-10)
+
+- Babuni still saw themselves on Nearby (including familiarity charges), especially around buff detection, and buffed players lingered too long.
+- Root causes addressed: buff/GUID paths could miss self when only a caster GUID was available; `ValidatePresence` refreshed unknown-range unit tokens indefinitely; nameplate removal only shortened grace instead of dropping; interaction TTL was 3 minutes.
+- Fixes: reject player GUID/unit everywhere identity is resolved; purge self from sightings and SavedVariables; nameplate loss drops immediately when no other live unit remains; unknown range goes through stale grace; buff TTL ~40s, general Nearby TTL ~90s, stale grace ~8–10s, presence tick every 2s.
+- Regression coverage in `tests/test_self_exclusion.lua`. Live Forever retest still required after `/reload`.
+
+## Unreleased — strip Forever GUID realm tokens from names (2026-11-10)
+
+- Live buff detection (`GetPlayerInfoByGUID` / helpful aura casters) returned an internal realm token such as `CAMWOWEU4Realm10RP` that did not match `GetNormalizedRealmName`, so `MakeKey` appended it and the UI showed “Otto Bywater CAMWOWEU4Realm10RP”.
+- Player keys never append realm. Trailing realm-like tokens are stripped from keys and from SpokenName / invite slash names. Name normalization tests cover the CAMWOW-style token.
+- Babuni reproduced this on buff Nearby sightings in Forever. Automated `tests/test_names.lua` passes; live retest after `/reload` still needed for a fresh buff.
+
+## Unreleased — settings, header, tooltip guild, mark vs familiarity color (2026-11-10)
+
+- Settings keep only **Name size** and **Background**. Same-mob ask is forced off and removed from Settings; Memory reset menu entries are removed from Settings. Shared combat/activity detection remains for other features.
+- Main top row: close, settings, region (zone) tab, Nearby tab.
+- Tooltips can show `<Guild>` under level/race/class when `GetGuildInfo` has been read from a unit and stored on the sighting/player record.
+- A centered/stacked tooltip with underlined section labels was tried in live Forever and rejected; compact default tooltip returned.
+- Green/Yellow/Red marks color the left letter only. Names keep familiarity (or other-faction) tint; Kill on Sight may still tint the name.
+- Repository docs (`AGENTS.md`, `docs/`, etc.) were restored into the Forever AddOns working tree. Workflow: `main` only, local test first, push/tag only when Babuni asks.
+- Live layout/tooltip feedback came from Babuni in Forever. No push or tag for this pass.
+
 ## Unreleased — combat-time Nearby and inviting
 
 - Live use showed that the 0.4.8 protected-frame hotfix had become too conservative: detection continued during combat, but a player discovered by mouseover could remain invisible until combat ended.

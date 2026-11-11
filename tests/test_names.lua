@@ -12,15 +12,27 @@ local function assertEqual(a,e,m) if a~=e then error((m or "values differ")..": 
 
 assertEqual(Util.MakeKey("Alice",nil),"Alice","one-word name")
 assertEqual(Util.MakeKey("Alice","ForeverRealm"),"Alice","local realm should not be appended")
-assertEqual(Util.MakeKey("Alice","Other Realm"),"Alice-OtherRealm","other realm normalization")
+assertEqual(Util.MakeKey("Neera","Faded"),"Neera-Faded","second name in the realm slot must be kept")
+assertEqual(Util.MakeKey("Alexandra","Moonwhisper"),"Alexandra-Moonwhisper","unit API second name must be kept")
+assertEqual(Util.MakeKey("Neera-Faded",nil),"Neera-Faded","chat sender two-word name must be kept")
+assertEqual(Util.MakeKey("Neera-Faded-CAMWOWEU4Realm10RP",nil),"Neera-Faded","chat sender realm token stripped, second name kept")
+assertEqual(Util.MakeKey("Neera","CAMWOWEU4Realm10RP"),"Neera","internal realm token is never a second name")
 assertEqual(Util.MakeKey("First Second","ForeverRealm"),"First-Second","Forever two-word name")
+assertEqual(Util.MakeKey("Otto Bywater","CAMWOWEU4Realm10RP"),"Otto-Bywater","GUID/aura internal realm token must not pollute key")
+assertEqual(Util.MakeKey("Otto-Bywater-CAMWOWEU4Realm10RP",nil),"Otto-Bywater","polluted key must strip Forever realm token")
+assertEqual(Util.NameOnlyKey("Otto-Bywater-CAMWOWEU4Realm10RP"),"Otto-Bywater","NameOnlyKey strips aura realm token")
 assertEqual(Util.SafeKey("First Second"),"First-Second","SafeKey space normalization")
+assertEqual(Util.SafeKey("Otto Bywater CAMWOWEU4Realm10RP"),"Otto-Bywater","SafeKey strips leaked realm from display-like string")
 assertTrue(Util.SameKey("First Second","First-Second"),"spaces/hyphens not normalized equivalently")
+assertTrue(Util.SameKey("Otto-Bywater","Otto-Bywater-CAMWOWEU4Realm10RP"),"polluted GUID key must match clean name key")
 assertTrue(Util.SameKey("Anne-Marie","Anne Marie"),"hyphen/space comparison failed")
 assertTrue(Util.IsMe("Local Player"),"self name with space not excluded")
 assertTrue(Util.IsMe("Local-Player"),"self name with hyphen not excluded")
 assertFalse(Util.IsMe("Another-Player"),"other player mistaken for self")
 assertEqual(Util.SafeKey("A"),nil,"one-character invalid name accepted")
 assertEqual(Util.SafeKey("Bad|Name"),nil,"unsafe name accepted")
+
+-- Display helpers live in UI.lua; keep a Core-level guarantee that keys stay name-only.
+assertFalse(tostring(Util.MakeKey("Otto Bywater","CAMWOWEU4Realm10RP") or ""):find("CAMWOW"),"MakeKey leaked CAMWOW realm into key")
 
 print("PASS: player-name normalization tests")
