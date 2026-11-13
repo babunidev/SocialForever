@@ -1,5 +1,7 @@
 # SocialForever — Human–AI Collaboration
 
+Follow [the documentation standard](DOCUMENTATION.md) for first-person author voice throughout project documentation, factual changelogs, and naming the AI tool and verified model for each contribution.
+
 **Human creative and creative direction:** Babuni
 
 ## Creative direction

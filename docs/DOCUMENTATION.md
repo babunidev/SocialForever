@@ -2,6 +2,12 @@
 
 This document is the repository-local standard for project documentation. Read it alongside the root `AGENTS.md` and the relevant source files before writing or revising project records. It must remain usable independently of any ChatGPT Project, agent session, or another GitHub repository.
 
+## Author voice and AI attribution
+
+Write project documentation in Babuni’s first-person voice. Tell readers what prompted the work, which choices shaped it, and how the experience unfolded from Babuni’s point of view. Recast third-person author narration such as “Babuni requested” as first-person prose. Use “I” and “my” naturally within sentences and vary the openings. Never begin a narrative sentence with “I” or “My.” Use **creative** as the role label. Keep technical facts, commands, and tables direct. Keep changelogs neutral and limited to what actually changed. Preserve established viewpoints in fiction and in-world material, and retain original quotations, credits, and legal notices.
+
+Whenever AI contributed, identify the tool or product by name and give the exact model name or version when it can be verified. Say what each tool and model actually did, including research, proposals, drafting, asset generation, coding, or testing as applicable. If the tool is known but the model is undocumented, say the model was not recorded. If the tool itself cannot be verified, say it was not recorded. Never guess or infer a model from the date, provider, or product name. Keep the human creative’s ideas, decisions, and firsthand observations distinct from AI contributions and distinguish proposals, implementation, and verified results. Put this attribution in the relevant narrative or collaboration record so the changelog can stay focused on changes.
+
 ## Authority, identity, and attribution
 
 - The human **creative** supplies the original ideas, motivation, creative direction, constraints, corrections, and final decisions. AI may propose, research, draft, code, edit, test, and operate tools; credit it only for work supported by evidence.
@@ -11,10 +17,8 @@ This document is the repository-local standard for project documentation. Read i
 
 ## Public narrative and development-journal voice
 
-- Tell public-facing development narratives from the human creative's **first-person perspective**, naturally using “I” and “my” within sentences, but **never begin a narrative sentence with “I” or “My.”** Avoid telling the creative's own story in third person.
 - Write concise, thoughtful prose for human readers rather than an AI status report or a chronological dump of tool calls. A small change may need only a few sentences; group related micro-steps.
 - Describe what prompted the work, how the idea or problem developed, what the creative directed or decided, what AI contributed, what changed in the repository, and what was actually verified. Include a rejected approach, failed attempt, correction, or disagreement when it explains the outcome.
-- Technical specifications, architecture, changelogs, test inventories, and instructions may use neutral language when clearer. Fiction and in-world prose follow their own project-specific writing guides, not the development-journal voice.
 - When history is incomplete, label it **retrospective reconstruction** and state the limitation. Paraphrase relevant conversations; do not invent quotes, feelings, motives, dialogue, dates, accepted proposals, commits, or tests.
 
 ## Documentation responsibilities
