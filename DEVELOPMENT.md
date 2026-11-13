@@ -8,7 +8,7 @@ When a change ships, add it at the top. Keep the note about what the player can 
 ## 0.4.11-beta — 2026-11-13
 
 - Babuni asked to tag and publish the rating-window fixes. The tag is `v0.4.11-beta`. Filling the last party slot, and a member going offline, no longer open **How was this player?** The window opens when someone actually leaves, or when the party ends.
-- Automated checks passed before the tag. These two prompts were not rechecked in a live group before publication, so this release does not claim that in-game confirmation.
+- Automated checks passed before the tag, and GitHub's pre-release verification passed on the push. The GitHub prerelease is https://github.com/babunidev/SocialForever/releases/tag/v0.4.11-beta. CurseForge was not checked in this pass. These two prompts were not rechecked in a live group before publication, so this release does not claim that in-game confirmation.
 
 ## 0.4.11-beta — a disconnect is not someone leaving (2026-11-13)
 

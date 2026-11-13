@@ -148,7 +148,7 @@ The meeting is counted once. After that they leave on the same nearby timer as e
 
 The rating window was opening for people who were still in the party: once when the last slot filled, and again when someone only disconnected. Babuni asked for that correction to be tagged so other players can get it.
 
-**Creative direction:** Babuni — publish the rating-window fix. **AI contribution:** Prepared `v0.4.11-beta` from the Forever install. **Verification:** Automated checks passed before the tag. A live group was not rerun before publication.
+**Creative direction:** Babuni — publish the rating-window fix. **AI contribution:** Prepared `v0.4.11-beta` from the Forever install, pushed `main`, and opened the GitHub prerelease. **Verification:** Automated checks passed before the tag, and GitHub's pre-release verification passed on that push. CurseForge was not checked. A live group was not rerun before publication.
 
 ## 2026-11-13 — Offline is not the same as leaving
 
