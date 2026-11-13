@@ -16,17 +16,27 @@ local UI = SF.UI
 
 function Group.PartyKeys()
     local list = {}
+    local pending = false
     for i = 1, 4 do
         local unit = "party" .. i
         local ok, exists = pcall(UnitExists, unit)
-        if ok and Util.PlainBool(exists) and Detection.UnitConnectedPlain(unit) ~= false then
+        -- Offline members still occupy the slot. A disconnect is not a leave.
+        if ok and Util.PlainBool(exists) == true then
             local key = Util.UnitIdentity(unit)
-            if key and not Util.IsMe(key) then
+            if key then
                 list[#list + 1] = key
+            else
+                -- The slot is occupied, but the name is not ready yet (a new
+                -- person often shows as "Unknown") or it cannot be read while
+                -- they are offline. They have not left.
+                local selfOk, isSelf = pcall(UnitIsUnit, unit, "player")
+                if not (selfOk and Util.PlainBool(isSelf) == true) then
+                    pending = true
+                end
             end
         end
     end
-    return list
+    return list, pending
 end
 
 function Group.RebuildGroupMembers()
@@ -182,7 +192,7 @@ function Group.ShowRatePopup(members)
     local seen = {}
     for _, key in ipairs(members) do
         key = Util.SafeKey(key)
-        if key and not Util.IsMe(key) and not seen[key] then
+        if key and not Util.IsMe(key) and not Util.IsPlaceholderName(key) and not seen[key] then
             seen[key] = true
             list[#list + 1] = key
             if #list == 4 then
@@ -241,12 +251,15 @@ function Group.RefreshRoster()
         return
     end
     if state == "party" then
-        Group.NoteGroupButtons(Group.PartyKeys())
-    elseif state == "solo" then
-        Group.NoteGroupButtons({})
-    end
-    if state == "party" then
-        local members = Group.PartyKeys()
+        local members, pending = Group.PartyKeys()
+        if pending then
+            -- Do not diff this roster. The slot is still occupied: the new
+            -- person may still be Unknown, or an offline member's name cannot
+            -- be read. Keep the previous members.
+            Detection.Publish()
+            return
+        end
+        Group.NoteGroupButtons(members)
         if S.wasParty then
             local still = {}
             for _, key in ipairs(members) do
@@ -254,7 +267,7 @@ function Group.RefreshRoster()
             end
             local left = {}
             for _, key in ipairs(S.lastMembers) do
-                if not still[key] then
+                if not still[key] and not Util.IsPlaceholderName(key) then
                     left[#left + 1] = key
                 end
             end
@@ -268,6 +281,9 @@ function Group.RefreshRoster()
         S.wasParty = true
         Detection.Publish()
         return
+    end
+    if state == "solo" then
+        Group.NoteGroupButtons({})
     end
     if not S.armed then
         return

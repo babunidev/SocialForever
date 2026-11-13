@@ -9,7 +9,7 @@ While you quest, the same players often cross your path again and again. Social 
 Over time, strangers can become familiar names.
 
 Built by **Babunigaming** for **World of Warcraft: Forever** (Interface 16001).  
-Current version: **0.4.10-beta**
+Current version: **0.4.11-beta**
 
 ## What it does
 
@@ -169,6 +169,8 @@ You can also create your own custom flags.
 When a party ends, or when someone leaves your party, Social Forever can ask:
 
 **How was this group?**
+
+Filling the last open slot does not ask. The game can call that new person Unknown for a moment, and that is not someone leaving. Someone going offline while they are still in the party does not ask either. The window opens when they actually leave the group.
 
 Each player can be rated:
 

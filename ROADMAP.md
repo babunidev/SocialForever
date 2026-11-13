@@ -45,7 +45,10 @@ Code, metadata, README and release history are present. The 2026-10-27 documenta
 - [ ] Live-test the one list in Forever: enter combat, confirm the rows do not swap, a new mouseover appears, Invite sends, and a name click does not error.
 - [ ] Live-test that a buff caster leaves on the normal nearby timer, and that the buff tooltip shows From: their name when the caster is known. Turn the line off in Settings and confirm it stays off.
 - [x] Tag and publish `v0.4.10-beta` after Babuni asked on 2026-11-11. Automated checks passed. Live Forever checks below stay open.
+- [x] Tag and publish `v0.4.11-beta` after Babuni asked on 2026-11-13. Automated checks passed. The rating-window live checks below stay open.
 - [ ] Push/tag later versions only when Babuni explicitly asks.
+- [ ] Live-test that filling the last party slot, including from the group finder, does not open **How was this player?** for Unknown, and that someone actually leaving still opens it.
+- [ ] Live-test that a party member going offline does not open the rating window, and that it opens when they actually leave the group.
 
 ## Future ideas (not implemented)
 

@@ -527,9 +527,29 @@ function Util.NameOnlyKey(key)
     return table.concat(parts, "-")
 end
 
+-- The client uses these until it knows who just joined. They are not characters.
+function Util.IsPlaceholderName(name)
+    if type(name) ~= "string" then
+        return false
+    end
+    local lower = name:lower():gsub("%-", " "):gsub("%s+", " ")
+    lower = lower:gsub("^%s+", ""):gsub("%s+$", "")
+    if lower == "unknown" or lower == "unknown entity" then
+        return true
+    end
+    if type(UNKNOWNOBJECT) == "string" then
+        local token = UNKNOWNOBJECT:lower():gsub("%-", " "):gsub("%s+", " ")
+        token = token:gsub("^%s+", ""):gsub("%s+$", "")
+        if lower == token then
+            return true
+        end
+    end
+    return false
+end
+
 function Util.MakeKey(name, realm)
     name = Util.PlainString(name)
-    if not name then
+    if not name or Util.IsPlaceholderName(name) then
         return nil
     end
     -- Every Forever character has two names. They arrive as "First Second",
@@ -546,7 +566,7 @@ function Util.MakeKey(name, realm)
     if #name < 2 or #name > 24 then
         return nil
     end
-    if name:find("[%c|%%%[%]]") then
+    if name:find("[%c|%%%[%]]") or Util.IsPlaceholderName(name) then
         return nil
     end
     return name
@@ -561,7 +581,7 @@ function Util.SafeKey(key)
     if #key < 2 or #key > 50 then
         return nil
     end
-    if key:find("[%c|%%%[%]]") then
+    if key:find("[%c|%%%[%]]") or Util.IsPlaceholderName(key) then
         return nil
     end
     return key
@@ -763,6 +783,26 @@ function Util.InitDB()
     if type(db.players) ~= "table" then
         db.players = {}
     end
+    -- One-shot at load. A party slot named "Unknown" used to be stored as a
+    -- person and then rated when the real name arrived. Never walk this from
+    -- Scan, Publish, or roster ticks.
+    local function dropPlaceholders(map)
+        if type(map) ~= "table" then
+            return
+        end
+        local drop = {}
+        for key in pairs(map) do
+            if type(key) == "string" and Util.IsPlaceholderName(key) then
+                drop[#drop + 1] = key
+            end
+        end
+        for i = 1, #drop do
+            map[drop[i]] = nil
+        end
+    end
+    dropPlaceholders(db.players)
+    dropPlaceholders(db.partyCounted)
+    dropPlaceholders(db.remote)
     if type(db.remote) ~= "table" then
         db.remote = {}
     end

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.4.11-beta — 2026-11-13
+
+- Filling the last party slot no longer opens **How was this player?** for Unknown. That window opens when someone actually leaves, or when the party ends.
+- A party member going offline no longer opens that window. They are still in the group. It opens when they actually leave.
+
 ## 0.4.10-beta — 2026-11-11
 
 - Someone who buffs you is listed once, for the same nearby lifetime as other encounters. A long buff no longer keeps them on the list.

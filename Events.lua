@@ -59,6 +59,7 @@ SF.Events.Listen("NAME_PLATE_UNIT_REMOVED")
 SF.Events.Listen("UNIT_AURA")
 SF.Events.Listen("CHANNEL_ROSTER_UPDATE")
 SF.Events.Listen("CHANNEL_COUNT_UPDATE")
+SF.Events.Listen("UNIT_NAME_UPDATE")
 SF.Events.Listen("PARTY_INVITE_REQUEST")
 SF.Events.Listen("RESURRECT_REQUEST")
 SF.Events.Listen("DAMAGE_METER_CURRENT_SESSION_UPDATED")
@@ -220,6 +221,14 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     if event == "GROUP_ROSTER_UPDATE" or event == "GROUP_LEFT" then
         Group.RefreshRoster()
+        return
+    end
+    if event == "UNIT_NAME_UPDATE" then
+        -- The name of the person who just filled the group arrives here, after
+        -- the roster event that still called them Unknown.
+        if type(arg1) == "string" and (arg1 == "player" or arg1:match("^party%d") or arg1:match("^raid%d")) then
+            Group.RefreshRoster()
+        end
         return
     end
     if event == "CHAT_MSG_SYSTEM" then

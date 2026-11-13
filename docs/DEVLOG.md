@@ -144,6 +144,28 @@ The meeting is counted once. After that they leave on the same nearby timer as e
 
 **Creative direction:** Babuni — same shelf life for buff casters, and a toggle if the buff tooltip can name them. **AI contribution:** Stopped repeat aura updates from refreshing the sighting, and hooked the player buff tooltip with a settings switch. **Verification:** Automated check covers one note per buff and the cached caster name. The live tooltip still needs a look after `/reload`.
 
+## 2026-11-13 — Publish 0.4.11-beta
+
+The rating window was opening for people who were still in the party: once when the last slot filled, and again when someone only disconnected. Babuni asked for that correction to be tagged so other players can get it.
+
+**Creative direction:** Babuni — publish the rating-window fix. **AI contribution:** Prepared `v0.4.11-beta` from the Forever install. **Verification:** Automated checks passed before the tag. A live group was not rerun before publication.
+
+## 2026-11-13 — Offline is not the same as leaving
+
+The rating window also opened when someone in the party disconnected. They were still in the group. The slot had only gone offline.
+
+That question now waits until they actually leave. Going offline still takes them off Nearby, because they are not standing there, but it does not ask how the group was.
+
+**Creative direction:** Babuni — ask only when someone leaves the group, not when they disconnect and remain in it. Do not tag this yet. **AI contribution:** Kept an existing party slot in the roster whether or not the client reports them connected. **Verification:** The group-rate mock covers a disconnect with no prompt, then a real leave. Live Forever check after `/reload` is still required.
+
+## 2026-11-13 — A full group is not someone leaving
+
+The rating window was opening every time the last person joined. It asked how Unknown was, and said they had been grouped with several times. Nobody had left. The group had just filled.
+
+The game reports that new person as Unknown until their name arrives. That placeholder was being remembered, and the next update looked like they had left. A full group now stays quiet. The question still comes up when someone actually leaves, or when the party ends.
+
+**Creative direction:** Babuni — do not ask how a player was when the group fills; nobody left. **AI contribution:** Ignored unresolved party names and kept the previous roster until every connected party slot has a real name. **Verification:** A mock test covers a group filling through an Unknown slot, then a real leave. Live Forever check after `/reload` is still required.
+
 ## 2026-11-11 — Publish 0.4.10-beta
 
 The local fixes had piled up since 0.4.9-beta: one list in a fight, name clicks, both names on every row, not listing myself, and buffs that no longer pin someone for the whole spell. Babuni asked for that build to be tagged and published.

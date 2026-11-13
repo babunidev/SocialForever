@@ -29,6 +29,11 @@ assertTrue(Util.SameKey("Anne-Marie","Anne Marie"),"hyphen/space comparison fail
 assertTrue(Util.IsMe("Local Player"),"self name with space not excluded")
 assertTrue(Util.IsMe("Local-Player"),"self name with hyphen not excluded")
 assertFalse(Util.IsMe("Another-Player"),"other player mistaken for self")
+assertEqual(Util.MakeKey("Unknown",nil),nil,"client placeholder Unknown is not a player")
+assertEqual(Util.MakeKey("Unknown","CAMWOWEU4Realm10RP"),nil,"placeholder with a realm token is not a player")
+assertEqual(Util.MakeKey("Unknown Entity",nil),nil,"Unknown Entity placeholder is not a player")
+assertEqual(Util.SafeKey("Unknown"),nil,"SafeKey must reject the Unknown placeholder")
+assertEqual(Util.MakeKey("Unknown Fate",nil),"Unknown-Fate","a real two-word name may start with Unknown")
 assertEqual(Util.SafeKey("A"),nil,"one-character invalid name accepted")
 assertEqual(Util.SafeKey("Bad|Name"),nil,"unsafe name accepted")
 

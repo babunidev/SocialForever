@@ -5,6 +5,24 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## 0.4.11-beta — 2026-11-13
+
+- Babuni asked to tag and publish the rating-window fixes. The tag is `v0.4.11-beta`. Filling the last party slot, and a member going offline, no longer open **How was this player?** The window opens when someone actually leaves, or when the party ends.
+- Automated checks passed before the tag. These two prompts were not rechecked in a live group before publication, so this release does not claim that in-game confirmation.
+
+## 0.4.11-beta — a disconnect is not someone leaving (2026-11-13)
+
+- A party member who disconnects was still opening **How was this player?** while their slot remained in the group.
+- `Group.PartyKeys` required `UnitIsConnected`. An offline member dropped out of the roster diff and looked like a leave. The slot now counts for as long as it exists, online or offline. Nearby still drops offline group members; that list is separate from the rating window.
+- If the slot exists but the name cannot be read, the previous roster is kept and nobody is asked. `tests/test_group_rate.lua` covers a disconnect with no prompt, then the same person actually leaving.
+
+## 0.4.11-beta — a full group is not someone leaving (2026-11-13)
+
+- Babuni saw **How was this player?** for Unknown ("Grouped 8 times") every time the last person filled the group, including from the group finder. Nobody had left.
+- The roster diff treated a party slot with no real name as a member, then as a member who left once the real name replaced "Unknown". `Util.IsPlaceholderName` rejects that client placeholder. While any party slot still exists without a real name, `Group.RefreshRoster` keeps the previous members and does not open the rating window.
+- `UNIT_NAME_UPDATE` on party and raid units runs the same refresh once the name arrives. Login cleanup drops a stored Unknown memory so the old grouped count is not kept. This walk is only in `Util.InitDB`, not on Scan, Publish, or roster ticks.
+- `tests/test_group_rate.lua` covers a party filling through an Unknown slot, the real name arriving with no prompt, and a later real leave still opening the window. `tests/test_names.lua` rejects the placeholder key. Live Forever retest is still required.
+
 ## 0.4.10-beta — 2026-11-11
 
 - Babuni asked to tag and publish the local work that had stayed unreleased after `v0.4.9-beta`. The tag is `v0.4.10-beta`. It includes one list during combat, secure name clicks, two-name display, self-exclusion, stricter presence, and the buff lifetime plus buff-caster tooltip.
