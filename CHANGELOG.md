@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add a Familiar thoughts setting to mute familiar-player chat messages.
+
 ## 0.4.11-beta — 2026-11-13
 
 - Filling the last party slot no longer opens **How was this player?** for Unknown. That window opens when someone actually leaves, or when the party ends.

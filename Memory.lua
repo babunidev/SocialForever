@@ -493,6 +493,9 @@ function Memory.RecognitionOnCooldown(key)
 end
 
 function Memory.RecognitionEligible(key)
+    if not SF.db or SF.db.recognitionThoughts == false then
+        return false
+    end
     key = Util.SafeKey(key)
     if not key or Util.IsMe(key) then
         return false
@@ -558,6 +561,9 @@ function Memory.FlushRecognitionAfterCombat()
 end
 
 function Memory.FireRecognition(key)
+    if not SF.db or SF.db.recognitionThoughts == false then
+        return false
+    end
     key = Util.SafeKey(key)
     if not key then
         return false
