@@ -2,11 +2,9 @@
 
 Follow [the documentation standard](DOCUMENTATION.md) for first-person author voice throughout project documentation, factual changelogs, and naming the AI tool and verified model for each contribution.
 
-**Human creative and creative direction:** Babuni
+## Recognizing people in the world
 
-## Creative direction
-
-Babuni wanted a practical social helper for World of Warcraft: Forever while playing with nameplates switched off: discover nearby people, quickly target or invite them and recognize familiar faces. A quiet message about having seen a character of a given race and class before was intended to encourage paying attention to the world and its inhabitants. That social intention is Babuni's contribution, not an AI invention.
+With nameplates off in World of Warcraft: Forever, I wanted to notice nearby people, target or invite them quickly and recognize faces I had seen before. A quiet note about a familiar character’s race and class was my way of encouraging attention to the people around me.
 
 ## Implementations and corrections in the record
 
@@ -20,8 +18,12 @@ Document proposals as proposals, implemented code as source-observed and release
 
 ## Release preparation and publication — 4 November 2026
 
-**Human direction:** Babuni approved removing unattended invite paths, keeping invitations deliberate, preparing 0.4.7-beta before final live-client testing, and publishing that exact beta once automated verification was green. **AI contribution:** repository audit, release-diff review, GitHub Actions test coverage, package-integrity checks, release-document preparation and GitHub repository updates. **Human-operated publication:** Babuni created and pushed the annotated `v0.4.7-beta` tag and created the matching GitHub prerelease from the terminal. **Verification:** the exact release commit passed automated/local checks; GitHub publication is confirmed; CurseForge accepted the tag-triggered Beta for Forever 1.60.1 and was observed in Processing state; live Forever testing and final CurseForge approval remain pending.
+**Human direction:** For this release, I approved removing unattended invite paths, keeping invitations deliberate, preparing 0.4.7-beta before final live-client testing, and publishing that exact beta once automated verification was green. **AI contribution:** repository audit, release-diff review, GitHub Actions test coverage, package-integrity checks, release-document preparation and GitHub repository updates. **Human-operated publication:** From my terminal, I created and pushed the annotated `v0.4.7-beta` tag and created the matching GitHub prerelease from the terminal. **Verification:** the exact release commit passed automated/local checks; GitHub publication is confirmed; CurseForge accepted the tag-triggered Beta for Forever 1.60.1 and was observed in Processing state; live Forever testing and final CurseForge approval remain pending.
 
 ## Combat hotfix preparation — 5 November 2026
 
-**Human direction:** Babuni supplied both live BugGrabber reports and directed an immediate tagged hotfix once the combat restrictions were diagnosed. **AI contribution:** traced the secure-row and `CheckInteractDistance` failures, implemented combat-safe guards, extended regression/static checks, synchronized release metadata and documentation, and prepared 0.4.8-beta. **Verification:** automated checks cover both corrected paths and package integrity. Babuni then performed a focused live Forever combat retest in which the two previously observed protected-action errors did not recur. Broader addon verification remains separate.
+**Human direction:** To explain the direction, I supplied both live BugGrabber reports and directed an immediate tagged hotfix once the combat restrictions were diagnosed. **AI contribution:** traced the secure-row and `CheckInteractDistance` failures, implemented combat-safe guards, extended regression/static checks, synchronized release metadata and documentation, and prepared 0.4.8-beta. **Verification:** automated checks cover both corrected paths and package integrity. After the fix, I performed a focused live Forever combat retest in which the two previously observed protected-action errors did not recur. Broader addon verification remains separate.
+
+## 18 November 2026 — Collaboration record review
+
+At my request, Codex (GPT-6) revised this record for first-person voice and checked the attribution against the available repository documentation. Where an earlier AI tool or model is missing from the record, its identity remains unconfirmed.
