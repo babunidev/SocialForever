@@ -63,7 +63,7 @@ grep -Fq 'type(InCombatLockdown) == "function" and InCombatLockdown()' Core.lua
 
 echo "Checking CurseForge packaging metadata..."
 grep -Eq '^package-as:[[:space:]]+SocialForever[[:space:]]*$' .pkgmeta
-for ignored in '.github' 'tests' 'AGENTS.md' 'CONCEPT.md' 'DEVELOPMENT.md' 'ROADMAP.md' 'docs'; do
+for ignored in '.github' 'tests' 'AGENTS.md' 'docs'; do
   grep -Fq "  - $ignored" .pkgmeta
 done
 

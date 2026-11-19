@@ -8,7 +8,7 @@ With nameplates off in World of Warcraft: Forever, I wanted to notice nearby peo
 
 ## Implementations and corrections in the record
 
-The [development notes](../DEVELOPMENT.md) and [changelog](../CHANGELOG.md) document transitions from a large Lua file to modular responsibilities; stability work to freeze the list during interaction; a distinction between Nearby and General Zone listings; opt-in shared-mob invitations; private flags rather than propagated judgments; and a persistent 20-minute cooldown for familiar recognition. AI assistance may be credited for code and documentation only where evidence supports the particular contribution.
+The [development notes](DEVELOPMENT.md) and [changelog](../CHANGELOG.md) document transitions from a large Lua file to modular responsibilities; stability work to freeze the list during interaction; a distinction between Nearby and General Zone listings; opt-in shared-mob invitations; private flags rather than propagated judgments; and a persistent 20-minute cooldown for familiar recognition. AI assistance may be credited for code and documentation only where evidence supports the particular contribution.
 
 ## Audit #32 — 27 October 2026
 

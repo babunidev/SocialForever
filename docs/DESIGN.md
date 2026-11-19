@@ -9,7 +9,7 @@ SocialForever is designed for a player who keeps nameplates off but wants to not
 
 ## List behavior
 
-The [development log](../DEVELOPMENT.md) records the 0.4.1 separation into **Nearby** and **Zone** tabs. Zone is informed by the General roster but does not count as physical proximity or personal familiarity. Nearby focuses on sightings supported by local evidence. The current target is pinned atop Nearby (0.3.1). Hovering over the interactive list freezes the displayed order to protect clicks; underlying detection continues and the list refreshes on exit.
+The [development log](DEVELOPMENT.md) records the 0.4.1 separation into **Nearby** and **Zone** tabs. Zone is informed by the General roster but does not count as physical proximity or personal familiarity. Nearby focuses on sightings supported by local evidence. The current target is pinned atop Nearby (0.3.1). Hovering over the interactive list freezes the displayed order to protect clicks; underlying detection continues and the list refreshes on exit.
 
 ## Personal memory and signals
 

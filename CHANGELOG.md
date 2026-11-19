@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed — documentation moved into `docs/` (2026-11-19)
+- Moved `CONCEPT.md`, `ROADMAP.md` and `DEVELOPMENT.md` into `docs/`. The root keeps only `README.md`, `AGENTS.md`, `LICENSE` and `CHANGELOG.md`; links to the moved files and the documentation rules in `AGENTS.md` were updated. No code changed. Claude Code (Claude Opus 5.5).
+
 ## 0.4.11-beta — 2026-11-13
 
 - Filling the last party slot no longer opens **How was this player?** for Unknown. That window opens when someone actually leaves, or when the party ends.
