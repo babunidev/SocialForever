@@ -310,6 +310,7 @@ function Group.Arm()
             Group.EndPartySession()
         end
     end
+    Group.RefreshRoster()
 end
 
 function Group.PartyHasRoom()

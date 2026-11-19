@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed — party rating after a world transition (2026-11-20)
+- Leaving a party during the short login/world-transition guard no longer loses the **How was this group?** window. When rating prompts re-arm, Social Forever immediately rechecks the current roster and asks once if the party ended while prompts were paused.
+
 ### Changed — documentation moved into `docs/` (2026-11-19)
 - Moved `CONCEPT.md`, `ROADMAP.md` and `DEVELOPMENT.md` into `docs/`. The root keeps only `README.md`, `AGENTS.md`, `LICENSE` and `CHANGELOG.md`; links to the moved files and the documentation rules in `AGENTS.md` were updated. No code changed. Claude Code (Claude Opus 5.5).
 
