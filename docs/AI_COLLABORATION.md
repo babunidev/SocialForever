@@ -1,29 +1,28 @@
-# SocialForever — Human–AI Collaboration
+# Human–AI collaboration
 
-Follow [the documentation standard](DOCUMENTATION.md) for first-person author voice throughout project documentation, factual changelogs, and naming the AI tool and verified model for each contribution.
+## How I work with AI
 
-## Recognizing people in the world
+Every project here begins with something I want to see in a game, on a screen or in a story. The ideas, the direction and the decisions are mine, and so are the playtests and the checks on my own devices. AI helps me get there. In my early projects that meant asking ChatGPT for Lua in a conversation, copying the changes into local files and trying them in the game. Today coding agents work directly in the repositories: they research, write code and documentation and run tests, while I decide what to build, try it out and say what works and what doesn't.
 
-With nameplates off in World of Warcraft: Forever, I wanted to notice nearby people, target or invite them quickly and recognize faces I had seen before. A quiet note about a familiar character’s race and class was my way of encouraging attention to the people around me.
+Two rules hold this record together. Work is credited to whoever did it: the story is told in my voice, but when AI wrote code or a document, the record says so and names the tool and, where it is known, the model. And a plan is not a result: proposed, accepted, built, tested and published stay separate, and an automated test by an AI is not the same as my own check in the game or on my phone.
 
-## Implementations and corrections in the record
+## Who did what
 
-The [development notes](DEVELOPMENT.md) and [changelog](../CHANGELOG.md) document transitions from a large Lua file to modular responsibilities; stability work to freeze the list during interaction; a distinction between Nearby and General Zone listings; opt-in shared-mob invitations; private flags rather than propagated judgments; and a persistent 20-minute cooldown for familiar recognition. AI assistance may be credited for code and documentation only where evidence supports the particular contribution.
+| Who | Role | Model as recorded |
+| --- | --- | --- |
+| **Babuni** | Creative: ideas, direction, decisions, corrections, playtesting and device checks | — |
+| **Codex** | Coding agent in the repository: research, code, documentation and tests | GPT-6 |
+| **Claude Code** | Coding agent in the repository: research, code, documentation and tests | Claude Opus 5.5 |
+| **Cursor** | Coding agent in the repository: research, code, documentation and tests | Not recorded |
+| **Earlier AI help** | Work that older entries describe only as “AI” | Tool and model not recorded |
 
-## Audit #32 — 27 October 2026
+The journal and the changelog name the tool for each piece of AI work. A model that was not recorded stays unrecorded rather than guessed.
 
-**User direction:** Continue repository-by-repository documentation consolidation; retain original authorship and preserve historical decisions. **AI contribution:** Read current README, TOC, several Lua modules, release notes and development log; create navigational guides for visual design, content privacy, technical architecture and the history of design decisions. **Iteration:** Preserve the documented shifts in invitation logic and private flag sharing rather than presenting the first approach as final. **Verification:** No client, network, party-invite, persisted-data migration or CurseForge release test was run. This pass changes documentation only.
+## Where the details are
 
-Document proposals as proposals, implemented code as source-observed and release-test claims as historically reported. Do not reproduce private user data or mistake subjective community opinions for established facts.
+- [Development journal](DEVLOG.md): the story of the project in my voice, including what I asked for and what AI did.
+- [Decision record](DECISIONS.md): what was decided, by whom and why.
+- [Changelog](../CHANGELOG.md): what changed and how it was checked.
+- [Documentation standard](DOCUMENTATION.md) and [AGENTS.md](../AGENTS.md): the writing and working rules for everyone who contributes, human or AI.
 
-## Release preparation and publication — 4 November 2026
-
-**Human direction:** For this release, I approved removing unattended invite paths, keeping invitations deliberate, preparing 0.4.7-beta before final live-client testing, and publishing that exact beta once automated verification was green. **AI contribution:** repository audit, release-diff review, GitHub Actions test coverage, package-integrity checks, release-document preparation and GitHub repository updates. **Human-operated publication:** From my terminal, I created and pushed the annotated `v0.4.7-beta` tag and created the matching GitHub prerelease from the terminal. **Verification:** the exact release commit passed automated/local checks; GitHub publication is confirmed; CurseForge accepted the tag-triggered Beta for Forever 1.60.1 and was observed in Processing state; live Forever testing and final CurseForge approval remain pending.
-
-## Combat hotfix preparation — 5 November 2026
-
-**Human direction:** To explain the direction, I supplied both live BugGrabber reports and directed an immediate tagged hotfix once the combat restrictions were diagnosed. **AI contribution:** traced the secure-row and `CheckInteractDistance` failures, implemented combat-safe guards, extended regression/static checks, synchronized release metadata and documentation, and prepared 0.4.8-beta. **Verification:** automated checks cover both corrected paths and package integrity. After the fix, I performed a focused live Forever combat retest in which the two previously observed protected-action errors did not recur. Broader addon verification remains separate.
-
-## 18 November 2026 — Collaboration record review
-
-At my request, Codex (GPT-6) revised this record for first-person voice and checked the attribution against the available repository documentation. Where an earlier AI tool or model is missing from the record, its identity remains unconfirmed.
+The earlier, longer version of this record, as it stood on 19 November 2026, is kept in the [Git history](https://github.com/babunidev/SocialForever/blob/64a71f6b2578edd8a790905501825529b369a920/docs/AI_COLLABORATION.md).

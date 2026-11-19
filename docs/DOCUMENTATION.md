@@ -38,7 +38,7 @@ Use the existing files when present; create a missing file only when the reposit
 | `docs/DESIGN.md` | Visual, interaction or experience design, when relevant |
 | `docs/ARCHITECTURE.md` | Source-backed structure, interfaces and technical constraints, when relevant |
 | `docs/CONTENT.md` | Project content organization and editorial rules, when relevant |
-| `docs/AI_COLLABORATION.md` | Attribution methodology, evidence and roles |
+| `docs/AI_COLLABORATION.md` | How do I work with AI here, and who did what? |
 
 Do not force every repository to have software tests, a UI design, or the same folder layout. An archive, game, addon, website, tool, and story project may legitimately differ.
 
