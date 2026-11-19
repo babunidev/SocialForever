@@ -1001,7 +1001,8 @@ function UI.BuildMain()
         slider:SetValue(percent)
         slider.lock = false
         opacityValue:SetText(percent .. "%")
-        PaintSettingsChoice(thoughtsToggle, SF.db and SF.db.recognitionThoughts ~= false, "Familiar thoughts")
+        local thoughtsOn = Memory.RecognitionThoughtsOn and Memory.RecognitionThoughtsOn()
+        PaintSettingsChoice(thoughtsToggle, thoughtsOn, "Familiar thoughts")
         if UI.ShowBuffCaster() then
             buffToggle.label:SetText("> Show buff caster")
             buffToggle.label:SetTextColor(1, 0.82, 0.25)
@@ -1036,10 +1037,8 @@ function UI.BuildMain()
     size18:SetScript("OnClick", PickSize(18))
     size20:SetScript("OnClick", PickSize(20))
     thoughtsToggle:SetScript("OnClick", function()
-        if not SF.db then
-            return
-        end
-        SF.db.recognitionThoughts = SF.db.recognitionThoughts == false
+        local enabled = Memory.RecognitionThoughtsOn and not Memory.RecognitionThoughtsOn()
+        if Memory.SetRecognitionThoughts then Memory.SetRecognitionThoughts(enabled) end
         PaintSettingsMenu()
     end)
     buffToggle:SetScript("OnClick", function()

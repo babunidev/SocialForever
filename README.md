@@ -117,7 +117,7 @@ Green, Yellow, and Red marks appear as a colored letter on the left of the row. 
 
 ### Recognition
 
-To mute these messages, open the settings gear and click **Familiar thoughts** so it is unselected.
+To mute these messages, open the settings gear and click **Familiar thoughts** so it is unselected. Turning it off also cancels thoughts already waiting on a short delay or for combat to end.
 
 When a **blue** or **purple** familiar appears on Nearby (not only on the zone tab), or when you target them, Social Forever may print a quiet gray thought in chat, such as:
 

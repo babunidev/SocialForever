@@ -114,4 +114,23 @@ Memory.NoteTargetRecognition()
 assertTrue(S.nearby["Blue-Person"]~=nil,"target recognition did not promote player to Nearby")
 assertEqual(#chatMessages,1,"target recognition did not print after Nearby promotion")
 
+-- Turning the setting off cancels thoughts that were already delayed or
+-- waiting for combat to end, without changing familiarity or Nearby state.
+chatMessages={}
+S.P.recognitionPending["Blue-Person"]=true
+S.P.recognitionCombatPending["Blue-Person"]=true
+Memory.SetRecognitionThoughts(false)
+assertFalse(Memory.RecognitionThoughtsOn(),"familiar thoughts setting did not switch off")
+assertEqual(next(S.P.recognitionPending),nil,"delayed thoughts survived disabling")
+assertEqual(next(S.P.recognitionCombatPending),nil,"combat thoughts survived disabling")
+SocialForeverDB.players["Blue-Person"].lastRecognitionAt=nil
+assertFalse(Memory.RecognitionEligible("Blue-Person"),"disabled familiar thought remained eligible")
+assertFalse(Memory.FireRecognition("Blue-Person"),"disabled familiar thought fired")
+assertEqual(#chatMessages,0,"disabled familiar thought printed to chat")
+assertTrue(S.nearby["Blue-Person"]~=nil,"disabling familiar thoughts changed Nearby state")
+SF=loadAddon(); Memory=SF.Memory; S=SF.State
+assertFalse(Memory.RecognitionThoughtsOn(),"disabled familiar thoughts did not survive reload")
+Memory.SetRecognitionThoughts(true)
+assertTrue(Memory.RecognitionThoughtsOn(),"familiar thoughts setting did not switch back on")
+
 print("PASS: familiar-player recognition tests")

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Add a Familiar thoughts setting to mute familiar-player chat messages.
+- Add a Familiar thoughts setting that mutes new messages and cancels thoughts already delayed or waiting for combat to end.
 
 ### Changed — documentation moved into `docs/` (2026-11-19)
 - Moved `CONCEPT.md`, `ROADMAP.md` and `DEVELOPMENT.md` into `docs/`. The root keeps only `README.md`, `AGENTS.md`, `LICENSE` and `CHANGELOG.md`; links to the moved files and the documentation rules in `AGENTS.md` were updated. No code changed. Claude Code (Claude Opus 5.5).

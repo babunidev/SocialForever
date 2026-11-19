@@ -27,11 +27,13 @@ assertTrue(type(db.customFlags)=="table","customFlags missing")
 assertTrue(type(db.ignored)=="table","ignored missing")
 assertEqual(db.listTab,"nearby","default list tab wrong")
 assertEqual(db.sameMobAsk,nil,"same-mob prompt option should be discarded")
+assertEqual(db.recognitionThoughts,true,"familiar thoughts should default on")
 
 db = init({
     players={["Test-Person"]={nearbyTimes=4,color="green",flags={["Really friendly"]=true}}},
     remote={["Test-Person"]={["Other-Person"]={color="green",flags={["Old shared flag"]=true}}}},
-    customFlags={"Helpful"}, ignored={}, listTab="zone", sameMobAsk=true, migratedIgnoreFlags=true,
+    customFlags={"Helpful"}, ignored={}, listTab="zone", sameMobAsk=true,
+    recognitionThoughts=false, migratedIgnoreFlags=true,
 })
 assertTrue(db.players["Test-Person"] ~= nil,"existing player lost")
 assertEqual(db.players["Test-Person"].nearbyTimes,4,"familiarity changed")
@@ -39,6 +41,7 @@ assertEqual(db.players["Test-Person"].color,"green","mark changed")
 assertTrue(db.players["Test-Person"].flags["Really friendly"] == true,"personal flag lost")
 assertEqual(db.listTab,"zone","list tab not preserved")
 assertEqual(db.sameMobAsk,nil,"legacy same-mob prompt option should be discarded")
+assertEqual(db.recognitionThoughts,false,"disabled familiar thoughts not preserved")
 assertEqual(db.remote["Test-Person"]["Other-Person"].flags,nil,"legacy remote flags not removed")
 
 db = init({players={},remote={},customFlags={},ignored={},autoInviteFriends=true,migratedIgnoreFlags=true})

@@ -822,6 +822,9 @@ function Util.InitDB()
         db.listTab = "nearby"
     end
     S.listTab = db.listTab
+    if db.recognitionThoughts ~= false then
+        db.recognitionThoughts = true
+    end
     -- Removed options are discarded harmlessly from older SavedVariables.
     db.sameMobAsk = nil
     db.autoInviteFriends = nil
