@@ -11,7 +11,8 @@ function UnitClass() return "Warrior","WARRIOR" end
 function UnitRace() return "Human","Human" end
 function InCombatLockdown() return false end
 function IsInRaid() return false end
-function IsInGroup() return true end
+local inGroup = true
+function IsInGroup() return inGroup end
 C_Timer = {
     After = function() end,
     NewTicker = function() return { Cancel = function() end } end,
@@ -135,4 +136,16 @@ assertEqual(shown, 1, "a real person leaving did not open the rating window")
 assertEqual(rated[1], "Cara Dell", "rating window named the wrong person")
 assertTrue(not hasKey(rated, "Unknown"), "rating window included Unknown")
 
-print("PASS: group fill and disconnect do not rate someone still in the party")
+S.armed = false
+inGroup = false
+resetPopup()
+Group.RefreshRoster()
+assertEqual(shown, 0, "disarmed transition opened the rating window early")
+assertTrue(S.wasParty, "disarmed transition forgot that the player was in a party")
+Group.Arm()
+assertEqual(shown, 1, "re-arming after leaving the party lost the rating window")
+assertTrue(hasKey(rated, "Anna Belle"), "re-armed rating window lost a party member")
+assertTrue(hasKey(rated, "Evan Frost"), "re-armed rating window lost another party member")
+assertTrue(hasKey(rated, "Last Joined"), "re-armed rating window lost the last party member")
+
+print("PASS: group ratings ignore false leaves and survive a disarmed world transition")

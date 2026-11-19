@@ -171,3 +171,11 @@ The game reports that new person as Unknown until their name arrives. That place
 The local fixes had piled up since 0.4.9-beta: one list in a fight, name clicks, both names on every row, not listing myself, and buffs that no longer pin someone for the whole spell. Babuni asked for that build to be tagged and published.
 
 **Creative direction:** Babuni — tag and publish the current local build. **AI contribution:** Prepared `v0.4.10-beta` from the Forever install, pushed `main`, and opened the GitHub prerelease. **Verification:** Automated checks passed before the tag, and GitHub's pre-release verification passed on that push. CurseForge was still listing v0.4.9-beta immediately afterward. Live Forever checks on the roadmap were not rerun for this publication.
+
+## 2026-11-20 — Do not lose the question during a world transition
+
+Sometimes I would join somebody, leave the party, and never see the question about how that player or group was. The question is meant to appear after a real party exit, so a loading transition should not silently consume it.
+
+The missing case was the addon's own two-second safety pause after entering the world. A party-to-solo update during that pause correctly kept the previous roster, but the code never checked the roster again when prompts resumed. Re-arming now performs that check immediately, so the retained group can be rated once without weakening the guard itself.
+
+**Creative direction:** Babuni — investigate whether the rating question was being hidden too aggressively and correct missed real party exits. **AI contribution:** OpenAI Codex (GPT-5) traced the event ordering, added the re-arm roster check and regression coverage, and ran the automated suite. **Verification:** The mocked party-to-solo transition now opens the window after re-arming; live Forever verification is still pending.
