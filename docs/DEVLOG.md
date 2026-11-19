@@ -2,6 +2,14 @@
 
 **Human creative:** Babuni
 
+## 2026-11-20 — Turning familiar thoughts off clears the queue
+
+The switch should stop a thought immediately, including one already delayed or waiting for combat to end. Nearby detection and familiarity stay active; only the quiet chat message is muted.
+
+A direct settings-field toggle was considered too weak because turning the feature off and back on quickly could let an older queued thought through. The setting now owns queue cancellation as one operation.
+
+**Creative direction:** Babuni — carry the related local familiar-thoughts improvement into the open pull request without mixing in separate panel or minimap work. **AI contribution:** Codex (GPT-5) isolated the queue behavior, adapted it to the current pull-request branch, and added regression coverage. **Verification:** The automated Lua, mock, static and package checks pass on Intel; a live Forever client retest is still required.
+
 ## Retrospective reconstruction — 2026-10-26
 
 SocialForever grew from a simple social problem: familiar people can remain strangely anonymous when playing with nameplates switched off. For me, the addon is meant to make recurring encounters easier to notice, target, invite and remember without turning the world into a permanent scanning overlay. The repository shows how that idea became a seven-module implementation covering proximity signals, encounter persistence, party ratings, sharing and list display.

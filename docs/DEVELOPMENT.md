@@ -5,6 +5,12 @@ Social Forever, by Babunigaming. Newest step first.
 When a change ships, add it at the top. Keep the note about what the player can see, and why it was made.
 
 
+## Unreleased — familiar thoughts stop immediately (2026-11-20)
+
+- Turning **Familiar thoughts** off now invalidates delayed timers and clears recognition messages waiting for combat to end. Turning the option back on cannot release an older thought from before it was disabled.
+- The change leaves Nearby detection, familiarity counts and saved player memory untouched. `tests/test_recognition.lua` covers the queue cleanup, disabled state, reload persistence and re-enabling; `tests/test_savedvariables.lua` covers the default-on and saved-off states. A live Forever retest is still required.
+
+
 ## 0.4.11-beta — 2026-11-13
 
 - Babuni asked to tag and publish the rating-window fixes. The tag is `v0.4.11-beta`. Filling the last party slot, and a member going offline, no longer open **How was this player?** The window opens when someone actually leaves, or when the party ends.

@@ -895,7 +895,7 @@ function UI.BuildMain()
 
     local panel = CreateFrame("Frame", "SocialForeverSettings", UIParent, "BackdropTemplate")
     panel:SetFrameStrata("DIALOG")
-    panel:SetSize(176, 198)
+    panel:SetSize(176, 208)
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
     panel:Hide()
@@ -979,6 +979,7 @@ function UI.BuildMain()
         end
         UI.ApplyBackground()
     end)
+    local thoughtsToggle = MenuRow(-180, true)
     local buffToggle = MenuRow(-156, true)
 
     local function PaintSettingsChoice(button, selected, text)
@@ -1000,6 +1001,8 @@ function UI.BuildMain()
         slider:SetValue(percent)
         slider.lock = false
         opacityValue:SetText(percent .. "%")
+        local thoughtsOn = Memory.RecognitionThoughtsOn and Memory.RecognitionThoughtsOn()
+        PaintSettingsChoice(thoughtsToggle, thoughtsOn, "Familiar thoughts")
         if UI.ShowBuffCaster() then
             buffToggle.label:SetText("> Show buff caster")
             buffToggle.label:SetTextColor(1, 0.82, 0.25)
@@ -1016,6 +1019,7 @@ function UI.BuildMain()
     end
     LeaveChoice(size16)
     LeaveChoice(size18)
+    LeaveChoice(thoughtsToggle)
     LeaveChoice(size20)
     local function PickSize(size)
         return function()
@@ -1032,6 +1036,11 @@ function UI.BuildMain()
     size16:SetScript("OnClick", PickSize(16))
     size18:SetScript("OnClick", PickSize(18))
     size20:SetScript("OnClick", PickSize(20))
+    thoughtsToggle:SetScript("OnClick", function()
+        local enabled = Memory.RecognitionThoughtsOn and not Memory.RecognitionThoughtsOn()
+        if Memory.SetRecognitionThoughts then Memory.SetRecognitionThoughts(enabled) end
+        PaintSettingsMenu()
+    end)
     buffToggle:SetScript("OnClick", function()
         if not SF.db then
             return

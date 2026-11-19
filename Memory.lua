@@ -493,6 +493,9 @@ function Memory.RecognitionOnCooldown(key)
 end
 
 function Memory.RecognitionEligible(key)
+    if not SF.db or SF.db.recognitionThoughts == false then
+        return false
+    end
     key = Util.SafeKey(key)
     if not key or Util.IsMe(key) then
         return false
@@ -508,6 +511,24 @@ function Memory.RecognitionEligible(key)
         return false
     end
     return true
+end
+
+function Memory.RecognitionThoughtsOn()
+    return SF.db ~= nil and SF.db.recognitionThoughts ~= false
+end
+
+function Memory.SetRecognitionThoughts(enabled)
+    if not SF.db then
+        return
+    end
+    SF.db.recognitionThoughts = enabled and true or false
+    if not enabled then
+        -- Invalidate delayed/combat thoughts that were queued before the user
+        -- switched the feature off. Detection and familiarity remain intact.
+        S.P.recognitionToken = {}
+        S.P.recognitionPending = {}
+        S.P.recognitionCombatPending = {}
+    end
 end
 
 function Memory.CancelRecognition(key)
@@ -558,6 +579,9 @@ function Memory.FlushRecognitionAfterCombat()
 end
 
 function Memory.FireRecognition(key)
+    if not SF.db or SF.db.recognitionThoughts == false then
+        return false
+    end
     key = Util.SafeKey(key)
     if not key then
         return false
@@ -624,7 +648,7 @@ function Memory.RecognitionDelay()
 end
 
 function Memory.NoteNearbyRecognition(key)
-    if not S.armed then
+    if not S.armed or not Memory.RecognitionThoughtsOn() then
         return
     end
     key = Util.SafeKey(key)
@@ -635,7 +659,7 @@ function Memory.NoteNearbyRecognition(key)
 end
 
 function Memory.NoteTargetRecognition()
-    if not S.armed or not SF.db then
+    if not S.armed or not Memory.RecognitionThoughtsOn() then
         return
     end
     local okPlayer, isPlayer = pcall(UnitIsPlayer, "target")
