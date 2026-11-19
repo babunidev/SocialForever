@@ -28,16 +28,20 @@ When code behavior changes, update the matching docs **in the same working pass*
 | --- | --- |
 | Player-visible behavior | `CHANGELOG.md` Unreleased, `README.md` if it describes current UX |
 | Why / creative decision / rejected approach | `docs/DECISIONS.md`, short `docs/DEVLOG.md` entry |
-| Implementation detail / timers / detection | `DEVELOPMENT.md` (newest first) |
-| Planned follow-up | `ROADMAP.md` |
+| Implementation detail / timers / detection | `docs/DEVELOPMENT.md` (newest first) |
+| Planned follow-up | `docs/ROADMAP.md` |
 | Hot-path / safety / workflow rule | this `AGENTS.md` and `.cursor/rules/` if Cursor-specific |
 
 Do not leave docs for “later when we push.” Local Forever work still gets Unreleased notes. Push/tag still only when Babuni asks.
 
 ## Documentation and privacy standard (audit #32)
 
-Preserve `DEVELOPMENT.md` and `CHANGELOG.md` as chronological implementation evidence. Maintain explicit separation between *Zone candidate*, *Nearby observation*, *persisted personal memory*, *private flags* and *shared marks*. Do not portray subjective player labels or received votes as verified reputation facts. Never publish actual identifiable player records in the portfolio. Attribute the original social-recognition purpose to Babuni; label AI assistance, code-only findings, historic claims and newly executed tests separately.
+Preserve `docs/DEVELOPMENT.md` and `CHANGELOG.md` as chronological implementation evidence. Maintain explicit separation between *Zone candidate*, *Nearby observation*, *persisted personal memory*, *private flags* and *shared marks*. Do not portray subjective player labels or received votes as verified reputation facts. Never publish actual identifiable player records in the portfolio. Attribute the original social-recognition purpose to Babuni; label AI assistance, code-only findings, historic claims and newly executed tests separately.
 
 ## Repository-local documentation standard
 
 Follow [the documentation standard](docs/DOCUMENTATION.md) for first-person author voice throughout project documentation, factual changelogs, and naming the AI tool and verified model for each contribution. These rules travel with this repository and do not depend on the babuni.dev ChatGPT Project. Preserve all project-specific technical, creative, canon, safety, licensing, and historical rules in this file; follow the linked standard for public first-person narrative, human–AI attribution, concise development journals, decision records, and evidence-based verification. **Babuni** is the human creative; **babuni.dev** is the website/portfolio, not the person. Preserve third-party credits and historical legal notices. References above to a dated “documentation-only audit” describe that past task, not a permanent ban on later authorized implementation.
+
+## Repository layout
+
+The repository root holds only `README.md`, `AGENTS.md`, `LICENSE` and `CHANGELOG.md` (plus any additional license files). All other documentation lives in `docs/`; put new documents there.

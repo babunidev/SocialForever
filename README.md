@@ -279,11 +279,11 @@ MIT. See [LICENSE](LICENSE).
 
 ## Development
 
-The version-by-version development history is in [DEVELOPMENT.md](DEVELOPMENT.md).
+The version-by-version development history is in [DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Development documentation
 
-- [Concept](CONCEPT.md) · [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
+- [Concept](docs/CONCEPT.md) · [Roadmap](docs/ROADMAP.md) · [Changelog](CHANGELOG.md)
 - [Architecture](docs/ARCHITECTURE.md) · [Design evidence](docs/DECISIONS.md) · [Development journal](docs/DEVLOG.md)
 - [AI collaborator rules](AGENTS.md)
 
@@ -291,6 +291,6 @@ The journal distinguishes source-based reconstruction, human creative direction,
 
 ## Documentation audit #32 — 27 October 2026
 
-The original [development log](DEVELOPMENT.md) and [changelog](CHANGELOG.md) remain the primary account of releases and corrections. The supporting [design](docs/DESIGN.md), [content/provenance](docs/CONTENT.md), [architecture](docs/ARCHITECTURE.md), [decisions](docs/DECISIONS.md), [development journal](docs/DEVLOG.md), and [AI collaboration](docs/AI_COLLABORATION.md) documents interpret them for the portfolio without inventing missing history.
+The original [development log](docs/DEVELOPMENT.md) and [changelog](CHANGELOG.md) remain the primary account of releases and corrections. The supporting [design](docs/DESIGN.md), [content/provenance](docs/CONTENT.md), [architecture](docs/ARCHITECTURE.md), [decisions](docs/DECISIONS.md), [development journal](docs/DEVLOG.md), and [AI collaboration](docs/AI_COLLABORATION.md) documents interpret them for the portfolio without inventing missing history.
 
 **Current documented state:** last published tag **0.4.9-beta**, Interface 16001, plus **unreleased** local Forever work (slimmer settings, header order, guild on tooltip, marks vs familiarity color). The Nearby/Zone split matters: names in General do not prove physical proximity or count as personal familiarity. The familiar-thought mechanic uses a 20-minute per-player cooldown surviving reload/logout. Flags, KOS and declined invite counts are personal; compatible nearby users may exchange color marks, not flags. The 2026-10-27 documentation audit did not execute WoW, send invitations, inspect real player data or test migrations. Later betas passed automated/mock verification; broader live Forever verification remains ongoing. Unreleased local changes have not been pushed or tagged yet.

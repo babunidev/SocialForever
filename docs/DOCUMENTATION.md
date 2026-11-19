@@ -28,8 +28,8 @@ Use the existing files when present; create a missing file only when the reposit
 | File | Responsibility |
 | --- | --- |
 | `README.md` | Public entry point, project purpose, usage and current status |
-| `CONCEPT.md` | Human creative vision, motivations, approved goals and boundaries |
-| `ROADMAP.md` | Planned, in-progress, completed and deferred work with truthful status |
+| `docs/CONCEPT.md` | Human creative vision, motivations, approved goals and boundaries |
+| `docs/ROADMAP.md` | Planned, in-progress, completed and deferred work with truthful status |
 | `CHANGELOG.md` | Actual repository changes; no proposals or unimplemented features |
 | `AGENTS.md` | Repository-specific agent, technical, safety and workflow rules |
 | `docs/DOCUMENTATION.md` | This shared writing and attribution standard |

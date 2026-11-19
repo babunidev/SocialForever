@@ -8,7 +8,4 @@ ignore:
   - .github
   - tests
   - AGENTS.md
-  - CONCEPT.md
-  - DEVELOPMENT.md
-  - ROADMAP.md
   - docs
